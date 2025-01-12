@@ -1,0 +1,20 @@
+Nom;Fréquence;Priorité;Durée (min);Date prévue;Date achevée;Achevée?
+🍴 Mettre la vaisselle au lave-vaisselle;1xjour;5.0;10;;;0
+🍴 Nettoyer la vaisselle sale à la main;1xjour;4.0;30;;;0
+🍴 Ranger la vaisselle propre;1xjour;4.0;10;;;0
+🍴 Nettoyer la table à manger;1xjour;4.0;10;;;0
+🍴 Ranger le plan de travail;1xjour;4.0;5;;;0
+🍴 Nettoyer le plan de travail;1xjour;4.0;10;;;0
+🛋️ Ranger ce qui traîne;1xjour;4.0;20;;;0
+🍴 Sortir les poubelles;1xsemaine;3.0;10;;;0
+🛋️ Passer l'aspirateur;1xsemaine;3.0;40;;;0
+🛋️ Passer la serpillère;1xsemaine;3.0;40;;;0
+👕 Faire la lessive vêtements AC;1xsemaine;3.0;15;;;0
+👕 Faire la lessive vêtements Cyril;1xsemaine;3.0;15;;;0
+😺 Changer la litière;1xsemaine;3.0;15;;;0
+🛏 Ranger les vêtements qui trainent;1xjour;3.0;15;;;0
+🍴 Nettoyer la plaque de cuisson;1xsemaine;2.0;20;;;0
+🍴 Nettoyer la machine à café;1xsemaine;2.0;10;;;0
+🍴 Jetter les cartons;1xsemaine;2.0;10;;;0
+🛋️ Nettoyer les bureaux;1xsemaine;2.0;15;;;0
+🛋️ Nettoyer la table basse;1xsemaine;2.0;10;;;0
