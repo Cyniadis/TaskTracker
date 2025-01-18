@@ -1,0 +1,9 @@
+id: 29
+name: "\U0001F6CF Changer les draps"
+duration: 20
+initial_priority: 4.0
+priority: 4.0
+frequency: 15.2
+due_date: 18/01/2025
+last_done_date: null
+completed: false

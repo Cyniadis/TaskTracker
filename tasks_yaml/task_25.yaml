@@ -1,0 +1,9 @@
+id: 25
+name: "\U0001F455 Faire la lessive de draps"
+duration: 30
+initial_priority: 2.0
+priority: 2.0
+frequency: 15.2
+due_date: null
+last_done_date: null
+completed: false

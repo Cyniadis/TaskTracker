@@ -1,0 +1,9 @@
+id: 1
+name: "\U0001F374 Nettoyer la vaisselle sale \xE0 la main"
+duration: 30
+initial_priority: 4.0
+priority: 4.0
+frequency: 1.0
+due_date: null
+last_done_date: null
+completed: false

@@ -1,0 +1,9 @@
+id: 30
+name: "\U0001F331 Nettoyer la terrasse"
+duration: 120
+initial_priority: 1.0
+priority: 1.0
+frequency: 365.0
+due_date: 01/03/2025
+last_done_date: null
+completed: false

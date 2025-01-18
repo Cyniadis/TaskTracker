@@ -1,0 +1,9 @@
+id: 28
+name: "\U0001F6CF Nettoyer le sol"
+duration: 30
+initial_priority: 2.0
+priority: 2.0
+frequency: 7.0
+due_date: null
+last_done_date: null
+completed: false

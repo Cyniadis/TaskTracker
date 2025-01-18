@@ -1,0 +1,9 @@
+id: 21
+name: "\U0001F6CB\uFE0F Nettoyer les bureaux"
+duration: 15
+initial_priority: 2.0
+priority: 2.0
+frequency: 7.0
+due_date: null
+last_done_date: null
+completed: false

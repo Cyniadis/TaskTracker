@@ -1,0 +1,9 @@
+id: 27
+name: "\U0001F6CF Ranger les v\xEAtements qui trainent"
+duration: 15
+initial_priority: 3.0
+priority: 3.0
+frequency: 1.0
+due_date: null
+last_done_date: null
+completed: false
