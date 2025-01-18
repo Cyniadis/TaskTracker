@@ -35,13 +35,12 @@ def read_tasks(file_name):
                     continue
 
                 task = Task(
+                    id=int(row["ID"]),
                     name=row['Nom'],
                     frequency=frequency,
                     priority=float(row['Priorité']),
                     duration=int(row['Durée (min)']),
-                    due_date=None if row['Date prévue'] == "" else datetime.strptime(row['Date prévue'], "%d/%m/%Y").date(),
-                    last_done_date=None if row['Date achevée'] == "" else datetime.strptime(row['Date achevée'], "%d/%m/%Y").date(),
-                    completed=row['Achevée?'] == "1"
+                    due_date=None if row['Date prévue'] == "" else string_to_date(row['Date prévue']),
                 )
                 tasks.append(task)
 
@@ -55,20 +54,32 @@ def read_tasks(file_name):
 
     return tasks
 
-def write_tasks(file_name, tasks):
-    """Writes the updated tasks back to a CSV file."""
+def write_schedule(file_name, scheduler):
+    """Writes the schedueler  to a CSV file."""
     with open(file_name, "w", encoding="utf-8", newline="") as file:
-        fieldnames = ["Nom", "Fréquence", "Priorité", "Durée (min)", "Date prévue", "Date achevée", "Achevée?"]
+        fieldnames = ["Date", "IDs"]
         writer = csv.DictWriter(file, fieldnames=fieldnames, delimiter=';')
         writer.writeheader()
 
-        for task in tasks:
+        for date_str, task_list in scheduler.items():
             writer.writerow({
-                "Nom": task.name,
-                "Fréquence": f"{int(1 / task.frequency)}xjour" if task.frequency <= 1 else f"{int(task.frequency / 7)}xsemaine" if task.frequency <= 7 else f"{int(task.frequency / 30.4)}xmois" if task.frequency <= 30.4 else f"{int(task.frequency / 365)}xan",
-                "Priorité": int(task.priority),
-                "Durée (min)": task.duration,
-                "Date prévue": task.due_date.strftime("%d/%m/%Y") if task.due_date else "",
-                "Date achevée": task.last_done_date.strftime("%d/%m/%Y") if task.last_done_date else "",
-                "Achevée?": "1" if task.completed else "0"
+                "Date": date_str,
+                "IDs": [task.id for task in task_list]
             })
+
+# def write_tasks(file_name, tasks):
+#     """Writes the updated tasks back to a CSV file."""
+#     with open(file_name, "w", encoding="utf-8", newline="") as file:
+#         fieldnames = ["Nom", "Fréquence", "Priorité", "Durée (min)", "Date prévue", "Date achevée", "Achevée?"]
+#         writer = csv.DictWriter(file, fieldnames=fieldnames, delimiter=';')
+#         writer.writeheader()
+
+#         for task in tasks:
+#             writer.writerow({
+#                 "ID": task.id,
+#                 "Nom": task.name,
+#                 "Fréquence": f"{int(1 / task.frequency)}xjour" if task.frequency <= 1 else f"{int(task.frequency / 7)}xsemaine" if task.frequency <= 7 else f"{int(task.frequency / 30.4)}xmois" if task.frequency <= 30.4 else f"{int(task.frequency / 365)}xan",
+#                 "Priorité": int(task.priority),
+#                 "Durée (min)": task.duration,
+#                 "Date prévue": task.due_date.strftime("%d/%m/%Y") if task.due_date else "",
+#             })

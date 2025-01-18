@@ -23,26 +23,27 @@ def schedule_tasks(tasks, start_date, end_date, daily_limit):
     current_date = start_date
 
     while current_date <= end_date:
-        schedule[current_date] = []
+        schedule[date_to_string(current_date)] = []
         current_date += timedelta(days=1)
 
     # Schedule tasks
     for task in tasks:
         next_date = start_date
         while next_date <= end_date:
-            if next_date not in schedule:
-                schedule[next_date] = []
+            next_date_str = date_to_string(next_date)
+            if next_date_str not in schedule:
+                schedule[next_date_str] = []
 
             if task.due_date and next_date > task.due_date:
                 break
-
-            if sum(t.duration for t in schedule[next_date]) + task.duration <= daily_limit:
-                schedule[next_date].append(task)
+             
+            if sum(t.duration for t in schedule[next_date_str]) + task.duration <= daily_limit:
+                schedule[next_date_str].append(task)
                 next_date += timedelta(days=task.frequency)  # Respect task frequency
                 task.due_date = next_date
             else:
                 next_date += timedelta(days=1)
-
+                
     return schedule
 
 def print_schedule(task_schedule):
@@ -51,8 +52,8 @@ def print_schedule(task_schedule):
     for date, day_tasks in task_schedule.items():
         total_time = sum(task.duration for task in day_tasks)
         if day_tasks:
-            print(f"{date.strftime('%Y-%m-%d')} (Total time: {total_time} minutes):\n  " + "\n  ".join(f"- {task}" for task in day_tasks))
+            print(f"{date_to_string(date)} (Total time: {total_time} minutes):\n  " + "\n  ".join(f"- {task}" for task in day_tasks))
         else:
-            print(f"{date.strftime('%Y-%m-%d')} (Total time: {total_time} minutes): No tasks scheduled")
+            print(f"{date_to_string(date)} (Total time: {total_time} minutes): No tasks scheduled")
         print()
   

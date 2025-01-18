@@ -8,6 +8,8 @@ from TT_csv_utils import read_tasks, write_tasks
 # Load tasks from the CSV file
 FILE_NAME = "tasklist.csv"
 task_list = read_tasks(FILE_NAME)
+today = datetime.today().date()
+today_tasks = [task for task in task_list if task.due_date.date() == today]
 
 # Intents and Bot Setup
 intents = discord.Intents.default()
@@ -41,18 +43,17 @@ class TaskView(ui.View):
         for task in tasks:
             if not task.completed:  # Only add buttons for incomplete tasks
                 self.add_item(TaskButton(task))
-
-@tasks.loop(hours=24)
+                
+# @tasks.loop(hours=24)
 async def daily_task_post():
     """Post daily tasks to the Discord channel."""
-    today_tasks = task_schedule.get(start_date, [])
     if not today_tasks:
         return
 
     channel = discord.utils.get(bot.get_all_channels(), name="daily-tasks")  # Change to your channel name
     if channel:
         view = TaskView(today_tasks)
-        await channel.send(f"Tâches du {start_date.strftime('%d %B %Y')}", view=view)
+        await channel.send(f"Tâches du {today.strftime('%d %B %Y')}", view=view)
 
 @bot.event
 async def on_ready():
@@ -62,13 +63,12 @@ async def on_ready():
 @bot.command()
 async def tasks(ctx):
     """Manually display today's tasks."""
-    today_tasks = task_schedule.get(start_date, [])
     if not today_tasks:
         await ctx.send("No tasks for today!")
         return
 
     view = TaskView(today_tasks)
-    await ctx.send(f"Tâches du {start_date.strftime('%d %B %Y')}", view=view)
+    await ctx.send(f"Tâches du {today.strftime('%d %B %Y')}", view=view)
 
 # Run the bot
 TOKEN = "MTMyOTE2ODUzMjk5MDMyODk1Ng.GNZQcC.w3RX7Jib-PlrVCzEsj8ZbKyU_NBtE0hDNjtpgs"
