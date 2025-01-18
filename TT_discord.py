@@ -1,15 +1,35 @@
+import sys
 import discord
 from discord.ext import commands, tasks
 from discord import ui
 from datetime import datetime, timedelta
-from TT_scheduler import schedule_tasks  # Your scheduler logic
-from TT_csv_utils import read_tasks, write_tasks
+from TT_task import *
+from TT_yaml import *
+from TT_task_selector import TT_TaskSelector
 
-# Load tasks from the CSV file
-FILE_NAME = "tasklist.csv"
-task_list = read_tasks(FILE_NAME)
+today_tasks = None
 today = datetime.today().date()
-today_tasks = [task for task in task_list if task.due_date.date() == today]
+TOKEN = "MTMyOTE2ODUzMjk5MDMyODk1Ng.GNZQcC.w3RX7Jib-PlrVCzEsj8ZbKyU_NBtE0hDNjtpgs"
+selector = TT_TaskSelector(daily_time_limit=180)
+
+def initialize():
+    # Load tasks from the CSV file
+    task_list = deserialize_all_tasks(TASKS_YAML_FOLDER)
+    if task_list == None or len(task_list) == 0: 
+        print("Erreur: liste de tâches vide")
+        return False
+    
+    selector.reset_and_update_priority(today, task_list)
+    
+    global today_tasks
+    today_tasks = selector.get_daily_tasks(task_list, today)
+    if today_tasks == None or len(today_tasks) == 0: 
+        print("Erreur: liste de tâches du jour vide")
+        return False
+                                
+    return True
+
+# =============================================
 
 # Intents and Bot Setup
 intents = discord.Intents.default()
@@ -25,26 +45,25 @@ class TaskButton(ui.Button):
         self.task.completed = not self.task.completed
         # self.disabled = True  # Disable the button after clicking
         
-        if self.task.completed:
+        if not self.task.completed:
             self.style = discord.ButtonStyle.primary  # Change background
-            self.label = f"{self.task.name}"  # Line-through text
+            self.label = f"{self.task.name}"  
         else:
             self.style = discord.ButtonStyle.secondary  # Change background
-            self.label = f"{self.task.name}"  # Line-through text
+            self.label = f"{self.task.name}"
 
         # Update the message with the modified view
         await interaction.response.edit_message(view=self.view)
-
-        write_tasks(FILE_NAME, task_list)  # Save updated tasks
+        
+        self.task.serialize(TASKS_YAML_FOLDER)
 
 class TaskView(ui.View):
     def __init__(self, tasks):
         super().__init__()
         for task in tasks:
-            if not task.completed:  # Only add buttons for incomplete tasks
-                self.add_item(TaskButton(task))
+            self.add_item(TaskButton(task))
                 
-# @tasks.loop(hours=24)
+@tasks.loop(hours=24)
 async def daily_task_post():
     """Post daily tasks to the Discord channel."""
     if not today_tasks:
@@ -53,10 +72,15 @@ async def daily_task_post():
     channel = discord.utils.get(bot.get_all_channels(), name="daily-tasks")  # Change to your channel name
     if channel:
         view = TaskView(today_tasks)
-        await channel.send(f"Tâches du {today.strftime('%d %B %Y')}", view=view)
+        total_duration = sum(task.duration for task in today_tasks)
+        await channel.send(f"Tâches du {today.strftime('%d %B %Y')}. Durée totale prévue: {total_duration}min", view=view)
 
 @bot.event
 async def on_ready():
+    if not initialize(): 
+        print("Error: Initialization failed")
+        sys.exit(-1)
+
     print(f"{bot.user} is now online!")
     daily_task_post.start()
 
@@ -70,6 +94,7 @@ async def tasks(ctx):
     view = TaskView(today_tasks)
     await ctx.send(f"Tâches du {today.strftime('%d %B %Y')}", view=view)
 
-# Run the bot
-TOKEN = "MTMyOTE2ODUzMjk5MDMyODk1Ng.GNZQcC.w3RX7Jib-PlrVCzEsj8ZbKyU_NBtE0hDNjtpgs"
-bot.run(TOKEN)
+
+if __name__ == "__main__":
+    # Run the bot
+    bot.run(TOKEN)
