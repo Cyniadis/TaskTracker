@@ -4,6 +4,6 @@ duration: 30
 initial_priority: 4.0
 priority: 4.0
 frequency: 1.0
-due_date: null
+due_date: 19/01/2025
 last_done_date: null
-completed: false
+completed: true
