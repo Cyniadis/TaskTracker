@@ -9,7 +9,7 @@ from TT_task_selector import TT_TaskSelector
 
 today_tasks = None
 today = datetime.today().date()
-TOKEN = "MTMyOTE2ODUzMjk5MDMyODk1Ng.GAVh-N.wlarS5dC9ATUnUIcNb0MvLPpmA44m7OAsJLjWg"
+TOKEN = "MTMyOTE2ODUzMjk5MDMyODk1Ng.G0ONtS.impquBGO5IUKdrux9or16K1wDwRyFSmmN1_fBw"
 selector = TT_TaskSelector(daily_time_limit=180)
 
 def initialize():
