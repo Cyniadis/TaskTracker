@@ -4,6 +4,7 @@ from TT_csv_utils import *
 from TT_utils import *
 
 def serialize_all_tasks(folder : str, task_list : list[TT_Task]) -> None:
+    os.makedirs(folder, exist_ok=True)
     for task in task_list:
         task.serialize(folder)
         

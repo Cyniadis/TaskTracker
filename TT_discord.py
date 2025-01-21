@@ -9,10 +9,14 @@ from TT_task_selector import TT_TaskSelector
 
 today_tasks = None
 today = datetime.today().date()
-TOKEN = "MTMyOTE2ODUzMjk5MDMyODk1Ng.GNZQcC.w3RX7Jib-PlrVCzEsj8ZbKyU_NBtE0hDNjtpgs"
+TOKEN = "MTMyOTE2ODUzMjk5MDMyODk1Ng.GAVh-N.wlarS5dC9ATUnUIcNb0MvLPpmA44m7OAsJLjWg"
 selector = TT_TaskSelector(daily_time_limit=180)
 
 def initialize():
+    if not os.path.exists(TASKS_YAML_FOLDER):
+        all_tasks = read_tasks(TASKLIST_FILE_NAME)
+        serialize_all_tasks(TASKS_YAML_FOLDER, all_tasks)
+        
     # Load tasks from the CSV file
     task_list = deserialize_all_tasks(TASKS_YAML_FOLDER)
     if task_list == None or len(task_list) == 0: 
