@@ -1,8 +1,10 @@
 from datetime import datetime
+import os
 
-TASKLIST_FILE_NAME = "tasklist.csv"
-SCHEDULE_FILE_NAME = "schedule.csv"
-TASKS_YAML_FOLDER = "tasks_yaml"
+SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
+TASKLIST_FILE_NAME = os.path.join(SOURCE_DIR, "tasklist.csv")
+SCHEDULE_FILE_NAME = os.path.join(SOURCE_DIR, "schedule.csv")
+TASKS_YAML_FOLDER = os.path.join(SOURCE_DIR, "tasks_yaml")
 
 def date_to_string(date):
     return datetime.strftime(date, "%d/%m/%Y")
