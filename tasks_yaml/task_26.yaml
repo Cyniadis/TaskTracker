@@ -1,9 +1,0 @@
-id: 26
-name: "\U0001F455 Faire la lessive v\xEAtements blanc"
-duration: 30
-initial_priority: 1.0
-priority: 1.0
-frequency: 30.4
-due_date: null
-last_done_date: null
-completed: false

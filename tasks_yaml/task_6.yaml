@@ -1,9 +1,0 @@
-id: 6
-name: "\U0001F374 Sortir les poubelles"
-duration: 10
-initial_priority: 3.0
-priority: 3.0
-frequency: 7.0
-due_date: null
-last_done_date: null
-completed: false

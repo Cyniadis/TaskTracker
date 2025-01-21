@@ -1,9 +1,0 @@
-id: 14
-name: "\U0001F6CB\uFE0F Passer l'aspirateur"
-duration: 40
-initial_priority: 3.0
-priority: 4.0
-frequency: 7.0
-due_date: 18/01/2025
-last_done_date: null
-completed: true

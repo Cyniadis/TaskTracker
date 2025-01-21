@@ -1,9 +1,0 @@
-id: 17
-name: "\U0001F6CB\uFE0F Nettoyer les vitrines"
-duration: 60
-initial_priority: 1.0
-priority: 1.0
-frequency: 121.66666666666667
-due_date: null
-last_done_date: null
-completed: false

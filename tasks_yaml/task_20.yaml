@@ -1,9 +1,0 @@
-id: 20
-name: "\U0001F6CB\uFE0F Nettoyer la table basse"
-duration: 10
-initial_priority: 2.0
-priority: 2.0
-frequency: 7.0
-due_date: null
-last_done_date: null
-completed: false

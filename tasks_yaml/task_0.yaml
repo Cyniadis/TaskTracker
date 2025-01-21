@@ -1,9 +1,0 @@
-id: 0
-name: "\U0001F374 Mettre la vaisselle au lave-vaisselle"
-duration: 10
-initial_priority: 5.0
-priority: 5.0
-frequency: 1.0
-due_date: 19/01/2025
-last_done_date: null
-completed: true

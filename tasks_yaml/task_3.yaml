@@ -1,9 +1,0 @@
-id: 3
-name: "\U0001F374 Nettoyer la table \xE0 manger"
-duration: 10
-initial_priority: 4.0
-priority: 4.0
-frequency: 1.0
-due_date: 18/01/2025
-last_done_date: null
-completed: false

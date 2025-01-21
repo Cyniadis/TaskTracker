@@ -1,9 +1,0 @@
-id: 7
-name: "\U0001F374 Nettoyer la plaque de cuisson"
-duration: 20
-initial_priority: 2.0
-priority: 2.0
-frequency: 7.0
-due_date: null
-last_done_date: null
-completed: false

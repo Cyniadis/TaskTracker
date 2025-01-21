@@ -1,9 +1,0 @@
-id: 22
-name: "\U0001F455 Faire la lessive de serviettes/peignoires/serpill\xE8res"
-duration: 30
-initial_priority: 2.0
-priority: 2.0
-frequency: 30.4
-due_date: null
-last_done_date: null
-completed: false
