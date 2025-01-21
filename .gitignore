@@ -1,4 +1,4 @@
-tasks_yaml/*
+tasks_yaml
 __pycache__
 *.py[co]
 
