@@ -101,6 +101,11 @@ async def tasks(ctx):
     view = TaskView(today_tasks)
     await ctx.send(f"Tâches du **{today.strftime('%d %B %Y')}**", view=view)
 
+@bot.command()
+async def update(ctx): 
+    selector.update_tasks_serialized(TASKLIST_FILE_NAME, TASKS_YAML_FOLDER)
+    await ctx.send("Mise à jour des fichiers.")
+
 
 if __name__ == "__main__":
     # Run the bot
