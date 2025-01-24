@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from dataclasses import dataclass
-from TT_utils import date_to_string, string_to_date
+from TT_utils import *
 import yaml
 import os 
 
@@ -69,7 +69,7 @@ done on {date_to_string(self.last_done_date) if self.last_done_date else 'None'}
         self.completed=task_dict['completed']
         
     def get_yaml_filename(self):
-        return f"task_{self.id}.yaml"
+        return id_to_yaml_filename(self.id)
         
     def is_task_due(self, current_date: datetime.date) -> bool:
         days_since_completion = (current_date - self.last_done_date).days
@@ -82,3 +82,17 @@ done on {date_to_string(self.last_done_date) if self.last_done_date else 'None'}
         self.due_date = completion_date + timedelta(days=self.frequency)
         self.priority = self.initial_priority
         
+    def update_serialized(self, folder: str) -> None:
+        f = os.path.join(folder, self.get_yaml_filename())
+        if not os.path.exists(f): 
+            self.serialize(folder)
+        else :
+            task_tmp = TT_Task()
+            task_tmp.deserialize(f) 
+            if task_tmp.name != self.name  or \
+               task_tmp.initial_priority != self.initial_priority or \
+               task_tmp.duration != self.duration or \
+               task_tmp.frequency != self.frequency: 
+                self.serialize(folder)
+            
+
