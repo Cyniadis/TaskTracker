@@ -50,6 +50,16 @@ done on {date_to_string(self.last_done_date) if self.last_done_date else 'None'}
         with open(f, 'w') as file:
             yaml.dump(task_dict, file, default_flow_style=False, sort_keys=False)
 
+    def clone(self):
+        return TT_Task(self.id, 
+                       self.name, 
+                       self.duration, 
+                       self.initial_priority, 
+                       self.priority, 
+                       self.frequency, 
+                       self.due_date, 
+                       self.last_done_date, 
+                       self.completed)
 
     def deserialize(self, filename: str) -> None:
         """
@@ -76,12 +86,18 @@ done on {date_to_string(self.last_done_date) if self.last_done_date else 'None'}
         return days_since_completion >= self.frequency
 
     def complete_task(self, completion_date: datetime.date) -> None:
-        """Complete task and adjust priority"""
         self.completed = True
-        self.last_done_date = completion_date
-        self.due_date = completion_date + timedelta(days=self.frequency)
-        self.priority = self.initial_priority
-        
+        tt = self.clone()
+        tt.completed = True
+        tt.last_done_date = completion_date
+        tt.due_date = completion_date + timedelta(days=self.frequency)
+        tt.priority = self.initial_priority
+        tt.serialize(TASKS_YAML_FOLDER)
+    
+    def uncomplete_task(self) -> None: 
+        self.complete_task = False
+        self.serialize(TASKS_YAML_FOLDER)
+    
     def update_serialized(self, folder: str) -> None:
         f = os.path.join(folder, self.get_yaml_filename())
         if not os.path.exists(f): 
