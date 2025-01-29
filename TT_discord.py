@@ -46,7 +46,7 @@ class TaskButton(ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         """Mark task as completed when clicked."""
-        self.task.completed = not self.task.completed
+        self.task.complete_task(today)
         # self.disabled = True  # Disable the button after clicking
         
         if not self.task.completed:

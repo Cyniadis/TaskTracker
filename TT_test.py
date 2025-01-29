@@ -20,9 +20,9 @@ if __name__ == "__main__":
     daily_time_limit = 3*60
     selector = TT_TaskSelector(daily_time_limit)
     
-    tasks = deserialize_all_tasks(TASKS_YAML_FOLDER)
-
     for d in range(0, 30) :
+        tasks = deserialize_all_tasks(TASKS_YAML_FOLDER)
+
         current_date = datetime.today().date() + timedelta(days=d)
         
         selector.reset_and_update_priority(current_date, tasks)
@@ -41,7 +41,8 @@ if __name__ == "__main__":
         rdn_tasks_to_complete = random_selection(daily_tasks)
         for task in rdn_tasks_to_complete:                
             task.complete_task(current_date)
-        
+            task.serialize(TASKS_YAML_FOLDER)
+            
         for i, task in enumerate(daily_tasks):
             prefix = "✅" if task in rdn_tasks_to_complete else "❌"
             print(f"{prioIncr[i]}{prefix} {task}")
