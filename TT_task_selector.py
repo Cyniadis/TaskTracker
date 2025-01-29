@@ -3,6 +3,9 @@ from typing import List, Tuple
 import heapq
 from TT_task import TT_Task
 from enum import Enum
+from TT_csv_utils import read_tasks
+import os
+from TT_utils import id_to_yaml_filename, yaml_filename_to_id
 
 class TT_TaskSelector:
 
@@ -81,12 +84,33 @@ class TT_TaskSelector:
         return selected_tasks
     
 
-    def reset_and_update_priority(self, current_date: datetime.date, tasks: List[TT_Task]):
+    def update_tasks_serialized(self, filename: str, folder: str):
+        task_list = read_tasks(filename)
+        task_ids = set([task.id for task in task_list])
+        file_ids = set()
+
+        for fname in os.listdir(folder):
+            tid = yaml_filename_to_id(fname)
+            if tid != -1: 
+                file_ids.add(tid)
+
+        # Add missing serialized tasks
+        missing_files = task_ids - file_ids  # IDs without corresponding files
+        for task in task_list: 
+            if task.id in missing_files:
+                task.serialize(folder)
+
+        # Remove deleted tasks
+        extra_files = file_ids - task_ids    # Files without corresponding IDs
+        for tid in extra_files: 
+            os.remove(os.path.join(folder, id_to_yaml_filename(tid)))
+
+
+    def reset_and_update_task(self, current_date: datetime.date, tasks: List[TT_Task], folder: str):
         for task in tasks:
             if task.due_date:
                 if task.due_date < current_date and not task.completed:
                     task.priority += 1.0
             elif task.completed:
                 task.due_date += timedelta(days=task.frequency)
-
             task.completed = False
