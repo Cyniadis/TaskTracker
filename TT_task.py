@@ -87,6 +87,7 @@ done on {date_to_string(self.last_done_date) if self.last_done_date else 'None'}
 
     def complete_task(self, completion_date: datetime.date) -> None:
         self.completed = True
+        
         tt = self.clone()
         tt.completed = True
         tt.last_done_date = completion_date
@@ -95,7 +96,7 @@ done on {date_to_string(self.last_done_date) if self.last_done_date else 'None'}
         tt.serialize(TASKS_YAML_FOLDER)
     
     def uncomplete_task(self) -> None: 
-        self.complete_task = False
+        self.completed = False
         self.serialize(TASKS_YAML_FOLDER)
     
     def update_serialized(self, folder: str) -> None:

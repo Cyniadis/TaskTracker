@@ -51,7 +51,7 @@ class TaskButton(ui.Button):
         self.task = task
 
     async def callback(self, interaction: discord.Interaction):
-        """Mark task as completed when clicked."""        
+        """Mark task as completed when clicked."""    
         if self.task.completed:
             self.task.uncomplete_task()
             self.style = discord.ButtonStyle.primary  # Change background
