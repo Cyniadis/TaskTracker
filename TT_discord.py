@@ -15,7 +15,28 @@ today = datetime.today().date()
 TOKEN = "MTMyOTE2ODUzMjk5MDMyODk1Ng.G0ONtS.impquBGO5IUKdrux9or16K1wDwRyFSmmN1_fBw"
 selector = TT_TaskSelector(daily_time_limit=180)
 
+def initialize():
+    if not os.path.exists(TASKS_YAML_FOLDER):
+        all_tasks = read_tasks(TASKLIST_FILE_NAME)
+        serialize_all_tasks(TASKS_YAML_FOLDER, all_tasks)
+        
+    selector.update_tasks_serialized(TASKLIST_FILE_NAME, TASKS_YAML_FOLDER)
 
+    # Load tasks from the CSV file
+    task_list = deserialize_all_tasks(TASKS_YAML_FOLDER)
+    if task_list == None or len(task_list) == 0: 
+        print("Erreur: liste de tâches vide")
+        return False
+    
+    selector.reset_and_update_task(today, task_list, TASKS_YAML_FOLDER)
+    
+    global today_tasks
+    today_tasks = selector.get_daily_tasks(task_list, today)
+    if today_tasks == None or len(today_tasks) == 0: 
+        print("Erreur: liste de tâches du jour vide")
+        return False
+                                
+    return True
 
 # =============================================
 

@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta, date
-from TT_task import TT_Task
 from typing import List, Tuple
+import heapq
+from TT_task import TT_Task
 from enum import Enum
-import os
 from TT_csv_utils import read_tasks
+import os
 from TT_utils import id_to_yaml_filename, yaml_filename_to_id
-from TT_yaml import deserialize_all_tasks, serialize_all_tasks
 
 class TT_TaskSelector:
 
@@ -14,7 +14,7 @@ class TT_TaskSelector:
         MAYBE_ELIGIBLE = 2
         ELIGIBLE = 1
     
-    def __init__(self, daily_time_limit: int, priority_increment: float = 0.5):
+    def __init__(self, daily_time_limit: int, priority_increment: float = 0.25):
         self.daily_time_limit = daily_time_limit
         self.priority_increment = priority_increment
 
@@ -56,30 +56,8 @@ class TT_TaskSelector:
 
         unselected_tasks = [task for task in tasks if task not in selected_tasks]   
         return selected_tasks, unselected_tasks
-    
-    def initialize(self, folder: str, task_filename: str, current_date: datetime) -> List[TT_Task]:
-        if not os.path.exists(folder):
-            all_tasks = read_tasks(task_filename)
-            serialize_all_tasks(folder, all_tasks)
-            
-        self.update_tasks_serialized(task_filename, folder)
 
-        # Load tasks from the CSV file
-        task_list = deserialize_all_tasks(folder)
-        if task_list == None or len(task_list) == 0: 
-            print("Erreur: liste de tâches vide")
-            return []
-        
-        self.reset_and_update_task(current_date, task_list)
-        
-        today_tasks = self.get_task_list(task_list, current_date)
-        if today_tasks == None or len(today_tasks) == 0: 
-            print("Erreur: liste de tâches du jour vide")
-            return []
-                                    
-        return today_tasks
-
-    def get_task_list(self, tasks: List[TT_Task], current_date: datetime) -> List[TT_Task]:
+    def get_daily_tasks(self, tasks: List[TT_Task], current_date: datetime) -> List[TT_Task]:
         # Filter eligible tasks
         eligible_tasks = [task for task in tasks 
                          if self._is_task_eligible(task, current_date) != self.Eligibility.NOT_ELIGIBLE] 
@@ -128,7 +106,7 @@ class TT_TaskSelector:
             os.remove(os.path.join(folder, id_to_yaml_filename(tid)))
 
 
-    def reset_and_update_task(self, current_date: datetime.date, tasks: List[TT_Task]):
+    def reset_and_update_task(self, current_date: datetime.date, tasks: List[TT_Task], folder: str):
         for task in tasks:
             if task.due_date:
                 if task.due_date < current_date and not task.completed:
