@@ -1,11 +1,6 @@
 from datetime import datetime, timedelta, date
 from typing import List, Tuple
-import heapq
-from TT_task import TT_Task
 from enum import Enum
-from TT_csv_utils import read_tasks
-import os
-from TT_utils import id_to_yaml_filename, yaml_filename_to_id
 
 class TT_TaskSelector:
 
@@ -18,99 +13,89 @@ class TT_TaskSelector:
         self.daily_time_limit = daily_time_limit
         self.priority_increment = priority_increment
 
-    def _is_task_eligible(self, task: TT_Task, current_date: datetime.date) -> Eligibility:
-        if task.due_date and task.due_date == current_date:
+    def _is_task_eligible(self, task: dict, current_date: datetime.date) -> Eligibility:
+        due_date = task.get('due_date')
+        last_done_date = task.get('last_done_date')
+        frequency = task.get('frequency', 0)
+
+        if due_date and due_date == current_date:
             return self.Eligibility.ELIGIBLE
         
-        if not task.due_date or task.due_date < current_date: # undefined or in the past
-            if task.last_done_date: 
-                if (current_date - task.last_done_date).days >= task.frequency :
-                     return self.Eligibility.ELIGIBLE
-                else:
-                    return self.Eligibility.NOT_ELIGIBLE 
+        if not due_date or due_date < current_date:  # undefined or in the past
+            if last_done_date:
+                if (current_date - last_done_date).days >= frequency:
+                    return self.Eligibility.ELIGIBLE
+                return self.Eligibility.NOT_ELIGIBLE
 
             return self.Eligibility.MAYBE_ELIGIBLE
+
         return self.Eligibility.NOT_ELIGIBLE
 
-    def _knapsack(self, tasks: List[Tuple[TT_Task, float]], max_time: int) -> Tuple[List[TT_Task], List[TT_Task]]:
+    def _knapsack(self, tasks: List[dict], max_time: int) -> Tuple[List[dict], List[dict]]:
         n = len(tasks)
-        tasks = sorted(tasks, key=lambda t: (-t.priority, t.due_date if t.due_date else date(9999, 12, 31)))  # Sort by initial priority, then due date
+        tasks = sorted(
+            tasks,
+            key=lambda t: (-t.get('priority', 0), t.get('due_date') if t.get('due_date') else date(9999, 12, 31)),
+        )
         dp = [[0] * (max_time + 1) for _ in range(n + 1)]
         selected_tasks = []
 
-        # Build the DP table
         for i in range(1, n + 1):
+            task = tasks[i - 1]
+            duration = int(task.get('duration', 0))
             for w in range(max_time + 1):
-                if tasks[i - 1].duration <= w:
-                    dp[i][w] = max(dp[i - 1][w], 
-                                dp[i - 1][w - tasks[i - 1].duration] + tasks[i - 1].duration)
+                if duration <= w:
+                    dp[i][w] = max(dp[i - 1][w], dp[i - 1][w - duration] + duration)
                 else:
                     dp[i][w] = dp[i - 1][w]
 
-        # Backtrack to find selected tasks
         w = max_time
         for i in range(n, 0, -1):
             if dp[i][w] != dp[i - 1][w]:
                 selected_tasks.append(tasks[i - 1])
-                w -= tasks[i - 1].duration
+                w -= int(tasks[i - 1].get('duration', 0))
 
-        unselected_tasks = [task for task in tasks if task not in selected_tasks]   
+        unselected_tasks = [task for task in tasks if task not in selected_tasks]
         return selected_tasks, unselected_tasks
 
-    def get_daily_tasks(self, tasks: List[TT_Task], current_date: datetime) -> List[TT_Task]:
-        # Filter eligible tasks
-        eligible_tasks = [task for task in tasks 
-                         if self._is_task_eligible(task, current_date) != self.Eligibility.NOT_ELIGIBLE] 
+    def get_daily_tasks(self, tasks: List[dict], current_date: datetime.date) -> List[dict]:
+        task_clones = [task.copy() for task in tasks]
+        eligible_tasks = [
+            task for task in task_clones
+            if self._is_task_eligible(task, current_date) != self.Eligibility.NOT_ELIGIBLE
+        ]
 
-        total_duration = sum(task.duration for task in eligible_tasks)
-        
+        total_duration = sum(int(task.get('duration', 0)) for task in eligible_tasks)
+
         if total_duration <= self.daily_time_limit:
             return [task for task in eligible_tasks]
 
-        # Apply knapsack optimization
-        selected_tasks, unselected_tasks = self._knapsack(
-            eligible_tasks, self.daily_time_limit)
+        selected_tasks, unselected_tasks = self._knapsack(eligible_tasks, self.daily_time_limit)
 
-        unselected_tasks = [task for task in unselected_tasks if self._is_task_eligible(task, current_date) != self.Eligibility.MAYBE_ELIGIBLE]
+        unselected_tasks = [
+            task for task in unselected_tasks
+            if self._is_task_eligible(task, current_date) != self.Eligibility.MAYBE_ELIGIBLE
+        ]
 
         for task in selected_tasks:
-            if task.due_date is None:
-                task.due_date = current_date
+            if task.get('due_date') is None:
+                task['due_date'] = current_date
 
-        # Increase priority of unselected tasks
         for task in unselected_tasks:
-            task.priority += self.priority_increment
+            task['priority'] = task.get('priority', 0) + self.priority_increment
 
         return selected_tasks
     
-
-    def update_tasks_serialized(self, filename: str, folder: str):
-        task_list = read_tasks(filename)
-        task_ids = set([task.id for task in task_list])
-        file_ids = set()
-
-        for fname in os.listdir(folder):
-            tid = yaml_filename_to_id(fname)
-            if tid != -1: 
-                file_ids.add(tid)
-
-        # Add missing serialized tasks
-        missing_files = task_ids - file_ids  # IDs without corresponding files
-        for task in task_list: 
-            if task.id in missing_files:
-                task.serialize(folder)
-
-        # Remove deleted tasks
-        extra_files = file_ids - task_ids    # Files without corresponding IDs
-        for tid in extra_files: 
-            os.remove(os.path.join(folder, id_to_yaml_filename(tid)))
-
-
-    def reset_and_update_task(self, current_date: datetime.date, tasks: List[TT_Task], folder: str):
+    def reset_and_update_task(self, current_date: datetime.date, tasks: List[dict], folder: str):
         for task in tasks:
-            if task.due_date:
-                if task.due_date < current_date and not task.completed:
-                    task.priority += 1.0
-            elif task.completed:
-                task.due_date += timedelta(days=task.frequency)
-            task.completed = False
+            due_date = task.get('due_date')
+            completed = task.get('completed', False)
+            frequency = task.get('frequency', 0)
+
+            if due_date:
+                if due_date < current_date and not completed:
+                    task['priority'] = task.get('priority', 0) + 1.0
+            elif completed:
+                task['due_date'] = current_date + timedelta(days=frequency)
+
+            task['completed'] = False
