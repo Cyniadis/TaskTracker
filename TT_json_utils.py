@@ -31,20 +31,12 @@ def _frequency_to_string(frequency: float) -> str:
         return f"{int(30.4 / frequency)}xmois"
     return f"{int(365 / frequency)}xan"
 
-
-def __parse_datetime(task: dict) -> dict:
-    if 'due_date' in task and task['due_date'] is not None:
-        task["due_date"] = datetime.strptime(task["due_date"], "%Y-%m-%d").date()
-    if 'last_done_date' in task and task['last_done_date'] is not None:
-        task["last_done_date"] = datetime.strptime(task["last_done_date"], "%Y-%m-%d").date()
-    return task
-    
 def read_tasks(file_name : str) -> dict:
     """Reads tasks from a JSON file and returns a list of Task objects."""
     tasks = []
     try:
         with open(file_name, 'r', encoding='utf-8') as file:
-            tasks = json.load(file, object_hook=__parse_datetime)
+            tasks = json.load(file)
     except FileNotFoundError:
         print(f"Error: File {file_name} not found.")
     except Exception as e:

@@ -59,6 +59,15 @@ class TT_TaskSelector:
         return selected_tasks, unselected_tasks
 
     def get_daily_tasks(self, tasks: List[dict], current_date: datetime.date) -> List[dict]:
+        selected_tasks = [task for task in tasks if get_selected(task)]
+        if len(selected_tasks) == 0:
+            selected_tasks = self.compute_daily_tasks(tasks, current_date)
+        return selected_tasks
+
+    def compute_daily_tasks(self, tasks: List[dict], current_date: datetime.date) -> List[dict]:
+        for task in tasks:
+            set_last_done_date(task, get_done_date(task))
+        
         # task_clones = [task.copy() for task in tasks]
         eligible_tasks = [
             # task for task in task_clones
@@ -80,23 +89,11 @@ class TT_TaskSelector:
 
         for task in selected_tasks:
             if get_due_date(task) is None:
-                task['due_date'] = current_date
+                set_due_date(task, current_date)
+                set_next_due_date(task, compute_next_due_date(task, current_date))
+            task['selected'] = True
 
         for task in unselected_tasks:
             task['priority'] = get_priority(task) + self.priority_increment
 
         return selected_tasks
-    
-    def reset_and_update_task(self, current_date: datetime.date, tasks: List[dict], folder: str):
-        for task in tasks:
-            due_date = get_due_date(task)
-            completed = get_completed(task)
-            frequency = get_frequency(task)
-
-            if due_date:
-                if due_date < current_date and not completed:
-                    task['priority'] = get_priority(task) + 1.0
-            elif completed:
-                task['due_date'] = current_date + timedelta(days=frequency)
-
-            task['completed'] = False

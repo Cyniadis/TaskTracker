@@ -5,10 +5,12 @@
     "frequency": "1xjour",
     "priority": 5,
     "initial_priority": 5,
-    "duration": 10,
-    "due_date": null,
-    "completed": false,
-    "last_done_date": "2026-06-25"
+    "duration": 2,
+    "selected": true,
+    "due_date": "28/06/2026",
+    "next_due_date": "29/06/2026",
+    "done_date": null,
+    "last_done_date": null
   },
   {
     "id": 1,
@@ -16,10 +18,12 @@
     "frequency": "1xjour",
     "priority": 4,
     "initial_priority": 4,
-    "duration": 30,
-    "due_date": null,
-    "completed": false,
-    "last_done_date": "2026-06-25"
+    "duration": 15,
+    "selected": true,
+    "due_date": "28/06/2026",
+    "next_due_date": "29/06/2026",
+    "done_date": null,
+    "last_done_date": null
   },
   {
     "id": 2,
@@ -28,9 +32,11 @@
     "priority": 4,
     "initial_priority": 4,
     "duration": 10,
-    "due_date": null,
-    "completed": false,
-    "last_done_date": "2026-06-25"
+    "selected": true,
+    "due_date": "28/06/2026",
+    "next_due_date": "29/06/2026",
+    "done_date": null,
+    "last_done_date": null
   },
   {
     "id": 3,
@@ -38,10 +44,12 @@
     "frequency": "1xjour",
     "priority": 4,
     "initial_priority": 4,
-    "duration": 10,
-    "due_date": null,
-    "completed": false,
-    "last_done_date": "2026-06-25"
+    "duration": 5,
+    "selected": true,
+    "due_date": "28/06/2026",
+    "next_due_date": "29/06/2026",
+    "done_date": null,
+    "last_done_date": null
   },
   {
     "id": 4,
@@ -50,8 +58,10 @@
     "priority": 4,
     "initial_priority": 4,
     "duration": 5,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -61,8 +71,10 @@
     "priority": 4,
     "initial_priority": 4,
     "duration": 10,
-    "due_date": null,
-    "completed": false,
+    "selected": false,
+    "due_date": "29/06/2026",
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -71,10 +83,12 @@
     "frequency": "1xsemaine",
     "priority": 3,
     "initial_priority": 3,
-    "duration": 10,
-    "due_date": null,
-    "completed": false,
-    "last_done_date": "2026-06-25"
+    "duration": 5,
+    "selected": false,
+    "due_date": "05/07/2026",
+    "next_due_date": null,
+    "done_date": null,
+    "last_done_date": null
   },
   {
     "id": 7,
@@ -82,10 +96,12 @@
     "frequency": "1xsemaine",
     "priority": 2,
     "initial_priority": 2,
-    "duration": 20,
+    "duration": 15,
+    "selected": false,
     "due_date": null,
-    "completed": false,
-    "last_done_date": "2026-06-25"
+    "next_due_date": null,
+    "done_date": null,
+    "last_done_date": null
   },
   {
     "id": 8,
@@ -94,8 +110,10 @@
     "priority": 2,
     "initial_priority": 2,
     "duration": 10,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -104,9 +122,11 @@
     "frequency": "1xsemaine",
     "priority": 2,
     "initial_priority": 2,
-    "duration": 10,
+    "duration": 5,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -116,8 +136,10 @@
     "priority": 2,
     "initial_priority": 2,
     "duration": 10,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -127,8 +149,10 @@
     "priority": 3,
     "initial_priority": 3,
     "duration": 5,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -138,9 +162,11 @@
     "priority": 3,
     "initial_priority": 3,
     "duration": 15,
+    "selected": false,
     "due_date": null,
-    "completed": false,
-    "last_done_date": "2026-06-25"
+    "next_due_date": null,
+    "done_date": null,
+    "last_done_date": null
   },
   {
     "id": 13,
@@ -149,8 +175,10 @@
     "priority": 4,
     "initial_priority": 4,
     "duration": 20,
-    "due_date": null,
-    "completed": false,
+    "selected": false,
+    "due_date": "29/06/2026",
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -160,8 +188,10 @@
     "priority": 3,
     "initial_priority": 3,
     "duration": 40,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -171,9 +201,11 @@
     "priority": 3,
     "initial_priority": 3,
     "duration": 40,
+    "selected": false,
     "due_date": null,
-    "completed": false,
-    "last_done_date": "2026-06-25"
+    "next_due_date": null,
+    "done_date": null,
+    "last_done_date": null
   },
   {
     "id": 16,
@@ -182,8 +214,10 @@
     "priority": 1,
     "initial_priority": 1,
     "duration": 40,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -193,8 +227,10 @@
     "priority": 1,
     "initial_priority": 1,
     "duration": 60,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -204,8 +240,10 @@
     "priority": 2,
     "initial_priority": 2,
     "duration": 20,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -215,8 +253,10 @@
     "priority": 1,
     "initial_priority": 1,
     "duration": 20,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -226,8 +266,10 @@
     "priority": 2,
     "initial_priority": 2,
     "duration": 10,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -237,8 +279,10 @@
     "priority": 2,
     "initial_priority": 2,
     "duration": 15,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -248,8 +292,10 @@
     "priority": 2,
     "initial_priority": 2,
     "duration": 30,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -259,8 +305,10 @@
     "priority": 3,
     "initial_priority": 3,
     "duration": 30,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -270,8 +318,10 @@
     "priority": 2,
     "initial_priority": 2,
     "duration": 30,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -281,8 +331,10 @@
     "priority": 1,
     "initial_priority": 1,
     "duration": 30,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -292,8 +344,10 @@
     "priority": 3,
     "initial_priority": 3,
     "duration": 15,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -303,8 +357,10 @@
     "priority": 2,
     "initial_priority": 2,
     "duration": 30,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -314,8 +370,10 @@
     "priority": 4,
     "initial_priority": 4,
     "duration": 20,
-    "due_date": null,
-    "completed": false,
+    "selected": false,
+    "due_date": "13/07/2026",
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -325,9 +383,11 @@
     "priority": 1,
     "initial_priority": 1,
     "duration": 120,
-    "due_date": "2025-03-01",
-    "completed": false,
-    "last_done_date": null
+    "due_date": null,
+    "next_due_date": null,
+    "done_date": null,
+    "last_done_date": null,
+    "selected": false
   },
   {
     "id": 30,
@@ -336,8 +396,10 @@
     "priority": 2,
     "initial_priority": 2,
     "duration": 60,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -347,8 +409,10 @@
     "priority": 2,
     "initial_priority": 2,
     "duration": 15,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   },
   {
@@ -358,8 +422,10 @@
     "priority": 2,
     "initial_priority": 2,
     "duration": 40,
+    "selected": false,
     "due_date": null,
-    "completed": false,
+    "next_due_date": null,
+    "done_date": null,
     "last_done_date": null
   }
 ]
