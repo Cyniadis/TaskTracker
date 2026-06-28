@@ -1,24 +1,87 @@
 from datetime import datetime, timedelta
 
+from TT_utils import frequency_to_days
 
 def is_task_due(task: dict, current_date: datetime.date) -> bool:
-    if not task.get('last_done_date'):
+    last_done_date = get_last_done_date(task)
+    if not last_done_date:
         return False
-    days_since_completion = (current_date - task['last_done_date']).days
-    return days_since_completion >= task.get('frequency', 0)
-
+    days_since_completion = (current_date - last_done_date).days
+    return days_since_completion >= get_frequency(task)
 
 def complete_task(task: dict, completion_date: datetime.date) -> None:
     task['completed'] = True
     task['last_done_date'] = completion_date
-    task['due_date'] = completion_date + timedelta(days=task.get('frequency', 0))
-    task['priority'] = task.get('initial_priority', task.get('priority', 0))
-
+    task['due_date'] = completion_date + timedelta(days=frequency_to_days(get_frequency(task)))
+    task['priority'] = get_initial_priority(task)
 
 def uncomplete_task(task: dict) -> None:
     task['completed'] = False
-
+    # task['last_done_date'] = None
+    task['due_date'] = None
 
 def clone_task(task: dict) -> dict:
     return task.copy()
 
+def sort_tasks(tasks, sort_key, descending=True):
+    key_map = {
+        'Task': lambda task: get_name(task),
+        'Name': lambda task: get_name(task),
+        'Frequency': lambda task: get_frequency(task),
+        'Priority': lambda task: get_priority(task),
+        'Duration': lambda task: get_duration(task),
+        'Due date': lambda task: get_due_date(task) or datetime.max.date(),
+        'Completed': lambda task: get_completed(task),
+    }
+    return sorted(tasks, key=key_map.get(sort_key, lambda task: get_name(task)), reverse=descending)
+
+
+def create_new_task(tasks, name, frequency, priority, duration, due_date):
+    next_id = max((get_id(task) for task in tasks), default=-1) + 1
+    due_date_parsed = None if due_date is None else due_date
+    return {
+        'id': next_id,
+        'name': name,
+        'frequency': frequency,
+        'initial_priority': float(priority),
+        'priority': float(priority),
+        'duration': int(duration),
+        'due_date': due_date_parsed,
+        'completed': False,
+        'last_done_date': None,
+    }
+
+"================= GETTERS ================="
+
+def get_id(task: dict) -> int:
+    return task.get('id', -1)
+
+def get_name(task: dict) -> str:
+    return task.get('name', '')
+
+def get_frequency(task: dict) -> str:
+    return task.get('frequency', '')
+
+def get_priority(task: dict) -> float:
+    return task.get('priority', 0.0)
+
+def get_duration(task: dict) -> int:
+    return task.get('duration', 0)
+
+def get_due_date(task: dict) -> datetime.date:
+    if task.get('due_date') is None:
+        return None
+    return task.get('due_date')  
+    # return datetime.strptime(task.get('due_date'), '%Y-%m-%d').date()
+
+def get_completed(task: dict) -> bool:
+    return task.get('completed', False)
+
+def get_last_done_date(task: dict) -> datetime.date:
+    if task.get('last_done_date') is None:
+        return None
+    return task.get('last_done_date')
+    # return datetime.strptime(task.get('last_done_date'), '%Y-%m-%d').date()
+
+def get_initial_priority(task: dict) -> float:
+    return task.get('initial_priority', 0.0)

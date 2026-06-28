@@ -1,6 +1,6 @@
 from TT_task_selector import TT_TaskSelector
 from TT_json_utils import read_tasks
-from TT_task import complete_task
+from TT_task import *
 from TT_utils import TASKLIST_FILE_NAME
 from datetime import datetime, timedelta
 import random
@@ -33,7 +33,7 @@ if __name__ == "__main__":
         
         prioIncr = []
         for task in daily_tasks:
-            if task.get('priority', 0) > task.get('initial_priority', 0):
+            if get_priority(task) > get_initial_priority(task):
                 prioIncr.append("*") 
             else:
                 prioIncr.append("")
@@ -46,7 +46,7 @@ if __name__ == "__main__":
             prefix = "✅" if task in rdn_tasks_to_complete else "❌"
             print(f"{prioIncr[i]}{prefix} {task}")
 
-        total_time = sum(int(task.get('duration', 0)) for task in daily_tasks)
+        total_time = sum(get_duration(task) for task in daily_tasks)
         print(f"Total time: {total_time} minutes")
         if (total_time > daily_time_limit):
             print(f"❌ ERROR: Total time exceeds daily limit of {daily_time_limit} minutes")
