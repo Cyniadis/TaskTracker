@@ -1,7 +1,8 @@
 import json
-from TT_utils import date_to_iso_string, string_to_date
 
-def parse_frequency(frequency):
+from TT_task import *
+
+def parse_frequency(frequency: str) -> float:
     """Parses frequency strings like '1xjour', '2xsemaine', etc."""
     try:
         number, period = frequency.lower().split('x')
@@ -20,7 +21,8 @@ def parse_frequency(frequency):
         print(f"Invalid frequency format: {frequency}")
         return None
 
-def _frequency_to_string(frequency):
+def _frequency_to_string(frequency: float) -> str:
+    """Converts a frequency in days to a string representation."""
     if frequency <= 1:
         return f"{int(1 / frequency)}xjour"
     if frequency <= 7:
@@ -30,29 +32,19 @@ def _frequency_to_string(frequency):
     return f"{int(365 / frequency)}xan"
 
 
-def read_tasks(file_name):
+def __parse_datetime(task: dict) -> dict:
+    if 'due_date' in task and task['due_date'] is not None:
+        task["due_date"] = datetime.strptime(task["due_date"], "%Y-%m-%d").date()
+    if 'last_done_date' in task and task['last_done_date'] is not None:
+        task["last_done_date"] = datetime.strptime(task["last_done_date"], "%Y-%m-%d").date()
+    return task
+    
+def read_tasks(file_name : str) -> dict:
     """Reads tasks from a JSON file and returns a list of Task objects."""
     tasks = []
     try:
         with open(file_name, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-        for row in data:
-            frequency = parse_frequency(row.get('frequency', '1xjour'))
-            if frequency is None:
-                print(f"Skipping task due to invalid frequency: {row.get('name', '<unknown>')}")
-                continue
-            task = {
-                'id': int(row.get('id', 0)),
-                'name': row.get('name', ''),
-                'frequency': frequency,
-                'priority': float(row.get('priority', 0)) if row.get('priority', 0) not in (None, '') else 0.0,
-                'initial_priority': float(row.get('priority', 0)) if row.get('priority', 0) not in (None, '') else 0.0,
-                'duration': int(row.get('duration', 0)) if row.get('duration', 0) not in (None, '') else 0,
-                'due_date': None if row.get('due_date') in (None, '') else string_to_date(row.get('due_date')),
-                'completed': bool(row.get('completed', False)),
-                'last_done_date': None if row.get('last_done_date') in (None, '') else string_to_date(row.get('last_done_date')),
-            }
-            tasks.append(task)
+            tasks = json.load(file, object_hook=__parse_datetime)
     except FileNotFoundError:
         print(f"Error: File {file_name} not found.")
     except Exception as e:
@@ -64,22 +56,10 @@ def read_tasks(file_name):
     return tasks
 
 
-def write_tasks(file_name, tasks):
+def write_tasks(file_name: str, tasks: dict):
     """Writes the updated tasks back to a JSON file."""
-    json_data = []
-    for task in tasks:
-        json_data.append({
-            'id': task.get('id', 0),
-            'name': task.get('name', ''),
-            'frequency': _frequency_to_string(task.get('frequency', 0)),
-            'priority': int(task.get('priority', 0)),
-            'duration': int(task.get('duration', 0)),
-            'due_date': date_to_iso_string(task.get('due_date')) if task.get('due_date') else None,
-            'completed': bool(task.get('completed', False)),
-            'last_done_date': date_to_iso_string(task.get('last_done_date')) if task.get('last_done_date') else None,
-        })
     with open(file_name, 'w', encoding='utf-8') as file:
-        json.dump(json_data, file, ensure_ascii=False, indent=2)
+        json.dump(tasks, file, ensure_ascii=False, indent=2, default=str)
 
 
 
