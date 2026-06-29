@@ -9,9 +9,8 @@ class TT_TaskSelector:
         MAYBE_ELIGIBLE = 2
         ELIGIBLE = 1
     
-    def __init__(self, daily_time_limit: int, priority_increment: float = 0.25):
+    def __init__(self, daily_time_limit: int):
         self.daily_time_limit = daily_time_limit
-        self.priority_increment = priority_increment
 
     def _is_task_eligible(self, task: dict, current_date: datetime.date) -> Eligibility:
         due_date = get_due_date(task)
@@ -59,10 +58,7 @@ class TT_TaskSelector:
         return selected_tasks, unselected_tasks
 
     def get_daily_tasks(self, tasks: List[dict], current_date: datetime.date) -> List[dict]:
-        selected_tasks = [task for task in tasks if get_selected(task)]
-        if len(selected_tasks) == 0:
-            selected_tasks = self.compute_daily_tasks(tasks, current_date)
-        return selected_tasks
+        return self.compute_daily_tasks(tasks, current_date)
 
     def compute_daily_tasks(self, tasks: List[dict], current_date: datetime.date) -> List[dict]:
         for task in tasks:
@@ -93,7 +89,6 @@ class TT_TaskSelector:
                 set_next_due_date(task, compute_next_due_date(task, current_date))
             task['selected'] = True
 
-        for task in unselected_tasks:
-            task['priority'] = get_priority(task) + self.priority_increment
 
         return selected_tasks
+

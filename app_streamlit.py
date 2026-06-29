@@ -13,10 +13,7 @@ from TT_utils import *
 TASKFILE = os.path.join(os.path.dirname(__file__), 'tasklist.json')
 DEFAULT_DAILY_LIMIT = 60
 TODAY = datetime.now().date()
-GRID_KEY="key2"
-
-
-st.set_page_config(page_title='TaskTracker', layout='wide')
+LAST_CONFIG_FILE_NAME = os.path.join(SOURCE_DIR, "lastConfig.json")
 
 
 def __load_tasks():
@@ -107,11 +104,36 @@ def __init_session_state():
         st.session_state.today_tasks = __get_today_tasks(st.session_state.tasks, st.session_state.daily_limit)
     if 'key_name' not in st.session_state:
         st.session_state.key_name = "key1"
-    
+
+def __reset_all():
+    st.session_state.tasks = __load_tasks()
+    previous_selected = get_all_selected_tasks(st.session_state.tasks)
+    update_priorities(tasks, previous_selected)
+    st.session_state.daily_limit = DEFAULT_DAILY_LIMIT
+    st.session_state.key_name = "key1"
+    st.session_state.today_tasks = __get_today_tasks(st.session_state.tasks, st.session_state.daily_limit)
+
+def __init_tasks():
+    is_new_day = (read_last_date() == TODAY)
+    if is_new_day: 
+        save_last_date()
+        st.session_state.tasks = __load_tasks()
+        __reset_all()
+
+
+
+        update_priorities(st.session_state.tasks, st.session_state.)
+
+
+
 def main():
+    st.set_page_config(page_title='TaskTracker', layout='wide')
+
     print("Starting TaskTracker Streamlit app")
     st.title('TaskTracker')
     st.markdown('Manage your task library and generate today\'s list using the existing priority scheduler.')
+
+
 
     __init_session_state()
     tabs = st.tabs(['Today', 'General'])

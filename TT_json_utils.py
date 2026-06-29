@@ -2,6 +2,7 @@ import json
 
 from TT_task import *
 
+
 def parse_frequency(frequency: str) -> float:
     """Parses frequency strings like '1xjour', '2xsemaine', etc."""
     try:
@@ -52,6 +53,4 @@ def write_tasks(file_name: str, tasks: dict):
     """Writes the updated tasks back to a JSON file."""
     with open(file_name, 'w', encoding='utf-8') as file:
         json.dump(tasks, file, ensure_ascii=False, indent=2, default=str)
-
-
 
