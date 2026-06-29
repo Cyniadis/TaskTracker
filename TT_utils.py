@@ -1,9 +1,8 @@
 from datetime import datetime
 import os
-import re
 
 SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
-TASKLIST_FILE_NAME = os.path.join(SOURCE_DIR, "tasklist.json")
+
 
 def date_to_string(date: datetime) -> str:
     if date is None: 
@@ -32,3 +31,4 @@ def frequency_to_days(frequency : str) -> float:
     except Exception:
         pass
     return 1.0
+

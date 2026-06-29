@@ -1,9 +1,9 @@
 from asyncio import tasks
 from datetime import datetime, timedelta
 
-from git import List
-
 from TT_utils import date_to_string, frequency_to_days, string_to_date
+
+PRIORITY_INCREMENT = 0.5
 
 def is_task_due(task: dict, current_date: datetime.date) -> bool:
     last_done_date = get_last_done_date(task)
@@ -39,7 +39,7 @@ def sort_tasks(tasks, sort_key, descending=True):
     return sorted(tasks, key=key_map.get(sort_key, lambda task: get_name(task)), reverse=descending)
 
 
-def reset_and_update_tasks(current_date: datetime.date, tasks: List[dict]):
+def reset_and_update_tasks(current_date: datetime.date, tasks: list[dict]):
     for task in tasks:          
         set_due_date(task, get_next_due_date(task, current_date))
         task['selected'] = False  
@@ -48,6 +48,14 @@ def reset_and_update_tasks(current_date: datetime.date, tasks: List[dict]):
         task['done_date'] = None
         task['next_due_date'] = None
             
+def update_priorities(tasks: list[dict], today_tasks: list[dict], priority_increment = PRIORITY_INCREMENT): 
+    unselected_tasks = tasks - today_tasks
+    for task in unselected_tasks:
+        task['priority'] = get_priority(task) + priority_increment
+
+def get_all_selected_tasks(tasks: list[dict]) -> list[dict]:  
+    return [ t for t in tasks if get_selected(t) ]
+
 
 "================= GETTERS ================="
 
