@@ -3,7 +3,6 @@ import os
 
 SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-
 def date_to_string(date: datetime) -> str:
     if date is None: 
         return None

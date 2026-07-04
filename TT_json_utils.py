@@ -1,56 +1,51 @@
 import json
+import os
 
 from TT_task import *
 
+DEFAULT_DAILY_LIMIT = 60
+CACHE_FILE = os.path.join(os.path.dirname(__file__), 'cache.json')
 
-def parse_frequency(frequency: str) -> float:
-    """Parses frequency strings like '1xjour', '2xsemaine', etc."""
-    try:
-        number, period = frequency.lower().split('x')
-        number = int(number)
-
-        if period == "jour":
-            return 1.0 / number
-        elif period == "semaine":
-            return 7.0 / number
-        elif period == "mois":
-            return 30.4 / number
-        elif period == "an":
-            return 365.0 / number
-        raise ValueError(f"Unknown period: {period}")
-    except ValueError:
-        print(f"Invalid frequency format: {frequency}")
-        return None
-
-def _frequency_to_string(frequency: float) -> str:
-    """Converts a frequency in days to a string representation."""
-    if frequency <= 1:
-        return f"{int(1 / frequency)}xjour"
-    if frequency <= 7:
-        return f"{int(7 / frequency)}xsemaine"
-    if frequency <= 30.4:
-        return f"{int(30.4 / frequency)}xmois"
-    return f"{int(365 / frequency)}xan"
-
-def read_tasks(file_name : str) -> dict:
-    """Reads tasks from a JSON file and returns a list of Task objects."""
-    tasks = []
+def read_json_file(file_name: str):
+    """Reads a JSON file and returns its content or an empty dictionary when absent."""
     try:
         with open(file_name, 'r', encoding='utf-8') as file:
-            tasks = json.load(file)
+            return json.load(file)
     except FileNotFoundError:
         print(f"Error: File {file_name} not found.")
-    except Exception as e:
-        print(f"Error: {e}")
+    except Exception as exc:
+        print(f"Error: {exc}")
+    return {}
 
+
+def write_json_file(file_name: str, payload):
+    """Writes a JSON payload to disk."""
+    directory = os.path.dirname(file_name)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    with open(file_name, 'w', encoding='utf-8') as file:
+        json.dump(payload, file, ensure_ascii=False, indent=2, default=str)
+
+
+def read_tasks(file_name: str) -> list[TT_Task]:
+    """Reads tasks from a JSON file and returns a list of Task objects."""
+    print(f"Reading tasks from {file_name}")
+    tasks = read_json_file(file_name)
     if not tasks:
         print("No tasks were loaded from the file. Please check the input.")
+    return [TT_Task(task) for task in tasks]
 
-    return tasks
 
-
-def write_tasks(file_name: str, tasks: dict):
+def write_tasks(file_name: str, tasks: list[TT_Task]):
     """Writes the updated tasks back to a JSON file."""
-    with open(file_name, 'w', encoding='utf-8') as file:
-        json.dump(tasks, file, ensure_ascii=False, indent=2, default=str)
+    write_json_file(file_name, [task.task for task in tasks])
 
+
+def save_daily_limit(daily_limit: int, cache_file: str = CACHE_FILE):
+    print(f"Saving daily limit: {daily_limit}")
+    cache = {'daily_limit': daily_limit}
+    write_json_file(cache_file, cache)
+    
+
+def load_daily_limit(cache_file: str = CACHE_FILE):
+   return read_json_file(cache_file).get('daily_limit', DEFAULT_DAILY_LIMIT)
