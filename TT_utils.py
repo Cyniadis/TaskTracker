@@ -1,19 +1,36 @@
-from datetime import datetime
+from datetime import date, datetime
 import os
 
 SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def date_to_string(date: datetime) -> str:
-    if date is None: 
+
+def normalize_date(value):
+    if value is None or value == "":
         return None
-    return datetime.strftime(date, "%d/%m/%Y")
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    if isinstance(value, str):
+        value = value.strip()
+        if not value:
+            return None
+        if "/" in value:
+            return datetime.strptime(value, "%d/%m/%Y").date()
+        return datetime.fromisoformat(value).date()
+    raise TypeError(f"Unsupported date value: {type(value)!r}")
+
+
+def date_to_string(value) -> str:
+    normalized = normalize_date(value)
+    if normalized is None:
+        return None
+    return normalized.isoformat()
+
 
 def string_to_date(string):
-    if string is None or string == "":
-        return None
-    if "-" in string:
-        return datetime.fromisoformat(string).date()
-    return datetime.strptime(string, "%d/%m/%Y").date()
+    return normalize_date(string)
+
 
 def frequency_to_days(frequency : str) -> float:
     try:

@@ -10,7 +10,7 @@ from TT_utils import *
 from TT_task_selector import compute_daily_tasks
 
 TASKFILE = os.path.join(os.path.dirname(__file__), 'tasklist.json')
-TODAY = datetime.now().date()
+TODAY = normalize_date(datetime.now())
 RESCHEDULE_BTN_JS = os.path.join(os.path.dirname(__file__), 'RescheduleButtonRenderer.js')
 
 
@@ -41,7 +41,6 @@ def _discard_completed_tasks():
     completed_tasks = [task for task in st.session_state.today_tasks if task.is_task_completed(TODAY)]
     if not completed_tasks:
         return
-    
     for task in completed_tasks:
         task.reset_and_update(TODAY)
     st.session_state.today_tasks = [task for task in st.session_state.today_tasks if task not in completed_tasks]
@@ -64,34 +63,27 @@ def _on_selection_changed(grid_response, today_tasks: list[TT_Task], tasks: list
             task.uncomplete()
     _save_tasks(tasks)
 
-@st.dialog("Reschedule task", dismissible=False)
-def reschedule_dialog(task_id: int): 
-    flex_container = st.container(horizontal=True, horizontal_alignment='left', vertical_alignment='center', height="stretch")
-    new_due_date = st.date_input("Pick a new due date", min_value=TODAY)
-    st.session_state.new_due_date = None
-    if flex_container.button("Confirm", type="primary"):
-        st.session_state.new_due_date = new_due_date
-        st.session_state.new_due_date_id = task_id
-        print(st.session_state.new_due_date)
-        st.rerun()
-    if flex_container.button("Cancel"):
-        st.session_state.new_due_date = None
-        st.session_state.new_due_date_id = None
-        st.rerun()
-
-def _on_cell_value_changed(grid_response, today_tasks: list[TT_Task], tasks: list[TT_Task]):
+def _on_cell_value_changed(grid_response):
     event_data = grid_response.event_data
-    cell_value = event_data.get('newValue')
+    cell_value = normalize_date(event_data.get('newValue'))
     task_data = event_data.get('data')
-    if 'new_due_date_id' not in st.session_state or st.session_state.new_due_date_id == None:
-        reschedule_dialog(task_data['id'])
+    updated_task = [ t for t in st.session_state.tasks if t.get_id() == task_data['id'] ][0] 
+    
+    if cell_value < TODAY:
+        st.toast("Chosen due date is in the past", icon="⚠️")
+        _force_grid_reload()
+    else:
+        updated_task.set_due_date(cell_value)
+        _save_tasks(st.session_state.tasks)
 
 def _on_grid_event(grid_response, today_tasks: list[TT_Task], tasks: list[TT_Task]):
     event_type = grid_response.event_data.get('type')
+    print(event_type)
     if event_type == 'selectionChanged':
         _on_selection_changed(grid_response, today_tasks, tasks)
     elif event_type == 'cellValueChanged':
-        _on_cell_value_changed(grid_response, today_tasks, tasks)
+        # _save_tasks(st.session_state.tasks)
+        _on_cell_value_changed(grid_response)
 
 def _on_clean_cache_clicked():
     print("Clearing cache")
@@ -100,10 +92,17 @@ def _on_clean_cache_clicked():
 
 
 def _due_date_cell_style():
-    today_value = date_to_string(TODAY)
+    today_value = normalize_date(TODAY).isoformat()
     return JsCode(f"""
 function(params) {{
-    if (params.value !== '{today_value}') {{
+    if (!params.value) {{
+        return {{ color: 'primary' }};
+    }}
+
+    const valueDate = new Date(params.value);
+    const isToday = !isNaN(valueDate.getTime()) && valueDate.toISOString().slice(0, 10) === '{today_value}';
+
+    if (!isToday) {{
         return {{ color: '#d32f2f', fontWeight: 'bold' }};
     }}
     return {{ color: 'primary' }};
@@ -118,6 +117,10 @@ def _build_today_grid():
     if df.empty:
         return None
 
+    for date_field in ('due_date', 'next_due_date', 'done_date', 'last_done_date'):
+        if date_field in df.columns:
+            df[date_field] = pd.to_datetime(df[date_field], errors='coerce', dayfirst=True).dt.strftime('%Y-%m-%d')
+
     gb = GridOptionsBuilder.from_dataframe(df)
     gb.configure_default_column(sortable=True, filter=True, resizable=True)
     gb.configure_column('id', hide=True)
@@ -126,12 +129,11 @@ def _build_today_grid():
     gb.configure_column('priority', headerName='Priority', width=90)
     gb.configure_column('initial_priority', hide=True)
     gb.configure_column('duration', headerName='Duration', width=110)
-    gb.configure_column('due_date', headerName='Due date', width=120, cellStyle=_due_date_cell_style())
-    gb.configure_column('next_due_date', headerName='Next Due Date', width=120)
-    gb.configure_column('done_date', headerName='Done date', width=120)
-    gb.configure_column('last_done_date', headerName='Last Done Date', width=150)
+    gb.configure_column('due_date', headerName='Due date', width=120, cellStyle=_due_date_cell_style(), cellDataType='dateString', editable=True)
+    gb.configure_column('next_due_date', headerName='Next Due Date', width=120, cellDataType='dateString')
+    gb.configure_column('done_date', headerName='Done date', width=120, cellDataType='dateString')
+    gb.configure_column('last_done_date', headerName='Last Done Date', width=150, cellDataType='dateString')
     gb.configure_column('selected', headerName='Selected', hide=True)
-    gb.configure_column('doubleClicked', headerName='doubleClicked', hide=True,  cellDataType='number', valueFormatter=JsCode("function(params) {return -1 }"))
 
     # Get the row indices of the completed tasks so they are preselected in the grid
     pre_selected_row_indices = [  str(df.index[idx]) for idx, task in enumerate(st.session_state.today_tasks) if task.is_task_completed(TODAY) ]
@@ -179,7 +181,8 @@ def main():
     tabs = st.tabs(['Today'])
 
     with tabs[0]:
-        st.markdown('### Tasks of ' + TODAY.strftime('%a, %B %d, %Y'))
+        today_display = normalize_date(TODAY)
+        st.markdown('### Tasks of ' + today_display.strftime('%a, %B %d, %Y'))
         flex_container = st.container(horizontal=True, horizontal_alignment='left', vertical_alignment='center', height="stretch")
         flex_container.markdown('Daily duration limit (minutes) : ')
         flex_container.number_input(
@@ -203,17 +206,6 @@ def main():
             st.info('No tasks were selected for today. Add or edit tasks in the General tab.')
         else:
             grid_response = _build_today_grid()
-            if 'new_due_date_id' in st.session_state and st.session_state.new_due_date_id is not None:
-                updated_task = [ t for t in today_tasks if t.get_id() == st.session_state.new_due_date_id ][0]
-                if 'new_due_date' in st.session_state and st.session_state.new_due_date is not None:
-                    updated_task.set_due_date(st.session_state.new_due_date)
-                    print(f'{updated_task.get_name()}, {st.session_state.new_due_date} -> {updated_task.get_due_date()}; {st.session_state.new_due_date_id}')
-                    st.session_state.new_due_date_id = None
-                    st.session_state.new_due_date = None
-                    _save_tasks(st.session_state.tasks)
-                    _force_grid_reload()
-                    _build_today_grid()
-                    st.rerun()
 
 if __name__ == '__main__':
     main()

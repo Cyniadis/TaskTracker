@@ -1,10 +1,17 @@
 import json
 import os
+from datetime import date, datetime
 
 from TT_task import *
 
 DEFAULT_DAILY_LIMIT = 60
 CACHE_FILE = os.path.join(os.path.dirname(__file__), 'cache.json')
+
+
+def _json_default(value):
+    if isinstance(value, (date, datetime)):
+        return value.isoformat()
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
 
 def read_json_file(file_name: str):
     """Reads a JSON file and returns its content or an empty dictionary when absent."""
@@ -24,7 +31,7 @@ def write_json_file(file_name: str, payload):
     if directory:
         os.makedirs(directory, exist_ok=True)
     with open(file_name, 'w', encoding='utf-8') as file:
-        json.dump(payload, file, ensure_ascii=False, indent=2, default=str)
+        json.dump(payload, file, ensure_ascii=False, indent=2, default=_json_default)
 
 
 def read_tasks(file_name: str) -> list[TT_Task]:

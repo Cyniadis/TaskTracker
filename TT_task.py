@@ -1,18 +1,25 @@
-import json 
+import json
+from copy import deepcopy
 from datetime import datetime, timedelta
 
-from TT_utils import date_to_string, frequency_to_days, string_to_date
+from TT_utils import date_to_string, frequency_to_days, normalize_date
 
 PRIORITY_INCREMENT = 0.5
 
 # ================= SINGLE TASK FUNCTIONS =================
 
-class TT_Task: 
+class TT_Task:
+    _DATE_FIELDS = {'due_date', 'next_due_date', 'done_date', 'last_done_date'}
+
     def __init__(self, task: dict):
-        self.task = task
+        self.task = deepcopy(task)
+        for field in self._DATE_FIELDS:
+            if field in self.task:
+                self.task[field] = normalize_date(self.task[field])
 
     def __str__(self):
-        return json.dumps(self.tasks)
+        return json.dumps(self.task)
+        # return json.dumps(self.task, default=date_to_string)
 
     def is_due(self, current_date: datetime.date) -> bool:
         last_done_date = self.get_last_done_date()
@@ -54,37 +61,25 @@ class TT_Task:
         return self.task.get('duration', 0)
 
     def get_due_date(self) -> datetime.date:
-        date = self.task.get('due_date')
-        if not date or date is None :
-            return None
-        return string_to_date(date)
+        return normalize_date(self.task.get('due_date'))
 
-    def set_due_date(self, date: datetime.date):
-        self.task['due_date'] = date_to_string(date)
+    def set_due_date(self, date_value: datetime.date):
+        self.task['due_date'] = normalize_date(date_value)
 
-    def get_done_date(self) -> bool:
-        date = self.task.get('done_date')
-        if not date or date is None :
-            return None
-        return string_to_date(date)
+    def get_done_date(self) -> datetime.date:
+        return normalize_date(self.task.get('done_date'))
 
-    def set_done_date(self, date: datetime.date):
-        self.task['done_date'] = date_to_string(date)
+    def set_done_date(self, date_value: datetime.date):
+        self.task['done_date'] = normalize_date(date_value)
 
     def get_last_done_date(self) -> datetime.date:
-        date = self.task.get('last_done_date')
-        if not date or date is None :
-            return None
-        return string_to_date(date)
+        return normalize_date(self.task.get('last_done_date'))
 
     def get_initial_priority(self) -> float:
         return self.task.get('initial_priority', 0.0)
 
     def get_next_due_date(self, current_date: datetime.date) -> datetime.date:
-        date = self.task.get('next_due_date')
-        if not date or date is None :
-            return None
-        return string_to_date(date)
+        return normalize_date(self.task.get('next_due_date'))
 
     def get_selected(self) -> bool:
         return self.task.get('selected', False)
@@ -92,11 +87,11 @@ class TT_Task:
     def set_selected(self, selected: bool):
         self.task['selected'] = selected
 
-    def set_last_done_date(self, date: datetime.date):
-        self.task['last_done_date'] = date_to_string(date)
+    def set_last_done_date(self, date_value: datetime.date):
+        self.task['last_done_date'] = normalize_date(date_value)
 
-    def set_next_due_date(self, date: datetime.date):
-        self.task['next_due_date'] = date_to_string(date)
+    def set_next_due_date(self, date_value: datetime.date):
+        self.task['next_due_date'] = normalize_date(date_value)
 
     def is_task_completed(self, current_date: datetime.date) -> bool:
         if self.task.get('done_date') is None:
@@ -126,11 +121,11 @@ def sort_tasks(tasks: list[TT_Task], sort_key: str, descending=True) -> list[TT_
     return sorted(tasks, key=key_map.get(sort_key, lambda task: task.get_name()), reverse=descending)
 
 
-def update_priorities(tasks: list[TT_Task], today_tasks: list[TT_Task], priority_increment = PRIORITY_INCREMENT): 
-    unselected_tasks = [task for task in tasks if task not in today_tasks]  
+def update_priorities(tasks: list[TT_Task], today_tasks: list[TT_Task], priority_increment = PRIORITY_INCREMENT):
+    unselected_tasks = [task for task in tasks if task not in today_tasks]
     for task in unselected_tasks:
         task.set_priority(task.get_priority() + priority_increment)
 
-def get_all_selected_tasks(tasks: list[TT_Task]) -> list[TT_Task]:  
+def get_all_selected_tasks(tasks: list[TT_Task]) -> list[TT_Task]:
     return [ t for t in tasks if t.get_selected() ]
 
