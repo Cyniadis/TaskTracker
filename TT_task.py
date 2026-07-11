@@ -1,3 +1,4 @@
+import json 
 from datetime import datetime, timedelta
 
 from TT_utils import date_to_string, frequency_to_days, string_to_date
@@ -9,6 +10,9 @@ PRIORITY_INCREMENT = 0.5
 class TT_Task: 
     def __init__(self, task: dict):
         self.task = task
+
+    def __str__(self):
+        return json.dumps(self.tasks)
 
     def is_due(self, current_date: datetime.date) -> bool:
         last_done_date = self.get_last_done_date()
