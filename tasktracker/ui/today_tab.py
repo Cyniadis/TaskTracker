@@ -5,8 +5,8 @@ import pandas as pd
 import streamlit as st
 from st_aggrid import AgGrid, DataReturnMode, GridOptionsBuilder, JsCode
 
-from .. import state
-from ..models import normalize_date
+from . import ui_state
+from ..task import normalize_date
 from .grid_utils import due_date_cell_style, find_task_by_id, tasks_to_dataframe
 
 _DOUBLE_CLICK_DUE_DATE_JS = r"""function (params) {
@@ -19,22 +19,22 @@ _DOUBLE_CLICK_DUE_DATE_JS = r"""function (params) {
 def _apply_selection(selected_ids: set[int]) -> None:
     for task in st.session_state.today_tasks:
         if selected_ids and task.id in selected_ids:
-            task.complete(state.TODAY)
+            task.complete(ui_state.TODAY)
         else:
             task.uncomplete()
-    state.persist_tasks()
+    ui_state.persist_tasks()
 
 
 def _apply_due_date_edit(task_id: int, new_value) -> None:
     new_due_date = normalize_date(new_value)
-    if new_due_date < state.TODAY:
+    if new_due_date < ui_state.TODAY:
         st.toast("Chosen due date is in the past", icon="⚠️")
-        state.reload_today_grid()
+        ui_state.reload_today_grid()
         return
 
     task = find_task_by_id(st.session_state.tasks, task_id)
     task.due_date = new_due_date
-    state.persist_tasks()
+    ui_state.persist_tasks()
 
 
 def _on_grid_event(grid_response) -> None:
@@ -64,7 +64,7 @@ def _build_grid_options(df: pd.DataFrame) -> dict:
     gb.configure_column("duration", headerName="Duration", width=110)
     gb.configure_column(
         "due_date", headerName="Due date", width=120,
-        cellStyle=due_date_cell_style(state.TODAY.isoformat()),
+        cellStyle=due_date_cell_style(ui_state.TODAY.isoformat()),
         cellDataType="dateString", editable=True,
     )
     gb.configure_column("next_due_date", headerName="Next Due Date", width=120, cellDataType="dateString")
@@ -74,7 +74,7 @@ def _build_grid_options(df: pd.DataFrame) -> dict:
 
     pre_selected = [
         str(idx) for idx, task in enumerate(st.session_state.today_tasks)
-        if task.is_completed_on(state.TODAY)
+        if task.is_completed_on(ui_state.TODAY)
     ]
     gb.configure_selection(
         "multiple", use_checkbox=True, rowMultiSelectWithClick=True,
