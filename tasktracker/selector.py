@@ -12,7 +12,7 @@ from __future__ import annotations
 from datetime import date
 from enum import Enum, auto
 
-from .models import Task
+from .task import Task
 
 
 class Eligibility(Enum):

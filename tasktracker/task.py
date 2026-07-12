@@ -76,7 +76,7 @@ def normalize_date(value: Any) -> date | None:
         if not value or value.lower() == "nan":
             return None
         if "/" in value:
-            return datetime.strptime(value, "%d/%m/%Y").date()
+            return datetime.strptime(value, "%d-%m-%Y").date()
         return datetime.fromisoformat(value).date()
     if hasattr(value, "item"):  # numpy / pandas scalar
         return normalize_date(value.item())

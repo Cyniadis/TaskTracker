@@ -11,19 +11,19 @@ from datetime import datetime
 
 import streamlit as st
 
-from . import storage
-from .models import Task, normalize_date
-from .scheduler import compute_daily_tasks
+from .. import json_utils
+from ..task import Task, normalize_date
+from ..selector import compute_daily_tasks
 
 TODAY = normalize_date(datetime.now())
 
 
 @st.cache_resource(show_spinner=False)
 def _load_task_lists(include_completed_today: bool = False) -> tuple[list[Task], list[Task], int]:
-    daily_limit = storage.load_daily_limit()
-    tasks = storage.load_tasks()
+    daily_limit = json_utils.load_daily_limit()
+    tasks = json_utils.load_tasks()
     today_tasks = compute_daily_tasks(tasks, TODAY, daily_limit, include_completed_today)
-    storage.save_tasks(tasks)
+    json_utils.save_tasks(tasks)
     return tasks, today_tasks, daily_limit
 
 
@@ -45,7 +45,7 @@ def init_session_state() -> None:
 
 
 def persist_tasks() -> None:
-    storage.save_tasks(st.session_state.tasks)
+    json_utils.save_tasks(st.session_state.tasks)
 
 
 def regenerate_today_tasks() -> None:
