@@ -5,17 +5,17 @@ import pandas as pd
 import streamlit as st
 from st_aggrid import AgGrid, DataReturnMode, GridOptionsBuilder
 
-from .. import state
 from .add_task_dialog import add_task_dialog
 from .grid_utils import find_task_by_id, frequency_cell_editor, tasks_to_dataframe
 
+from . import ui_state
 
 def _on_grid_event(grid_response) -> None:
     event = grid_response.event_data
     field_name = event["column"]["colId"]
     task = find_task_by_id(st.session_state.tasks, event["data"]["id"])
     task.set_field(field_name, event.get("newValue"))
-    state.persist_tasks()
+    ui_state.persist_tasks()
 
 
 def _build_grid_options(df: pd.DataFrame) -> dict:

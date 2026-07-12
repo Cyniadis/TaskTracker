@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import streamlit as st
 
-from .. import state
-from ..models import Period, Task
+from . import ui_state
+from ..task import Period, Task
 
 
 @st.dialog("Add a new task")
@@ -36,7 +36,7 @@ def add_task_dialog() -> None:
         return
 
     task = Task(
-        id=state.next_task_id(),
+        id=ui_state.next_task_id(),
         name=name.strip(),
         frequency=f"{int(frequency_count)}x{period.value}",
         priority=initial_priority,
@@ -44,5 +44,5 @@ def add_task_dialog() -> None:
         duration=int(duration),
         due_date=due_date,
     )
-    state.add_task(task)
+    ui_state.add_task(task)
     st.rerun()
