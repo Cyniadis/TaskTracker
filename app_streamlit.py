@@ -6,13 +6,16 @@ from __future__ import annotations
 
 import streamlit as st
 
-from tasktracker import state
-from tasktracker.storage import save_daily_limit
+from tasktracker.ui import ui_state
+from tasktracker.json_utils import save_daily_limit
 from tasktracker.ui import general_tab, timer_tab, today_tab
+
+import locale
+locale.setlocale(locale.LC_ALL, 'fr_FR')
 
 
 def _render_today_header() -> None:
-    st.markdown("### Tasks of " + state.TODAY.strftime("%a, %B %d, %Y"))
+    st.markdown("### Tâches du " + ui_state.TODAY.strftime("%A %d %B %Y"))
 
     with st.container(horizontal=True, horizontal_alignment="left", vertical_alignment="center", height="stretch"):
         st.markdown("Daily duration limit (minutes) : ")
@@ -26,9 +29,9 @@ def _render_today_header() -> None:
             on_change=lambda: save_daily_limit(st.session_state.daily_limit),
             width=100,
         )
-        st.button("Discard completed tasks", on_click=state.discard_completed_tasks)
-        st.button("Regenerate", on_click=state.regenerate_today_tasks)
-        st.button("Reload", on_click=state.reset_app)
+        st.button("Discard completed tasks", on_click=ui_state.discard_completed_tasks)
+        st.button("Regenerate", on_click=ui_state.regenerate_today_tasks)
+        st.button("Reload", on_click=ui_state.reset_app)
 
     st.write(
         f"**Active duration:** {sum(t.duration for t in st.session_state.today_tasks)} min - "
@@ -42,7 +45,7 @@ def main() -> None:
     st.set_page_config(page_title="TaskTracker", layout="wide")
     st.title("TaskTracker")
 
-    state.init_session_state()
+    ui_state.init_session_state()
 
     today_tab_ui, general_tab_ui, timer_tab_ui = st.tabs(["📝 Today", "⚙️ General", "⏱️ Timer"])
 
