@@ -42,33 +42,53 @@ class TT_Task:
     def clone(self) -> dict:
         return self.task.copy()
 
+    def set_value(self, param: str, value):
+        if param == "name": 
+            self.set_name(value)
+        elif param == "frequency": 
+            self.set_frequency(value)
+        elif param == "priority":
+            self.set_priority(value)
+        elif param == "initial_priority":
+            self.set_initial_priority(value)
+        elif param == "duration": 
+            self.set_duration(value)
+        elif param == "due_date":
+            self.set_due_date(value)
+        elif param == "next_due_date":
+            self.set_next_due_date(value)
+
+
     def get_id(self) -> int:
         return self.task.get('id', -1)
 
     def get_name(self) -> str:
         return self.task.get('name', '')
+    def set_name(self, name: str):
+        self.task["name"] = name
 
     def get_frequency(self) -> str:
         return self.task.get('frequency', '')
+    def set_frequency(self, freq: str): 
+        self.task['frequency'] = freq
 
     def get_priority(self) -> float:
         return self.task.get('priority', 0.0)
-
     def set_priority(self, priority: float):
         self.task['priority'] = priority
 
     def get_duration(self) -> int:
         return self.task.get('duration', 0)
+    def set_duration(self, duration: int) -> int:
+        self.task['duration'] = duration
 
     def get_due_date(self) -> datetime.date:
         return normalize_date(self.task.get('due_date'))
-
     def set_due_date(self, date_value: datetime.date):
         self.task['due_date'] = normalize_date(date_value)
 
     def get_done_date(self) -> datetime.date:
         return normalize_date(self.task.get('done_date'))
-
     def set_done_date(self, date_value: datetime.date):
         self.task['done_date'] = normalize_date(date_value)
 
@@ -77,13 +97,14 @@ class TT_Task:
 
     def get_initial_priority(self) -> float:
         return self.task.get('initial_priority', 0.0)
+    def set_initial_priority(self, priority: int):
+        self.task['initial_priority'] = priority
 
     def get_next_due_date(self, current_date: datetime.date) -> datetime.date:
         return normalize_date(self.task.get('next_due_date'))
 
     def get_selected(self) -> bool:
         return self.task.get('selected', False)
-
     def set_selected(self, selected: bool):
         self.task['selected'] = selected
 
