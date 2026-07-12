@@ -183,6 +183,7 @@ def reset_timer():
     st.session_state.elapsed_accum = 0.0
 
 
+@st.fragment
 def build_timer_tab():
     # --- Compute current elapsed ---
     if st.session_state.timer_running and st.session_state.timer_start_time:
@@ -201,7 +202,7 @@ def build_timer_tab():
     with st.container(horizontal_alignment="center", border=True, width="content"):
         st.markdown(
             f"<h1 style='text-align:center; font-size: 5rem;'>"
-            f"{h:02d}:{m:02d}:{s:02d}.{}"
+            f"{h:02d}:{m:02d}:{s:02d}"
             f"</h1>",
             unsafe_allow_html=True,
             anchors=False
@@ -215,6 +216,7 @@ def build_timer_tab():
 
     # Auto-rerun every second while running
     if st.session_state.timer_running:
-        time.sleep(1)
-        st.rerun()
+        time.sleep(0.25)
+        st.rerun(scope="fragment")
+
 
