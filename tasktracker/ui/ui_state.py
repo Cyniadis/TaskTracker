@@ -17,13 +17,13 @@ from ..selector import compute_daily_tasks
 
 TODAY = normalize_date(datetime.now())
 
-
 @st.cache_resource(show_spinner=False)
 def _load_task_lists(include_completed_today: bool = False) -> tuple[list[Task], list[Task], int]:
     daily_limit = json_utils.load_daily_limit()
     tasks = json_utils.load_tasks()
     today_tasks = compute_daily_tasks(tasks, TODAY, daily_limit, include_completed_today)
     json_utils.save_tasks(tasks)
+    json_utils.create_tasks_backup(tasks)
     return tasks, today_tasks, daily_limit
 
 
@@ -42,6 +42,7 @@ def init_session_state() -> None:
         timer_start_time=None,
         elapsed_accum=0.0,
     )
+
 
 
 def persist_tasks() -> None:

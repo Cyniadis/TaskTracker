@@ -1,1 +1,4 @@
-{"daily_limit": 120}
+{
+  "daily_limit": 120,
+  "backup_path": "/workspaces/TaskTracker/backups/tasklist_backup_12-07-2026.json"
+}

@@ -13,12 +13,14 @@ from tasktracker.ui import general_tab, timer_tab, today_tab
 import locale
 locale.setlocale(locale.LC_ALL, 'fr_FR')
 
+# import pdb
+# pdb.set_trace()
 
 def _render_today_header() -> None:
-    st.markdown("### Tâches du " + ui_state.TODAY.strftime("%A %d %B %Y"))
+    st.markdown("### Tâches du " + ui_state.TODAY.strftime("%A %d %B %Y"), anchors=False)
 
     with st.container(horizontal=True, horizontal_alignment="left", vertical_alignment="center", height="stretch"):
-        st.markdown("Daily duration limit (minutes) : ")
+        st.markdown("Daily duration limit (minutes) : ", anchors=False)
         st.number_input(
             label="Daily duration limit",
             label_visibility="collapsed",
@@ -43,7 +45,7 @@ def main() -> None:
     print("Starting Streamlit App")
 
     st.set_page_config(page_title="TaskTracker", layout="wide")
-    st.title("TaskTracker")
+    st.title("TaskTracker", anchor=False)
 
     ui_state.init_session_state()
 
@@ -57,7 +59,7 @@ def main() -> None:
         general_tab.render()
 
     with timer_tab_ui:
-        st.markdown("### Timer")
+        st.markdown("### Timer", anchors=False)
         timer_tab.render()
 
 

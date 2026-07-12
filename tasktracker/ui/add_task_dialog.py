@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import streamlit as st
+from streamlit.emojis import ALL_EMOJIS
 
 from . import ui_state
 from ..task import Period, Task

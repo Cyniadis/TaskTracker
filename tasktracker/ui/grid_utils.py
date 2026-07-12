@@ -5,7 +5,7 @@ import pandas as pd
 import streamlit as st
 from st_aggrid import JsCode
 
-from ..consts import FREQUENCY_EDITOR_JS
+from ..consts import FREQUENCY_EDITOR_JS, DATE_FORMAT
 from ..task import Task
 
 DATE_COLUMNS = ("due_date", "next_due_date", "done_date", "last_done_date")
@@ -18,7 +18,7 @@ def tasks_to_dataframe(tasks: list[Task]) -> pd.DataFrame:
     df = pd.DataFrame.from_records([task.to_dict() for task in tasks])
     for column in DATE_COLUMNS:
         if column in df.columns:
-            df[column] = pd.to_datetime(df[column], errors="coerce", dayfirst=False).dt.strftime("%d-%m-%Y")
+            df[column] = pd.to_datetime(df[column], errors="coerce", dayfirst=False).dt.strftime(DATE_FORMAT)
     return df
 
 

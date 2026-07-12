@@ -10,5 +10,8 @@ TASKS_FILE = PROJECT_ROOT / "tasklist.json"
 SETTINGS_FILE = PROJECT_ROOT / "cache.json"
 FREQUENCY_EDITOR_JS = PACKAGE_DIR / "ui" / "assets" / "FrequencyCellEditor.js"
 
+
 DEFAULT_DAILY_LIMIT_MINUTES = 60
 PRIORITY_INCREMENT = 0.5
+
+DATE_FORMAT = "%d-%m-%Y"
