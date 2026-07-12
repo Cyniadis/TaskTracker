@@ -43,6 +43,7 @@ def render() -> None:
         st.markdown(
             f"<h1 style='text-align:center; font-size: 5rem;'>{hours:02d}:{minutes:02d}:{seconds:02d}</h1>",
             unsafe_allow_html=True,
+            anchors=False
         )
         with st.container(horizontal=True, horizontal_alignment="center", width="content"):
             play_label = "⏸ Pause" if st.session_state.timer_running else "▶️ Play"

@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass, fields
 from datetime import date, datetime, timedelta
 from enum import Enum
 from typing import Any
-
+from .consts import DATE_FORMAT
 
 class Period(str, Enum):
     """The recurrence unit of a task, e.g. 'twice a WEEK'."""
@@ -76,7 +76,7 @@ def normalize_date(value: Any) -> date | None:
         if not value or value.lower() == "nan":
             return None
         if "/" in value:
-            return datetime.strptime(value, "%d-%m-%Y").date()
+            return datetime.strptime(value, DATE_FORMAT).date()
         return datetime.fromisoformat(value).date()
     if hasattr(value, "item"):  # numpy / pandas scalar
         return normalize_date(value.item())
