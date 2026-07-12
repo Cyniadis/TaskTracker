@@ -77,4 +77,3 @@ class FrequencyCellEditor {
         this.eGui = null;
     }
 }
-
