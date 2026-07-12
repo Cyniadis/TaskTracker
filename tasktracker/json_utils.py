@@ -10,8 +10,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .config import DEFAULT_DAILY_LIMIT_MINUTES, SETTINGS_FILE, TASKS_FILE
-from .models import Task
+from .consts import DEFAULT_DAILY_LIMIT_MINUTES, SETTINGS_FILE, TASKS_FILE
+from .task import Task
 
 
 def _read_json(path: Path) -> Any:
