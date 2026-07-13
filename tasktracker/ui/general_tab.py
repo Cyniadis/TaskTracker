@@ -10,6 +10,7 @@ from .grid_utils import find_task_by_id, frequency_cell_editor, tasks_to_datafra
 
 from ..json_utils import load_tasks_backup
 
+
 from . import ui_state
 
 def _on_remove_selection_click():
@@ -20,11 +21,10 @@ def _on_remove_selection_click():
         st.session_state.tasks = [t for t in st.session_state.tasks if t.id not in selected_ids ]
 
 def _on_grid_event(grid_response) -> None:
-    print(grid_response)
     event = grid_response.event_data
     event_type = event.get("type")
-    # if event_type == "selectionChanged":
-    #     st.session_state.selected_rows = grid_response.selected_rows
+    if event_type == "selectionChanged":
+        st.session_state.selected_rows = grid_response.selected_rows
     if event_type == "cellValueChanged":
         field_name = event["column"]["colId"]
         task = find_task_by_id(st.session_state.tasks, event["data"]["id"])
@@ -66,7 +66,7 @@ def render() -> None:
 
         if st.button("🔄️ Load backup"):
             st.session_state.tasks = load_tasks_backup()
-            st.rerun()
+            ui_state.reload_manage_grid()
 
 
     df = tasks_to_dataframe(st.session_state.tasks)

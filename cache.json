@@ -1,13 +1,13 @@
 {
   "daily_limit": 120,
-  "backup_date": "13-07-2026",
+  "backup_date": "2026-07-13",
   "backup_tasks": [
     {
       "id": 0,
       "name": "🍴 Mettre la vaisselle au lave-vaisselle",
       "frequency": "1xjour",
       "priority": 5.0,
-      "initial_priority": 5.0,
+      "initial_priority": 5,
       "duration": 5,
       "selected": true,
       "due_date": "2026-07-13",
