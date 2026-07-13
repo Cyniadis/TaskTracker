@@ -22,17 +22,17 @@ def main() -> None:
 
     today_tab_ui, general_tab_ui, timer_tab_ui = st.tabs(["📝 Today", "⚙️ General", "⏱️ Timer"])
 
-    # with today_tab_ui:
-    #     print("Render Today tab")
-    #     today_tab.render()
+    with today_tab_ui:
+        print("Render Today tab")
+        today_tab.render()
 
     with general_tab_ui:
         print("Render General tab")
         general_tab.render()
 
-    # with timer_tab_ui:
-    #     print("Render Timer tab")
-    #     timer_tab.render()
+    with timer_tab_ui:
+        print("Render Timer tab")
+        timer_tab.render()
 
 
 if __name__ == "__main__":
