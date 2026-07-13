@@ -42,6 +42,7 @@ def init_session_state() -> None:
         timer_running=False,
         timer_start_time=None,
         elapsed_accum=0.0,
+        selected_rows=[]
     )
     create_tasks_backup(tasks)
 

@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .consts import DEFAULT_DAILY_LIMIT_MINUTES, CACHE_FILE, TASKS_FILE, PROJECT_ROOT,DATE_FORMAT, TODAY
-from .task import Task
+from .task import Task, normalize_date
 
 def _read_json(path: Path) -> Any:
     try:
@@ -55,15 +55,17 @@ def save_daily_limit(daily_limit: int) -> None:
 def create_tasks_backup(tasks: list[Task]) -> None:
     cached_params = _read_json(CACHE_FILE)
     backup_date = cached_params['backup_date'] 
-    if backup_date == TODAY:
+    if normalize_date(backup_date) == normalize_date(TODAY):
         return
     else:
+        print("Create task Backup")
         cached_params['backup_date'] = TODAY.strftime(DATE_FORMAT)
         cached_params["backup_tasks"]= task_list_to_json(tasks)
         _write_json(CACHE_FILE, cached_params)
 
     
 def load_tasks_backup() -> None: 
+    print("Load tasks backup")
     cached_params = _read_json(CACHE_FILE)
     cached_tasks = cached_params.get("backup_tasks", None)
     return json_to_task_list(cached_tasks)
