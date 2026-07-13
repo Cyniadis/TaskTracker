@@ -11,19 +11,18 @@ from datetime import datetime
 
 import streamlit as st
 
-from .. import json_utils
-from ..task import Task, normalize_date
+from ..json_utils import load_daily_limit, load_tasks, save_tasks, save_daily_limit, create_tasks_backup, load_tasks_backup
 from ..selector import compute_daily_tasks
-
-TODAY = normalize_date(datetime.now())
+from ..consts import TODAY
+from ..task import Task
 
 @st.cache_resource(show_spinner=False)
-def _load_task_lists(include_completed_today: bool = False) -> tuple[list[Task], list[Task], int]:
-    daily_limit = json_utils.load_daily_limit()
-    tasks = json_utils.load_tasks()
+def _init_task_lists(include_completed_today: bool = False) -> tuple[list[Task], list[Task], int]:
+    print("Initialize tasks lists")
+    daily_limit = load_daily_limit()
+    tasks = load_tasks()
     today_tasks = compute_daily_tasks(tasks, TODAY, daily_limit, include_completed_today)
-    json_utils.save_tasks(tasks)
-    json_utils.create_tasks_backup(tasks)
+    save_tasks(tasks)
     return tasks, today_tasks, daily_limit
 
 
@@ -31,7 +30,9 @@ def init_session_state() -> None:
     """Populate `st.session_state` on first run; a no-op on later reruns."""
     if "tasks" in st.session_state:
         return
-    tasks, today_tasks, daily_limit = _load_task_lists()
+
+    print("Initialize session state")
+    tasks, today_tasks, daily_limit = _init_task_lists()
     st.session_state.update(
         tasks=tasks,
         today_tasks=today_tasks,
@@ -42,18 +43,18 @@ def init_session_state() -> None:
         timer_start_time=None,
         elapsed_accum=0.0,
     )
-
+    create_tasks_backup(tasks)
 
 
 def persist_tasks() -> None:
-    json_utils.save_tasks(st.session_state.tasks)
+    save_tasks(st.session_state.tasks)
 
 
 def regenerate_today_tasks() -> None:
     """Recompute today's task selection from scratch, keeping already-completed ones."""
-    _load_task_lists.clear()
+    _init_task_lists.clear()
     st.session_state.tasks, st.session_state.today_tasks, st.session_state.daily_limit = (
-        _load_task_lists(True)
+        _init_task_lists(True)
     )
 
 

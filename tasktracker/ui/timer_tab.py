@@ -39,6 +39,8 @@ def render() -> None:
     hours, remainder = divmod(total_seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
 
+    st.markdown("### Timer", anchors=False)
+
     with st.container(horizontal_alignment="center", border=True, width="content"):
         st.markdown(
             f"<h1 style='text-align:center; font-size: 5rem;'>{hours:02d}:{minutes:02d}:{seconds:02d}</h1>",
