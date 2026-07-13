@@ -8,12 +8,38 @@ from st_aggrid import AgGrid, DataReturnMode, GridOptionsBuilder, JsCode
 from . import ui_state
 from ..task import normalize_date
 from .grid_utils import due_date_cell_style, find_task_by_id, tasks_to_dataframe
+from ..json_utils import save_daily_limit
+
 
 _DOUBLE_CLICK_DUE_DATE_JS = r"""function (params) {
     if (params.column.colId == "due_date") {
         params.node.setDataValue('doubleClicked', params.data.id);
     }
 }"""
+
+def _render_today_header() -> None:
+    st.markdown("### Tâches du " + ui_state.TODAY.strftime("%A %d %B %Y"), anchors=False)
+
+    with st.container(horizontal=True, horizontal_alignment="left", vertical_alignment="center", height="stretch"):
+        st.markdown("Daily duration limit (minutes) : ", anchors=False)
+        st.number_input(
+            label="Daily duration limit",
+            label_visibility="collapsed",
+            min_value=5,
+            max_value=720,
+            step=15,
+            key="daily_limit",
+            on_change=lambda: save_daily_limit(daily_limit=st.session_state.daily_limit),
+            width=100,
+        )
+        st.button("Discard completed tasks", on_click=ui_state.discard_completed_tasks)
+        st.button("Regenerate", on_click=ui_state.regenerate_today_tasks)
+        st.button("Reload", on_click=ui_state.reset_app)
+
+    st.write(
+        f"**Active duration:** {sum(t.duration for t in st.session_state.today_tasks)} min - "
+        f"**Number of tasks:** {len(st.session_state.today_tasks)}"
+    )
 
 
 def _apply_selection(selected_ids: set[int]) -> None:
@@ -85,6 +111,8 @@ def _build_grid_options(df: pd.DataFrame) -> dict:
 
 
 def render() -> None:
+    _render_today_header()
+
     df = tasks_to_dataframe(st.session_state.today_tasks)
     if df.empty:
         st.info("No tasks were selected for today. Add or edit tasks in the General tab.")

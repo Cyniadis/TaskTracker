@@ -10,10 +10,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .consts import DEFAULT_DAILY_LIMIT_MINUTES, SETTINGS_FILE, TASKS_FILE, PROJECT_ROOT,DATE_FORMAT
+from .consts import DEFAULT_DAILY_LIMIT_MINUTES, CACHE_FILE, TASKS_FILE, PROJECT_ROOT,DATE_FORMAT, TODAY
 from .task import Task
-from datetime import datetime
-import os
 
 def _read_json(path: Path) -> Any:
     try:
@@ -29,52 +27,43 @@ def _write_json(path: Path, payload: Any) -> None:
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def json_to_task_list(json_data: dict) -> list[Task]:
+    return [Task.from_dict(item) for item in json_data]
+
+def task_list_to_json(tasks: list[Task]) -> dict: 
+    return [task.to_dict() for task in tasks]
+
 def load_tasks(path: Path = TASKS_FILE) -> list[Task]:
     raw_tasks = _read_json(path) or []
-    return [Task.from_dict(item) for item in raw_tasks]
+    return json_to_task_list(raw_tasks)
 
 
 def save_tasks(tasks: list[Task], path: Path = TASKS_FILE) -> None:
-    _write_json(path, [task.to_dict() for task in tasks])
+    _write_json(path, task_list_to_json(tasks))
 
 
-def load_daily_limit(path: Path = SETTINGS_FILE) -> int:
-    settings = _read_json(path) or {}
-    return settings.get("daily_limit", DEFAULT_DAILY_LIMIT_MINUTES)
+def load_daily_limit() -> int:
+    cached_params = _read_json(CACHE_FILE)
+    return cached_params.get("daily_limit", DEFAULT_DAILY_LIMIT_MINUTES)
+
+def save_daily_limit(daily_limit: int) -> None:
+    cached_params = _read_json(CACHE_FILE)
+    cached_params['daily_limit'] = daily_limit
+    _write_json(CACHE_FILE, cached_params)
 
 
-def save_daily_limit(daily_limit: int, path: Path = SETTINGS_FILE) -> None:
-    settings = _read_json(path) or {}
-    settings["daily_limit"] = daily_limit
-    _write_json(path, settings)
-
-def save_backup_path(path: Path = SETTINGS_FILE) -> None:
-    settings = _read_json(path) or {}
-    suffix = datetime.now().strftime(DATE_FORMAT)
-    settings["backup_path"] = str(PROJECT_ROOT / "backups" / f"tasklist_backup_{suffix}.json")
-    print(settings)
-    _write_json(path, settings)
-
-def load_backup_path(path: Path = SETTINGS_FILE) -> Path:
-    settings = _read_json(path) or {}
-    return Path(settings.get("backup_path", ""))
-
-
-def create_tasks_backup(tasks: list[Task], path: Path = SETTINGS_FILE) -> None:
-    backup_path = load_backup_path(path)
-    if not backup_path: 
-        save_backup_path(path)
-        save_tasks(tasks, backup_path)
+def create_tasks_backup(tasks: list[Task]) -> None:
+    cached_params = _read_json(CACHE_FILE)
+    backup_date = cached_params['backup_date'] 
+    if backup_date == TODAY:
+        return
     else:
-        date_str = Path(backup_path).stem.removeprefix("tasklist_backup_")
-        date_backup = datetime.strptime(date_str, DATE_FORMAT).date()
-        if not date_backup == datetime.now().date(): 
-            save_backup_path(path)
-            save_tasks(tasks, backup_path)
+        cached_params['backup_date'] = TODAY.strftime(DATE_FORMAT)
+        cached_params["backup_tasks"]= task_list_to_json(tasks)
+        _write_json(CACHE_FILE, cached_params)
 
-    if not os.path.isfile(backup_path):
-        save_tasks(tasks, backup_path)
-
-def load_tasks_backup(path: Path= SETTINGS_FILE) -> list[Task]:
-    backup_path = load_backup_path(path)
-    return load_tasks(backup_path)
+    
+def load_tasks_backup() -> None: 
+    cached_params = _read_json(CACHE_FILE)
+    cached_tasks = cached_params.get("backup_tasks", None)
+    return json_to_task_list(cached_tasks)
