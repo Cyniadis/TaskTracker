@@ -58,6 +58,9 @@ def regenerate_today_tasks() -> None:
         _init_task_lists(True)
     )
 
+def restore_tasks(tasks: list[Task]) -> None: 
+    for task in tasks: 
+        task.restore()
 
 def discard_completed_tasks() -> None:
     completed = [t for t in st.session_state.today_tasks if t.is_completed_on(TODAY)]
@@ -65,7 +68,7 @@ def discard_completed_tasks() -> None:
         return
 
     for task in completed:
-        task.reset_and_advance(TODAY)
+        task.reset_and_advance()
 
     completed_ids = {t.id for t in completed}
     st.session_state.today_tasks = [

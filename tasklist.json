@@ -7,10 +7,8 @@
     "initial_priority": 5,
     "duration": 5,
     "selected": true,
-    "due_date": "2026-07-13",
-    "next_due_date": "2026-07-14",
-    "done_date": null,
-    "last_done_date": null
+    "due_date": "2026-07-14",
+    "done_date": null
   },
   {
     "id": 1,
@@ -20,10 +18,8 @@
     "initial_priority": 4.0,
     "duration": 15,
     "selected": true,
-    "due_date": "2026-07-13",
-    "next_due_date": "2026-07-14",
-    "done_date": null,
-    "last_done_date": null
+    "due_date": "2026-07-14",
+    "done_date": null
   },
   {
     "id": 2,
@@ -33,10 +29,8 @@
     "initial_priority": 4.0,
     "duration": 10,
     "selected": true,
-    "due_date": "2026-07-13",
-    "next_due_date": "2026-07-14",
-    "done_date": null,
-    "last_done_date": null
+    "due_date": "2026-07-14",
+    "done_date": null
   },
   {
     "id": 3,
@@ -46,10 +40,8 @@
     "initial_priority": 4.0,
     "duration": 10,
     "selected": true,
-    "due_date": "2026-07-13",
-    "next_due_date": "2026-07-14",
-    "done_date": null,
-    "last_done_date": null
+    "due_date": "2026-07-14",
+    "done_date": null
   },
   {
     "id": 4,
@@ -59,10 +51,8 @@
     "initial_priority": 4.0,
     "duration": 5,
     "selected": true,
-    "due_date": "2026-07-13",
-    "next_due_date": "2026-07-14",
-    "done_date": null,
-    "last_done_date": null
+    "due_date": "2026-07-14",
+    "done_date": null
   },
   {
     "id": 5,
@@ -72,10 +62,8 @@
     "initial_priority": 4.0,
     "duration": 10,
     "selected": true,
-    "due_date": "2026-07-13",
-    "next_due_date": "2026-07-14",
-    "done_date": null,
-    "last_done_date": null
+    "due_date": "2026-07-14",
+    "done_date": null
   },
   {
     "id": 6,
@@ -85,10 +73,8 @@
     "initial_priority": 3.0,
     "duration": 10,
     "selected": true,
-    "due_date": "2026-07-13",
-    "next_due_date": "2026-07-20",
-    "done_date": null,
-    "last_done_date": null
+    "due_date": "2026-07-14",
+    "done_date": "2026-07-14"
   },
   {
     "id": 7,
@@ -99,9 +85,7 @@
     "duration": 20,
     "selected": true,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 8,
@@ -112,9 +96,7 @@
     "duration": 10,
     "selected": true,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 9,
@@ -125,9 +107,7 @@
     "duration": 10,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 10,
@@ -138,9 +118,7 @@
     "duration": 10,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 11,
@@ -151,9 +129,7 @@
     "duration": 5,
     "selected": true,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 12,
@@ -164,9 +140,7 @@
     "duration": 10,
     "selected": true,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 13,
@@ -176,10 +150,8 @@
     "initial_priority": 4.0,
     "duration": 10,
     "selected": true,
-    "due_date": "2026-07-13",
-    "next_due_date": "2026-07-14",
-    "done_date": null,
-    "last_done_date": null
+    "due_date": "2026-07-14",
+    "done_date": null
   },
   {
     "id": 14,
@@ -189,10 +161,8 @@
     "initial_priority": 3.0,
     "duration": 25,
     "selected": true,
-    "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "due_date": "2026-07-14",
+    "done_date": "2026-07-14"
   },
   {
     "id": 15,
@@ -203,9 +173,7 @@
     "duration": 25,
     "selected": true,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 16,
@@ -216,9 +184,7 @@
     "duration": 40,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 17,
@@ -229,9 +195,7 @@
     "duration": 60,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 18,
@@ -242,9 +206,7 @@
     "duration": 20,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 19,
@@ -255,9 +217,7 @@
     "duration": 20,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 20,
@@ -268,9 +228,7 @@
     "duration": 10,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 21,
@@ -281,9 +239,7 @@
     "duration": 15,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 22,
@@ -294,9 +250,7 @@
     "duration": 30,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 23,
@@ -307,9 +261,7 @@
     "duration": 30,
     "selected": true,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 24,
@@ -320,9 +272,7 @@
     "duration": 30,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 25,
@@ -333,9 +283,7 @@
     "duration": 30,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 26,
@@ -346,9 +294,7 @@
     "duration": 15,
     "selected": true,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 27,
@@ -359,9 +305,7 @@
     "duration": 30,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 28,
@@ -371,10 +315,8 @@
     "initial_priority": 4.0,
     "duration": 20,
     "selected": true,
-    "due_date": "2026-07-13",
-    "next_due_date": "2026-07-28",
-    "done_date": null,
-    "last_done_date": null
+    "due_date": "2026-07-14",
+    "done_date": "2026-07-14"
   },
   {
     "id": 29,
@@ -385,9 +327,7 @@
     "duration": 120,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 30,
@@ -398,9 +338,7 @@
     "duration": 60,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 31,
@@ -411,9 +349,7 @@
     "duration": 15,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   },
   {
     "id": 32,
@@ -424,8 +360,6 @@
     "duration": 40,
     "selected": false,
     "due_date": null,
-    "next_due_date": null,
-    "done_date": null,
-    "last_done_date": null
+    "done_date": null
   }
 ]

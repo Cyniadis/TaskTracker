@@ -84,7 +84,7 @@ def normalize_date(value: Any) -> date | None:
     raise TypeError(f"Unsupported date value: {value!r}")
 
 
-_DATE_FIELDS = ("due_date", "next_due_date", "done_date", "last_done_date")
+_DATE_FIELDS = ("due_date", "done_date")
 
 
 @dataclass
@@ -99,22 +99,34 @@ class Task:
     duration: int = 0
     selected: bool = False
     due_date: date | None = None
-    next_due_date: date | None = None
     done_date: date | None = None
-    last_done_date: date | None = None
+
+    orig_frequency: str = "1xjour"
+    orig_priority: float = 0.0
+    orig_initial_priority: float = 0.0
+    orig_duration: int = 0
+    orig_due_date: date | None = None
+    orig_done_date: date | None = None
+
 
     def __post_init__(self) -> None:
         for field_name in _DATE_FIELDS:
             setattr(self, field_name, normalize_date(getattr(self, field_name)))
+        self.orig_frequency = self.frequency
+        self.orig_priority = self.priority
+        self.orig_initial_priority = self.initial_priority
+        self.orig_duration = self.duration
+        self.orig_due_date = self.due_date
+        self.orig_done_date = self.done_date
 
     # -- (de)serialization -------------------------------------------------
     @classmethod
     def from_dict(cls, data: dict) -> "Task":
-        known_fields = {f.name for f in fields(cls)}
+        known_fields = {f.name for f in fields(cls) if not f.name.startswith("orig_")}
         return cls(**{key: value for key, value in data.items() if key in known_fields})
 
     def to_dict(self) -> dict:
-        payload = asdict(self)
+        payload = {k: v for k,v in asdict(self).items()  if not k.startswith("orig_") }
         for field_name in _DATE_FIELDS:
             value = payload[field_name]
             payload[field_name] = value.isoformat() if value else None
@@ -134,7 +146,8 @@ class Task:
         self.priority = self.initial_priority
 
     def uncomplete(self) -> None:
-        self.done_date = self.last_done_date
+        # TODO
+        pass
 
     def is_completed_on(self, current_date: date) -> bool:
         return self.done_date is not None and self.done_date == current_date
@@ -143,15 +156,13 @@ class Task:
         """Mark this task as picked for `current_date` and roll its next occurrence forward."""
         self.selected = True
         self.due_date = current_date
-        self.next_due_date = self.compute_next_due_date(current_date)
 
-    def reset_and_advance(self, current_date: date) -> None:
+    def reset_and_advance(self) -> None:
+        #TODO
         """Archive a completed task for the day: rotate its dates forward and clear completion."""
         self.selected = False
-        self.last_done_date = self.done_date
-        self.due_date = self.next_due_date
+        # self.last_done_date = self.done_date
         self.done_date = None
-        self.next_due_date = None
 
     def set_field(self, field_name: str, value: Any) -> None:
         """Generic setter used by grid-edit callbacks (keeps date fields normalized)."""
@@ -160,3 +171,11 @@ class Task:
         if field_name in _DATE_FIELDS:
             value = normalize_date(value)
         setattr(self, field_name, value)
+
+    def restore(self): 
+        self.frequency = self.orig_frequency
+        self.priority = self.orig_priority
+        self.initial_priority = self.orig_initial_priority
+        self.duration = self.orig_duration
+        self.due_date = self.orig_due_date
+        self.done_date = self.orig_done_date

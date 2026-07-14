@@ -26,8 +26,8 @@ def _eligibility(task: Task, current_date: date) -> Eligibility:
         return Eligibility.ELIGIBLE
 
     if not task.due_date or task.due_date < current_date:
-        if task.last_done_date:
-            days_since_done = (current_date - task.last_done_date).days
+        if task.done_date:
+            days_since_done = (current_date - task.done_date).days
             return (
                 Eligibility.ELIGIBLE
                 if days_since_done >= task.frequency_obj.days

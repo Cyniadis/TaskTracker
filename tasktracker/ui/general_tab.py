@@ -43,9 +43,7 @@ def _build_grid_options(df: pd.DataFrame) -> dict:
     gb.configure_column("duration", headerName="Duration (min)", cellDataType="number")
     gb.configure_column("selected", headerName="Selected", hide=True)
     gb.configure_column("due_date", headerName="Due date", cellDataType="dateString")
-    gb.configure_column("next_due_date", headerName="Next Due Date", cellDataType="dateString", editable=False)
     gb.configure_column("done_date", headerName="Done date", cellDataType="dateString", editable=False)
-    gb.configure_column("last_done_date", headerName="Last Done Date", cellDataType="dateString", editable=False)
     gb.configure_selection("multiple", use_checkbox=True,
                             rowMultiSelectWithClick=False, 
                             suppressRowClickSelection=False, 
@@ -64,9 +62,12 @@ def render() -> None:
         if st.button("🗑️ Remove selection"):
             _on_remove_selection_click()
 
-        if st.button("🔄️ Load backup"):
-            st.session_state.tasks = load_tasks_backup()
-            ui_state.reload_manage_grid()
+        # if st.button("🔄️ Load backup"):
+        #     st.session_state.tasks = load_tasks_backup()
+        #     ui_state.reload_manage_grid()
+        if st.button("⭯ Discard changes"): 
+            ui_state.restore_tasks(st.session_state.today_tasks)
+            ui_state.reload_today_grid()
 
 
     df = tasks_to_dataframe(st.session_state.tasks)
