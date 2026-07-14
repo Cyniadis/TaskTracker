@@ -17,6 +17,46 @@ _DOUBLE_CLICK_DUE_DATE_JS = r"""function (params) {
     }
 }"""
 
+_DATE_JS_FORMAT = r"""
+  dataTypeDefinitions: {
+    dateTimeString: {
+      baseDataType: "dateTimeString",
+      extendsDataType: "dateTimeString",
+      valueParser: (params) => {
+        if (params.newValue != null && params.newValue.match(dateTimeRegex)) {
+          return params.newValue;
+        } else {
+          return null;
+        }
+      },
+      dateParser: (value) => {
+        if (value == null) {
+          return;
+        }
+        let [_, dd, MM, yyyy, HH, mm, ss] = (
+          value.match(dateTimeRegex) || Array(7).fill("0")
+        ).map((e) => e || "0");
+        return new Date(
+          parseInt(yyyy),
+          parseInt(MM) - 1,
+          parseInt(dd),
+          parseInt(HH),
+          parseInt(mm),
+          parseInt(ss),
+        );
+      },
+      dateFormatter: (value) => {
+        // convert to `HH:mm:ss dd/MM/yyyy`
+        return value == null
+          ? ""
+          : `${pad(value.getDate())}/${pad(value.getMonth() + 1)}/${value.getFullYear()}` +
+              " " +
+              `${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}`;
+            },
+        }
+    }
+"""
+
 def _render_today_header() -> None:
     st.markdown("### Tâches du " + ui_state.TODAY.strftime("%A %d %B %Y"), anchors=False)
 
@@ -32,9 +72,13 @@ def _render_today_header() -> None:
             on_change=lambda: save_daily_limit(daily_limit=st.session_state.daily_limit),
             width=100,
         )
-        st.button("Discard completed tasks", on_click=ui_state.discard_completed_tasks)
-        st.button("Regenerate", on_click=ui_state.regenerate_today_tasks)
-        st.button("Reload", on_click=ui_state.reset_app)
+        
+        if st.button("🔄 Regenerate"):
+            ui_state.regenerate_today_tasks()
+        if st.button("🗑 Discard completed tasks"):
+            ui_state.discard_completed_tasks()
+        # st.button("🔄 Reload", on_click=ui_state.reset_app)
+
 
     st.write(
         f"**Active duration:** {sum(t.duration for t in st.session_state.today_tasks)} min - "
@@ -91,11 +135,9 @@ def _build_grid_options(df: pd.DataFrame) -> dict:
     gb.configure_column(
         "due_date", headerName="Due date", width=120,
         cellStyle=due_date_cell_style(ui_state.TODAY.isoformat()),
-        cellDataType="dateString", editable=True,
+        cellDataType="date", editable=True
     )
-    gb.configure_column("next_due_date", headerName="Next Due Date", width=120, cellDataType="dateString")
-    gb.configure_column("done_date", headerName="Done date", width=120, cellDataType="dateString")
-    gb.configure_column("last_done_date", headerName="Last Done Date", width=150, cellDataType="dateString")
+    gb.configure_column("done_date", headerName="Done date", width=120, cellDataType="date")
     gb.configure_column("selected", headerName="Selected", hide=True)
 
     pre_selected = [
@@ -106,7 +148,8 @@ def _build_grid_options(df: pd.DataFrame) -> dict:
         "multiple", use_checkbox=True, rowMultiSelectWithClick=True,
         suppressRowClickSelection=False, pre_selected_rows=pre_selected,
     )
-    gb.configure_grid_options(domLayout="autoHeight", onCellDoubleClicked=JsCode(_DOUBLE_CLICK_DUE_DATE_JS))
+    gb.configure_grid_options(domLayout="autoHeight", onCellDoubleClicked=JsCode(_DOUBLE_CLICK_DUE_DATE_JS), dataTypeDefinitions=JsCode(_DATE_JS_FORMAT))
+    
     return gb.build()
 
 

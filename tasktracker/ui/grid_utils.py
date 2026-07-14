@@ -8,7 +8,7 @@ from st_aggrid import JsCode
 from ..consts import FREQUENCY_EDITOR_JS, DATE_FORMAT
 from ..task import Task
 
-DATE_COLUMNS = ("due_date", "next_due_date", "done_date", "last_done_date")
+DATE_COLUMNS = ("due_date", "done_date")
 
 
 def tasks_to_dataframe(tasks: list[Task]) -> pd.DataFrame:

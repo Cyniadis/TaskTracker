@@ -1,6 +1,6 @@
 {
   "daily_limit": 120,
-  "backup_date": "2026-07-13",
+  "backup_date": "2026-07-14",
   "backup_tasks": [
     {
       "id": 0,
@@ -10,10 +10,8 @@
       "initial_priority": 5,
       "duration": 5,
       "selected": true,
-      "due_date": "2026-07-13",
-      "next_due_date": "2026-07-14",
-      "done_date": null,
-      "last_done_date": null
+      "due_date": "2026-07-14",
+      "done_date": null
     },
     {
       "id": 1,
@@ -21,12 +19,10 @@
       "frequency": "1xjour",
       "priority": 4.0,
       "initial_priority": 4.0,
-      "duration": 30,
+      "duration": 15,
       "selected": true,
-      "due_date": "2026-07-13",
-      "next_due_date": "2026-07-14",
-      "done_date": null,
-      "last_done_date": null
+      "due_date": "2026-07-14",
+      "done_date": null
     },
     {
       "id": 2,
@@ -36,10 +32,8 @@
       "initial_priority": 4.0,
       "duration": 10,
       "selected": true,
-      "due_date": "2026-07-13",
-      "next_due_date": "2026-07-14",
-      "done_date": null,
-      "last_done_date": null
+      "due_date": "2026-07-14",
+      "done_date": null
     },
     {
       "id": 3,
@@ -49,10 +43,8 @@
       "initial_priority": 4.0,
       "duration": 10,
       "selected": true,
-      "due_date": "2026-07-13",
-      "next_due_date": "2026-07-14",
-      "done_date": "2026-07-13",
-      "last_done_date": null
+      "due_date": "2026-07-14",
+      "done_date": null
     },
     {
       "id": 4,
@@ -62,10 +54,8 @@
       "initial_priority": 4.0,
       "duration": 5,
       "selected": true,
-      "due_date": "2026-07-13",
-      "next_due_date": "2026-07-14",
-      "done_date": null,
-      "last_done_date": null
+      "due_date": "2026-07-14",
+      "done_date": null
     },
     {
       "id": 5,
@@ -75,10 +65,8 @@
       "initial_priority": 4.0,
       "duration": 10,
       "selected": true,
-      "due_date": "2026-07-13",
-      "next_due_date": "2026-07-14",
-      "done_date": null,
-      "last_done_date": null
+      "due_date": "2026-07-14",
+      "done_date": null
     },
     {
       "id": 6,
@@ -88,10 +76,8 @@
       "initial_priority": 3.0,
       "duration": 10,
       "selected": true,
-      "due_date": "2026-07-13",
-      "next_due_date": "2026-07-20",
-      "done_date": "2026-07-13",
-      "last_done_date": null
+      "due_date": "2026-07-14",
+      "done_date": null
     },
     {
       "id": 7,
@@ -102,35 +88,29 @@
       "duration": 20,
       "selected": true,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 8,
       "name": "🍴 Nettoyer la machine à café",
       "frequency": "1xsemaine",
       "priority": 2.0,
-      "initial_priority": 2.0,
+      "initial_priority": 3,
       "duration": 10,
       "selected": true,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 9,
       "name": "🍴 Jetter les cartons",
-      "frequency": "1xsemaine",
+      "frequency": "2xmois",
       "priority": 2.0,
       "initial_priority": 2.0,
       "duration": 10,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 10,
@@ -141,9 +121,7 @@
       "duration": 10,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 11,
@@ -154,9 +132,7 @@
       "duration": 5,
       "selected": true,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 12,
@@ -164,12 +140,10 @@
       "frequency": "1xsemaine",
       "priority": 3.0,
       "initial_priority": 3.0,
-      "duration": 15,
+      "duration": 10,
       "selected": true,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 13,
@@ -177,12 +151,10 @@
       "frequency": "1xjour",
       "priority": 4.0,
       "initial_priority": 4.0,
-      "duration": 20,
+      "duration": 10,
       "selected": true,
-      "due_date": "2026-07-13",
-      "next_due_date": "2026-07-14",
-      "done_date": null,
-      "last_done_date": null
+      "due_date": "2026-07-14",
+      "done_date": null
     },
     {
       "id": 14,
@@ -190,12 +162,10 @@
       "frequency": "1xsemaine",
       "priority": 3.0,
       "initial_priority": 3.0,
-      "duration": 40,
+      "duration": 25,
       "selected": true,
-      "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "due_date": "2026-07-14",
+      "done_date": null
     },
     {
       "id": 15,
@@ -203,12 +173,10 @@
       "frequency": "1xsemaine",
       "priority": 3.0,
       "initial_priority": 3.0,
-      "duration": 40,
+      "duration": 25,
       "selected": true,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 16,
@@ -219,9 +187,7 @@
       "duration": 40,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 17,
@@ -232,9 +198,7 @@
       "duration": 60,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 18,
@@ -245,9 +209,7 @@
       "duration": 20,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 19,
@@ -258,9 +220,7 @@
       "duration": 20,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 20,
@@ -271,9 +231,7 @@
       "duration": 10,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 21,
@@ -284,9 +242,7 @@
       "duration": 15,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 22,
@@ -297,9 +253,7 @@
       "duration": 30,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 23,
@@ -310,9 +264,7 @@
       "duration": 30,
       "selected": true,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 24,
@@ -323,9 +275,7 @@
       "duration": 30,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 25,
@@ -336,9 +286,7 @@
       "duration": 30,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 26,
@@ -349,9 +297,7 @@
       "duration": 15,
       "selected": true,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 27,
@@ -362,9 +308,7 @@
       "duration": 30,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 28,
@@ -374,10 +318,8 @@
       "initial_priority": 4.0,
       "duration": 20,
       "selected": true,
-      "due_date": "2026-07-13",
-      "next_due_date": "2026-07-28",
-      "done_date": null,
-      "last_done_date": null
+      "due_date": "2026-07-14",
+      "done_date": null
     },
     {
       "id": 29,
@@ -388,9 +330,7 @@
       "duration": 120,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 30,
@@ -401,9 +341,7 @@
       "duration": 60,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 31,
@@ -414,9 +352,7 @@
       "duration": 15,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     },
     {
       "id": 32,
@@ -427,9 +363,7 @@
       "duration": 40,
       "selected": false,
       "due_date": null,
-      "next_due_date": null,
-      "done_date": null,
-      "last_done_date": null
+      "done_date": null
     }
   ]
 }
