@@ -13,7 +13,7 @@ from datetime import date
 from enum import Enum, auto
 
 from .task import Task
-
+from .consts import TODAY
 
 class Eligibility(Enum):
     NOT_ELIGIBLE = auto()
@@ -62,6 +62,16 @@ def _select_by_priority(tasks: list[Task], time_budget: int) -> list[Task]:
             capacity -= task.duration
     return selected
 
+
+# to be called before compute_daily_tasks()
+def initialize_tasks(tasks: list[Task]) -> None:
+    for task in tasks: 
+        if task.done_date and task.due_date: 
+            if task.done_date != task.due_date:  # task not has been completed
+                task.priority = task.increment_priority()
+            else:
+                task.due_date = task.compute_next_due_date(TODAY)
+        task.selected = False
 
 def compute_daily_tasks(
     tasks: list[Task],

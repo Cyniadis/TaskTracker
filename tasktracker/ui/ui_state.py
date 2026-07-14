@@ -12,15 +12,17 @@ from datetime import datetime
 import streamlit as st
 
 from ..json_utils import load_daily_limit, load_tasks, save_tasks, save_daily_limit, create_tasks_backup, load_tasks_backup
-from ..selector import compute_daily_tasks
+from ..selector import compute_daily_tasks, initialize_tasks
 from ..consts import TODAY
 from ..task import Task
+
 
 @st.cache_resource(show_spinner=False)
 def _init_task_lists(include_completed_today: bool = False) -> tuple[list[Task], list[Task], int]:
     print("Initialize tasks lists")
     daily_limit = load_daily_limit()
     tasks = load_tasks()
+    initialize_tasks(tasks)
     today_tasks = compute_daily_tasks(tasks, TODAY, daily_limit, include_completed_today)
     save_tasks(tasks)
     return tasks, today_tasks, daily_limit

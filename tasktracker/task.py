@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass, fields
 from datetime import date, datetime, timedelta
 from enum import Enum
 from typing import Any
-from .consts import DATE_FORMAT
+from .consts import DATE_FORMAT, PRIORITY_INCREMENT
 
 class Period(str, Enum):
     """The recurrence unit of a task, e.g. 'twice a WEEK'."""
@@ -139,6 +139,11 @@ class Task:
 
     def compute_next_due_date(self, current_date: date) -> date:
         return current_date + timedelta(days=self.frequency_obj.days)
+
+    # -- priority helpers ---------------------------------------------------
+    
+    def increment_priority(self):
+        self.priority += PRIORITY_INCREMENT
 
     # -- lifecycle -----------------------------------------------------------
     def complete(self, completion_date: date) -> None:
