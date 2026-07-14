@@ -10,6 +10,35 @@ from ..task import Task
 
 DATE_COLUMNS = ("due_date", "done_date")
 
+_DATE_TYPE_DEFINITIONS_JS = r"""
+{
+  dateString: {
+    baseDataType: "dateString",
+    extendsDataType: "dateString",
+    valueParser: (params) =>
+      params.newValue != null && params.newValue.match(/^\d{2}\/\d{2}\/\d{4}$/)
+        ? params.newValue
+        : null,
+    valueFormatter: (params) => (params.value == null ? "" : params.value),
+    dataTypeMatcher: (value) =>
+      typeof value === "string" && !!value.match(/^\d{2}\/\d{2}\/\d{4}$/),
+    dateParser: (value) => {
+      if (value == null || value === "") { return undefined; }
+      const parts = value.split("/");
+      return parts.length === 3
+        ? new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]))
+        : undefined;
+    },
+    dateFormatter: (value) => {
+      if (value == null) { return undefined; }
+      const day = String(value.getDate()).padStart(2, "0");
+      const month = String(value.getMonth() + 1).padStart(2, "0");
+      return `${day}/${month}/${value.getFullYear()}`;
+    },
+  },
+}
+"""
+
 
 def tasks_to_dataframe(tasks: list[Task]) -> pd.DataFrame:
     """Convert tasks into a display-ready dataframe with ISO date strings."""
@@ -22,12 +51,11 @@ def tasks_to_dataframe(tasks: list[Task]) -> pd.DataFrame:
     return df
 
 
-def due_date_cell_style(today_iso: str) -> JsCode:
-    """Highlight due dates that aren't today in red/bold."""
+def due_date_cell_style(today_str: str) -> JsCode:
+    """Highlight due dates that aren't today in red/bold. `today_str` must match DATE_FORMAT."""
     return JsCode(f"""function(params) {{
     if (!params.value) {{ return {{ color: 'primary' }}; }}
-    const valueDate = new Date(params.value);
-    const isToday = !isNaN(valueDate.getTime()) && valueDate.toISOString().slice(0, 10) === '{today_iso}';
+    const isToday = params.value === '{today_str}';
     return isToday ? {{ color: 'primary' }} : {{ color: '#d32f2f', fontWeight: 'bold' }};
 }}""")
 
@@ -36,6 +64,10 @@ def due_date_cell_style(today_iso: str) -> JsCode:
 def frequency_cell_editor() -> JsCode:
     return JsCode(FREQUENCY_EDITOR_JS.read_text(encoding="utf-8"))
 
+@st.cache_resource(show_spinner=False)
+def date_type_definitions() -> JsCode:
+    """dd/mm/yyyy dateString override, shared by the Today and General grids."""
+    return JsCode(_DATE_TYPE_DEFINITIONS_JS)
 
 def find_task_by_id(tasks: list[Task], task_id: int) -> Task:
     for task in tasks:

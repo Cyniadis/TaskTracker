@@ -6,7 +6,7 @@ import streamlit as st
 from st_aggrid import AgGrid, DataReturnMode, GridOptionsBuilder
 
 from .add_task_dialog import add_task_dialog
-from .grid_utils import find_task_by_id, frequency_cell_editor, tasks_to_dataframe
+from .grid_utils import date_type_definitions, find_task_by_id, frequency_cell_editor, tasks_to_dataframe
 
 from ..json_utils import load_tasks_backup
 
@@ -45,10 +45,10 @@ def _build_grid_options(df: pd.DataFrame) -> dict:
     gb.configure_column("due_date", headerName="Due date", cellDataType="dateString")
     gb.configure_column("done_date", headerName="Done date", cellDataType="dateString", editable=False)
     gb.configure_selection("multiple", use_checkbox=True,
-                            rowMultiSelectWithClick=False, 
-                            suppressRowClickSelection=False, 
+                            rowMultiSelectWithClick=False,
+                            suppressRowClickSelection=False,
                             suppressRowDeselection=False)
-    gb.configure_grid_options(domLayout="autoHeight")
+    gb.configure_grid_options(domLayout="autoHeight", dataTypeDefinitions=date_type_definitions())
     return gb.build()
 
 
