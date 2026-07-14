@@ -17,6 +17,6 @@ FREQUENCY_EDITOR_JS = PROJECT_ROOT / "tasktracker" / "ui" / "assets" / "Frequenc
 DEFAULT_DAILY_LIMIT_MINUTES = 60
 PRIORITY_INCREMENT = 0.5
 
-DATE_FORMAT = "%Y-%d-%m"
+DATE_FORMAT = "%d/%m/%Y"  
 TODAY = datetime.now().date()
 

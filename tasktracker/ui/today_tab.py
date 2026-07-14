@@ -7,87 +7,15 @@ from st_aggrid import AgGrid, DataReturnMode, GridOptionsBuilder, JsCode
 
 from . import ui_state
 from ..task import normalize_date
-from .grid_utils import due_date_cell_style, find_task_by_id, tasks_to_dataframe
+from .grid_utils import date_type_definitions, due_date_cell_style, find_task_by_id, tasks_to_dataframe
 from ..json_utils import save_daily_limit
-
+from ..consts import DATE_FORMAT
 
 _DOUBLE_CLICK_DUE_DATE_JS = r"""function (params) {
     if (params.column.colId == "due_date") {
         params.node.setDataValue('doubleClicked', params.data.id);
     }
 }"""
-
-_DATE_JS_FORMAT = r"""
-  dataTypeDefinitions: {
-    dateString: {
-      baseDataType: "dateString",
-      extendsDataType: "dateString",
-      valueParser: (params) =>
-        params.newValue != null && params.newValue.match("\\d{2}/\\d{2}/\\d{4}")
-          ? params.newValue
-          : null,
-      valueFormatter: (params) => (params.value == null ? "" : params.value),
-      dataTypeMatcher: (value) =>
-        typeof value === "string" && !!value.match("\\d{2}/\\d{2}/\\d{4}"),
-      dateParser: (value) => {
-        if (value == null || value === "") {
-          return undefined;
-        }
-        const dateParts = value.split("/");
-        return dateParts.length === 3
-          ? new Date(
-              parseInt(dateParts[2]),
-              parseInt(dateParts[1]) - 1,
-              parseInt(dateParts[0]),
-            )
-          : undefined;
-      },
-      dateFormatter: (value) => {
-        if (value == null) {
-          return undefined;
-        }
-        const date = String(value.getDate());
-        const month = String(value.getMonth() + 1);
-        return `${date.length === 1 ? "0" + date : date}/${month.length === 1 ? "0" + month : month}/${value.getFullYear()}`;
-      },
-    },
-    dateTimeString: {
-      baseDataType: "dateTimeString",
-      extendsDataType: "dateTimeString",
-      valueParser: (params) => {
-        if (params.newValue != null && params.newValue.match(dateTimeRegex)) {
-          return params.newValue;
-        } else {
-          return null;
-        }
-      },
-      dateParser: (value) => {
-        if (value == null) {
-          return;
-        }
-        let [_, dd, MM, yyyy, HH, mm, ss] = (
-          value.match(dateTimeRegex) || Array(7).fill("0")
-        ).map((e) => e || "0");
-        return new Date(
-          parseInt(yyyy),
-          parseInt(MM) - 1,
-          parseInt(dd),
-          parseInt(HH),
-          parseInt(mm),
-          parseInt(ss),
-        );
-      },
-      dateFormatter: (value) => {
-        // convert to `HH:mm:ss dd/MM/yyyy`
-        return value == null
-          ? ""
-          : `${pad(value.getDate())}/${pad(value.getMonth() + 1)}/${value.getFullYear()}` +
-              " " +
-              `${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}`;
-      },
-    },
-  },
-"""
 
 def _render_today_header() -> None:
     st.markdown("### Tâches du " + ui_state.TODAY.strftime("%A %d %B %Y"), anchors=False)
@@ -166,10 +94,10 @@ def _build_grid_options(df: pd.DataFrame) -> dict:
     gb.configure_column("duration", headerName="Duration", width=110)
     gb.configure_column(
         "due_date", headerName="Due date", width=120,
-        cellStyle=due_date_cell_style(ui_state.TODAY.isoformat()),
-        cellDataType="date", editable=True
+        cellStyle=due_date_cell_style(ui_state.TODAY.strftime(DATE_FORMAT)),
+        cellDataType="dateString", editable=True
     )
-    gb.configure_column("done_date", headerName="Done date", width=120, cellDataType="date")
+    gb.configure_column("done_date", headerName="Done date", width=120, cellDataType="dateString")
     gb.configure_column("selected", headerName="Selected", hide=True)
 
     pre_selected = [
@@ -180,8 +108,11 @@ def _build_grid_options(df: pd.DataFrame) -> dict:
         "multiple", use_checkbox=True, rowMultiSelectWithClick=True,
         suppressRowClickSelection=False, pre_selected_rows=pre_selected,
     )
-    gb.configure_grid_options(domLayout="autoHeight", onCellDoubleClicked=JsCode(_DOUBLE_CLICK_DUE_DATE_JS), dataTypeDefinitions=JsCode(_DATE_JS_FORMAT))
-    
+    gb.configure_grid_options(
+        domLayout="autoHeight",
+        onCellDoubleClicked=JsCode(_DOUBLE_CLICK_DUE_DATE_JS),
+        dataTypeDefinitions=date_type_definitions(),
+    )
     return gb.build()
 
 
