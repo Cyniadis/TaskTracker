@@ -3,22 +3,23 @@ from __future__ import annotations
 
 import pandas as pd
 import streamlit as st
-from st_aggrid import AgGrid, DataReturnMode, GridOptionsBuilder
+from st_aggrid import AgGrid, DataReturnMode, GridOptionsBuilder, JsCode
 
 from .add_task_dialog import add_task_dialog
-from .grid_utils import date_type_definitions, find_task_by_id, frequency_cell_editor, tasks_to_dataframe
+from .grid_utils import date_type_definitions, find_task_by_id, frequency_cell_editor, tasks_to_dataframe,float_formatter
 
 from ..json_utils import load_tasks_backup
 
 
 from . import ui_state
 
-def _on_remove_selection_click():
+def _on_delete_selection_click():
     selected_rows = st.session_state.selected_rows
     selected_ids: set[int] = set()
     if len(selected_rows) > 0:
         selected_ids = {int(row["id"]) for row in selected_rows.to_dict(orient="records")}
         st.session_state.tasks = [t for t in st.session_state.tasks if t.id not in selected_ids ]
+        st.session_state.today_tasks = [t for t in st.session_state.today_tasks if t.id not in selected_ids ]
 
 def _on_grid_event(grid_response) -> None:
     event = grid_response.event_data
@@ -32,16 +33,16 @@ def _on_grid_event(grid_response) -> None:
         ui_state.persist_tasks()
 
 
+
 def _build_grid_options(df: pd.DataFrame) -> dict:
     gb = GridOptionsBuilder.from_dataframe(df)
     gb.configure_default_column(sortable=True, filter=True, resizable=True, editable=True)
     gb.configure_column("id", hide=True)
     gb.configure_column("name", headerName="Task", autoHeight=True, wrapText=True, checkboxSelection=True, width=400)
     gb.configure_column("frequency", headerName="Frequency", cellEditor=frequency_cell_editor(), cellEditorPopup=True)
-    gb.configure_column("priority", headerName="Priority", cellDataType="number")
-    gb.configure_column("initial_priority", headerName="Initial Priority", cellDataType="number")
+    gb.configure_column("priority", headerName="Priority", cellDataType="number", valueFormatter=float_formatter())
+    gb.configure_column("initial_priority", headerName="Initial Priority", cellDataType="number", valueFormatter=float_formatter())
     gb.configure_column("duration", headerName="Duration (min)", cellDataType="number")
-    gb.configure_column("selected", headerName="Selected", hide=True)
     gb.configure_column("due_date", headerName="Due date", cellDataType="dateString")
     gb.configure_column("done_date", headerName="Done date", cellDataType="dateString", editable=False)
     gb.configure_selection("multiple", use_checkbox=True,
@@ -59,8 +60,8 @@ def render() -> None:
         if st.button("➕ Add task"):
             add_task_dialog()
 
-        if st.button("🗑️ Remove selection"):
-            _on_remove_selection_click()
+        if st.button("🗑️ Delete selection"):
+            _on_delete_selection_click()
 
         # if st.button("🔄️ Load backup"):
         #     st.session_state.tasks = load_tasks_backup()

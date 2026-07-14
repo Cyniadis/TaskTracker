@@ -10,6 +10,8 @@ from ..task import Task
 
 DATE_COLUMNS = ("due_date", "done_date")
 
+_JS_FLOAT_FORMATTER=r"""function(params) { return params.value?.toFixed(1) }"""
+
 _DATE_TYPE_DEFINITIONS_JS = r"""
 {
   dateString: {
@@ -69,8 +71,21 @@ def date_type_definitions() -> JsCode:
     """dd/mm/yyyy dateString override, shared by the Today and General grids."""
     return JsCode(_DATE_TYPE_DEFINITIONS_JS)
 
+@st.cache_resource(show_spinner=False)
+def float_formatter() -> JsCode:
+    return JsCode(_JS_FLOAT_FORMATTER)
+
 def find_task_by_id(tasks: list[Task], task_id: int) -> Task:
     for task in tasks:
         if task.id == task_id:
             return task
     raise KeyError(f"No task with id={task_id}")
+
+def completed_row_style(today_str: str) -> JsCode:
+    """Strike through / mute rows for tasks completed today. `today_str` must match DATE_FORMAT."""
+    return JsCode(f"""function(params) {{
+    if (params.data && params.data.done_date === '{today_str}') {{
+        return {{ textDecoration: 'line-through', color: '#9e9e9e', fontStyle: 'italic' }};
+    }}
+    return null;
+}}""")

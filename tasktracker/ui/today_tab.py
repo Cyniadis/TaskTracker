@@ -7,7 +7,7 @@ from st_aggrid import AgGrid, DataReturnMode, GridOptionsBuilder, JsCode
 
 from . import ui_state
 from ..task import normalize_date
-from .grid_utils import date_type_definitions, due_date_cell_style, find_task_by_id, tasks_to_dataframe
+from .grid_utils import date_type_definitions, due_date_cell_style, find_task_by_id, tasks_to_dataframe, float_formatter, completed_row_style
 from ..json_utils import save_daily_limit
 from ..consts import DATE_FORMAT
 
@@ -65,6 +65,8 @@ def _apply_due_date_edit(task_id: int, new_value) -> None:
     task = find_task_by_id(st.session_state.tasks, task_id)
     task.due_date = new_due_date
     ui_state.persist_tasks()
+    ui_state.reload_manage_grid()
+
 
 
 def _on_grid_event(grid_response) -> None:
@@ -79,8 +81,9 @@ def _on_grid_event(grid_response) -> None:
         _apply_selection(selected_ids)
 
     elif event_type == "cellValueChanged":
-        task_data = event.get("data")
-        _apply_due_date_edit(task_data["id"], event.get("newValue"))
+        if event['column']['colId'] == "due_date":
+            task_data = event.get("data")
+            _apply_due_date_edit(task_data["id"], event.get("newValue"))
 
 
 def _build_grid_options(df: pd.DataFrame) -> dict:
@@ -89,7 +92,7 @@ def _build_grid_options(df: pd.DataFrame) -> dict:
     gb.configure_column("id", hide=True)
     gb.configure_column("name", headerName="Task", autoHeight=True, wrapText=True, checkboxSelection=True)
     gb.configure_column("frequency", headerName="Frequency", width=120)
-    gb.configure_column("priority", headerName="Priority", width=90)
+    gb.configure_column("priority", headerName="Priority", width=90, valueFormatter=float_formatter())
     gb.configure_column("initial_priority", hide=True)
     gb.configure_column("duration", headerName="Duration", width=110)
     gb.configure_column(
@@ -98,7 +101,6 @@ def _build_grid_options(df: pd.DataFrame) -> dict:
         cellDataType="dateString", editable=True
     )
     gb.configure_column("done_date", headerName="Done date", width=120, cellDataType="dateString")
-    gb.configure_column("selected", headerName="Selected", hide=True)
 
     pre_selected = [
         str(idx) for idx, task in enumerate(st.session_state.today_tasks)
@@ -112,7 +114,9 @@ def _build_grid_options(df: pd.DataFrame) -> dict:
         domLayout="autoHeight",
         onCellDoubleClicked=JsCode(_DOUBLE_CLICK_DUE_DATE_JS),
         dataTypeDefinitions=date_type_definitions(),
+        getRowStyle=completed_row_style(ui_state.TODAY.strftime(DATE_FORMAT))
     )
+
     return gb.build()
 
 
