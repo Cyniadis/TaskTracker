@@ -97,7 +97,6 @@ class Task:
     priority: float = 0.0
     initial_priority: float = 0.0
     duration: int = 0
-    selected: bool = False
     due_date: date | None = None
     done_date: date | None = None
 
@@ -151,7 +150,8 @@ class Task:
         self.priority = self.initial_priority
 
     def uncomplete(self) -> None:
-        # TODO
+        self.done_date = self.orig_done_date
+        self.priority = self.orig_priority
         pass
 
     def is_completed_on(self, current_date: date) -> bool:
@@ -159,15 +159,7 @@ class Task:
 
     def schedule_for(self, current_date: date) -> None:
         """Mark this task as picked for `current_date` and roll its next occurrence forward."""
-        self.selected = True
         self.due_date = current_date
-
-    def reset_and_advance(self) -> None:
-        #TODO
-        """Archive a completed task for the day: rotate its dates forward and clear completion."""
-        self.selected = False
-        # self.last_done_date = self.done_date
-        self.done_date = None
 
     def set_field(self, field_name: str, value: Any) -> None:
         """Generic setter used by grid-edit callbacks (keeps date fields normalized)."""
