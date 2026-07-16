@@ -1,91 +1,46 @@
-"""Shared helpers for turning Task lists into AgGrid tables."""
+"""Shared helpers for turning Task lists into st.data_editor tables."""
 from __future__ import annotations
 
 import pandas as pd
-import streamlit as st
-from st_aggrid import JsCode
 
-from ..consts import FREQUENCY_EDITOR_JS, DATE_FORMAT
-from ..task import Task
+from ..task import Task, Period
 
-DATE_COLUMNS = ("due_date", "done_date")
-
-_JS_FLOAT_FORMATTER=r"""function(params) { return params.value?.toFixed(1) }"""
-
-_DATE_TYPE_DEFINITIONS_JS = r"""
-{
-  dateString: {
-    baseDataType: "dateString",
-    extendsDataType: "dateString",
-    valueParser: (params) =>
-      params.newValue != null && params.newValue.match(/^\d{2}\/\d{2}\/\d{4}$/)
-        ? params.newValue
-        : null,
-    valueFormatter: (params) => (params.value == null ? "" : params.value),
-    dataTypeMatcher: (value) =>
-      typeof value === "string" && !!value.match(/^\d{2}\/\d{2}\/\d{4}$/),
-    dateParser: (value) => {
-      if (value == null || value === "") { return undefined; }
-      const parts = value.split("/");
-      return parts.length === 3
-        ? new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]))
-        : undefined;
-    },
-    dateFormatter: (value) => {
-      if (value == null) { return undefined; }
-      const day = String(value.getDate()).padStart(2, "0");
-      const month = String(value.getMonth() + 1).padStart(2, "0");
-      return `${day}/${month}/${value.getFullYear()}`;
-    },
-  },
-}
-"""
+PERIOD_OPTIONS = [p.value for p in Period]
 
 
 def tasks_to_dataframe(tasks: list[Task]) -> pd.DataFrame:
-    """Convert tasks into a display-ready dataframe with ISO date strings."""
+    """Convert tasks into a display-ready dataframe.
+
+    Frequency is split into `frequency_count` / `frequency_period` so each
+    half gets its own widget (number input / dropdown) in the editor —
+    this replaces the old combined JS cell editor. Dates are kept as real
+    `date` objects so `st.column_config.DateColumn` can format/parse them.
+    """
     if not tasks:
-        return pd.DataFrame()
-    df = pd.DataFrame.from_records([task.to_dict() for task in tasks])
-    for column in DATE_COLUMNS:
-        if column in df.columns:
-            df[column] = pd.to_datetime(df[column], errors="coerce", dayfirst=False).dt.strftime(DATE_FORMAT)
-    return df
+        return None
 
 
-def due_date_cell_style(today_str: str) -> JsCode:
-    """Highlight due dates that aren't today in red/bold. `today_str` must match DATE_FORMAT."""
-    return JsCode(f"""function(params) {{
-    if (!params.value) {{ return {{ color: 'primary' }}; }}
-    const isToday = params.value === '{today_str}';
-    return isToday ? {{ color: 'primary' }} : {{ color: '#d32f2f', fontWeight: 'bold' }};
-}}""")
+    records = []
+    for task in tasks:
+        freq = task.frequency_obj
+        records.append({
+            "id": task.id,
+            "name": task.name,
+            "frequency_count": freq.count,
+            "frequency_period": freq.period.value,
+            "frequency": task.frequency,
+            "priority": task.priority,
+            "initial_priority": task.initial_priority,
+            "duration": task.duration,
+            "due_date": task.due_date,
+            "done_date": task.done_date,
+            "reschedule": ":material/edit: Reschedule"
+        })
+    return pd.DataFrame.from_records(records)
 
-
-@st.cache_resource(show_spinner=False)
-def frequency_cell_editor() -> JsCode:
-    return JsCode(FREQUENCY_EDITOR_JS.read_text(encoding="utf-8"))
-
-@st.cache_resource(show_spinner=False)
-def date_type_definitions() -> JsCode:
-    """dd/mm/yyyy dateString override, shared by the Today and General grids."""
-    return JsCode(_DATE_TYPE_DEFINITIONS_JS)
-
-@st.cache_resource(show_spinner=False)
-def float_formatter() -> JsCode:
-    return JsCode(_JS_FLOAT_FORMATTER)
 
 def find_task_by_id(tasks: list[Task], task_id: int) -> Task:
     for task in tasks:
         if task.id == task_id:
             return task
     raise KeyError(f"No task with id={task_id}")
-
-def completed_row_style(today_str: str) -> JsCode:
-    """Strike through / mute rows for tasks completed today. `today_str` must match DATE_FORMAT."""
-    return JsCode(f"""function(params) {{
-    if (params.data && params.data.done_date === '{today_str}') {{
-        return {{ textDecoration: 'line-through', color: '#9e9e9e', fontStyle: 'italic' }};
-    }}
-    return null;
-}}""")

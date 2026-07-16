@@ -1,21 +1,35 @@
 """The 'Today' tab: check off and reschedule today's tasks."""
 from __future__ import annotations
 
-import pandas as pd
 import streamlit as st
-from st_aggrid import AgGrid, DataReturnMode, GridOptionsBuilder, JsCode
+import pandas as pd 
 
 from . import ui_state
-from ..task import normalize_date
-from .grid_utils import date_type_definitions, due_date_cell_style, find_task_by_id, tasks_to_dataframe, float_formatter, completed_row_style
+from .grid_utils import find_task_by_id, tasks_to_dataframe
 from ..json_utils import save_daily_limit
-from ..consts import DATE_FORMAT
 
-_DOUBLE_CLICK_DUE_DATE_JS = r"""function (params) {
-    if (params.column.colId == "due_date") {
-        params.node.setDataValue('doubleClicked', params.data.id);
-    }
-}"""
+
+_COLUMN_ORDER = ["name", "frequency", "priority", "duration", "due_date", "done_date"]
+
+
+@st.dialog("Rechedule task")
+def edit_due_date(row: int):
+    current = st.session_state.df.iloc[row]["due_date"]
+    new_date = st.date_input(
+        f"**{st.session_state.df.iloc[row]['name']}**",
+        value=pd.to_datetime(current).date(),
+    )
+    if st.button("Save"):
+        task = find_task_by_id(st.session_state.today_tasks, st.session_state.df.at[row, 'id'])
+        task.due_date = new_date
+        # st.session_state.df.at[row, "due_date"] = str(new_dae)
+        
+        st.rerun()
+
+def _on_reschedule_click():
+    click = st.session_state.reschedule_button
+    edit_due_date(click["row"])
+
 
 def _render_today_header() -> None:
     st.markdown("### Tâches du " + ui_state.TODAY.strftime("%A %d %B %Y"), anchors=False)
@@ -32,13 +46,13 @@ def _render_today_header() -> None:
             on_change=lambda: save_daily_limit(daily_limit=st.session_state.daily_limit),
             width=100,
         )
-        
+
         if st.button("🔄 Regenerate"):
             ui_state.regenerate_today_tasks()
+            st.rerun()
         if st.button("🗑 Discard completed tasks"):
             ui_state.discard_completed_tasks()
-        # st.button("🔄 Reload", on_click=ui_state.reset_app)
-
+            st.rerun()
 
     st.write(
         f"**Active duration:** {sum(t.duration for t in st.session_state.today_tasks)} min - "
@@ -46,95 +60,84 @@ def _render_today_header() -> None:
     )
 
 
-def _apply_selection(selected_ids: set[int]) -> None:
+def _column_config() -> dict:
+    return {
+        "id": None,
+        "frequency_count": None,
+        "frequency_period": None,
+        "initial_priority": None,
+        "name": st.column_config.TextColumn("Task", width="large"),
+        "frequency": st.column_config.TextColumn("Frequency", width="small"),
+        "priority": st.column_config.NumberColumn("Priority", format="%.1f", width="small"),
+        "duration": st.column_config.NumberColumn("Duration", width="small"),
+        "due_date": st.column_config.DateColumn("Due date", format="localized"),
+        "done_date": st.column_config.DateColumn("Done date", format="localized"),
+        "reschedule": st.column_config.ButtonColumn("Reschedule", on_click=_on_reschedule_click, key="reschedule_button", alignment="left")
+    }
+
+def _on_row_selected() -> None:
+    selected_rows = st.session_state[st.session_state.grid_key]["selection"]["rows"]
+    filtered_df = st.session_state.df.iloc[selected_rows]
+    selected_ids = filtered_df["id"].values
     for task in st.session_state.today_tasks:
-        if selected_ids and task.id in selected_ids:
+        if len(selected_ids) > 0 and task.id in selected_ids:
             task.complete(ui_state.TODAY)
         else:
             task.uncomplete()
     ui_state.persist_tasks()
 
 
-def _apply_due_date_edit(task_id: int, new_value) -> None:
-    new_due_date = normalize_date(new_value)
-    if new_due_date < ui_state.TODAY:
-        st.toast("Chosen due date is in the past", icon="⚠️")
-        ui_state.reload_today_grid()
-        return
-
-    task = find_task_by_id(st.session_state.tasks, task_id)
-    task.due_date = new_due_date
-    ui_state.persist_tasks()
-    ui_state.reload_manage_grid()
 
 
+# def _sync_edits(df, edited_rows: dict) -> None:
+#     reset_grid = False
 
-def _on_grid_event(grid_response) -> None:
-    event = grid_response.event_data
-    event_type = event.get("type")
+#     for row_pos, changes in edited_rows.items():
+#         task = find_task_by_id(st.session_state.tasks, int(df.iloc[row_pos]["id"]))
 
-    if event_type == "selectionChanged":
-        selected_rows = grid_response.selected_rows
-        selected_ids: set[int] = set()
-        if selected_rows is not None and len(selected_rows) > 0:
-            selected_ids = {int(row["id"]) for row in selected_rows.to_dict(orient="records")}
-        _apply_selection(selected_ids)
+#         if "done" in changes:
+#             if changes["done"]:
+#                 task.complete(ui_state.TODAY)
+#             else:
+#                 task.uncomplete()
 
-    elif event_type == "cellValueChanged":
-        if event['column']['colId'] == "due_date":
-            task_data = event.get("data")
-            _apply_due_date_edit(task_data["id"], event.get("newValue"))
+#         if "due_date" in changes:
+#             new_due_date = changes["due_date"]
+#             if new_due_date is None or new_due_date < ui_state.TODAY:
+#                 st.toast("Chosen due date is in the past", icon="⚠️")
+#                 reset_grid = True  # discard the invalid edit visually
+#             else:
+#                 task.due_date = new_due_date
+#                 ui_state.reload_manage_grid()
 
-
-def _build_grid_options(df: pd.DataFrame) -> dict:
-    gb = GridOptionsBuilder.from_dataframe(df)
-    gb.configure_default_column(sortable=True, filter=True, resizable=True)
-    gb.configure_column("id", hide=True)
-    gb.configure_column("name", headerName="Task", autoHeight=True, wrapText=True, checkboxSelection=True)
-    gb.configure_column("frequency", headerName="Frequency", width=120)
-    gb.configure_column("priority", headerName="Priority", width=90, valueFormatter=float_formatter())
-    gb.configure_column("initial_priority", hide=True)
-    gb.configure_column("duration", headerName="Duration", width=110)
-    gb.configure_column(
-        "due_date", headerName="Due date", width=120,
-        cellStyle=due_date_cell_style(ui_state.TODAY.strftime(DATE_FORMAT)),
-        cellDataType="dateString", editable=True
-    )
-    gb.configure_column("done_date", headerName="Done date", width=120, cellDataType="dateString")
-
-    pre_selected = [
-        str(idx) for idx, task in enumerate(st.session_state.today_tasks)
-        if task.is_completed_on(ui_state.TODAY)
-    ]
-    gb.configure_selection(
-        "multiple", use_checkbox=True, rowMultiSelectWithClick=True,
-        suppressRowClickSelection=False, pre_selected_rows=pre_selected,
-    )
-    gb.configure_grid_options(
-        domLayout="autoHeight",
-        onCellDoubleClicked=JsCode(_DOUBLE_CLICK_DUE_DATE_JS),
-        dataTypeDefinitions=date_type_definitions(),
-        getRowStyle=completed_row_style(ui_state.TODAY.strftime(DATE_FORMAT))
-    )
-
-    return gb.build()
+#     if edited_rows:
+#         ui_state.persist_tasks()
+#     if reset_grid:
+#         ui_state.reload_today_grid()
 
 
 def render() -> None:
     _render_today_header()
 
     df = tasks_to_dataframe(st.session_state.today_tasks)
-    if df.empty:
+    st.session_state.df = df
+    if df is None:
         st.info("No tasks were selected for today. Add or edit tasks in the General tab.")
         return
 
-    AgGrid(
+    df["frequency"] = df["frequency_count"].astype(str) + "x" + df["frequency_period"]
+    key = st.session_state.grid_key
+    event = st.dataframe(
         df,
-        gridOptions=_build_grid_options(df),
+        column_config=_column_config(),
+        # column_order=_COLUMN_ORDER,
+        hide_index=True,
+        width="stretch",
         height=500,
-        key=st.session_state.grid_key,
-        update_on=["selectionChanged", "cellValueChanged"],
-        callback=_on_grid_event,
-        data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
-        allow_unsafe_jscode=True,
+        key=key,
+        on_select=_on_row_selected,
+        selection_mode=["multi-row"]
     )
+
+
+    # _sync_edits(df, st.session_state[key]["edited_rows"])

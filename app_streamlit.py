@@ -10,7 +10,7 @@ from tasktracker.ui import ui_state
 from tasktracker.ui import general_tab, timer_tab, today_tab
 
 import locale
-locale.setlocale(locale.LC_ALL, 'fr_FR')
+locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
 
 def main() -> None:
     print("Starting Streamlit App")
