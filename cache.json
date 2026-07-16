@@ -1,28 +1,26 @@
 {
   "daily_limit": 120,
-  "backup_date": "2026-07-14",
+  "backup_date": "16/07/2026",
   "backup_tasks": [
     {
       "id": 0,
       "name": "🍴 Mettre la vaisselle au lave-vaisselle",
       "frequency": "1xjour",
-      "priority": 5.0,
+      "priority": 6.5,
       "initial_priority": 5.0,
       "duration": 5,
-      "selected": true,
-      "due_date": "2026-07-14",
-      "done_date": null
+      "due_date": "2026-07-16",
+      "done_date": "2026-07-14"
     },
     {
       "id": 1,
       "name": "🍴 Nettoyer la vaisselle sale à la main",
       "frequency": "1xjour",
-      "priority": 4.0,
+      "priority": 4.5,
       "initial_priority": 4.0,
       "duration": 15,
-      "selected": true,
-      "due_date": "2026-07-14",
-      "done_date": null
+      "due_date": "2026-07-16",
+      "done_date": "2026-07-14"
     },
     {
       "id": 2,
@@ -31,8 +29,7 @@
       "priority": 4.0,
       "initial_priority": 4.0,
       "duration": 10,
-      "selected": true,
-      "due_date": "2026-07-14",
+      "due_date": "2026-07-16",
       "done_date": null
     },
     {
@@ -42,19 +39,7 @@
       "priority": 4.0,
       "initial_priority": 4.0,
       "duration": 10,
-      "selected": true,
-      "due_date": "2026-07-14",
-      "done_date": null
-    },
-    {
-      "id": 4,
-      "name": "🍴 Ranger le plan de travail",
-      "frequency": "1xjour",
-      "priority": 4.0,
-      "initial_priority": 4.0,
-      "duration": 5,
-      "selected": true,
-      "due_date": "2026-07-14",
+      "due_date": "2026-07-16",
       "done_date": null
     },
     {
@@ -64,20 +49,18 @@
       "priority": 4.0,
       "initial_priority": 4.0,
       "duration": 10,
-      "selected": true,
-      "due_date": "2026-07-14",
+      "due_date": "2026-07-16",
       "done_date": null
     },
     {
       "id": 6,
       "name": "🍴 Sortir les poubelles",
       "frequency": "1xsemaine",
-      "priority": 3.0,
+      "priority": 3.5,
       "initial_priority": 3.0,
       "duration": 10,
-      "selected": true,
-      "due_date": "2026-07-14",
-      "done_date": null
+      "due_date": "2026-07-21",
+      "done_date": "2026-07-14"
     },
     {
       "id": 7,
@@ -86,8 +69,7 @@
       "priority": 2.0,
       "initial_priority": 2.0,
       "duration": 20,
-      "selected": true,
-      "due_date": null,
+      "due_date": "2026-07-18",
       "done_date": null
     },
     {
@@ -97,8 +79,7 @@
       "priority": 2.0,
       "initial_priority": 3.0,
       "duration": 10,
-      "selected": true,
-      "due_date": null,
+      "due_date": "2026-07-18",
       "done_date": null
     },
     {
@@ -108,8 +89,7 @@
       "priority": 2.0,
       "initial_priority": 2.0,
       "duration": 10,
-      "selected": false,
-      "due_date": null,
+      "due_date": "2026-07-16",
       "done_date": null
     },
     {
@@ -119,8 +99,7 @@
       "priority": 2.0,
       "initial_priority": 2.0,
       "duration": 10,
-      "selected": false,
-      "due_date": null,
+      "due_date": "2026-07-16",
       "done_date": null
     },
     {
@@ -128,10 +107,9 @@
       "name": "😺 Changer l'eau",
       "frequency": "1xjour",
       "priority": 3.0,
-      "initial_priority": 3.0,
+      "initial_priority": 5,
       "duration": 5,
-      "selected": true,
-      "due_date": null,
+      "due_date": "2026-07-16",
       "done_date": null
     },
     {
@@ -141,42 +119,28 @@
       "priority": 3.0,
       "initial_priority": 3.0,
       "duration": 10,
-      "selected": true,
-      "due_date": null,
-      "done_date": null
-    },
-    {
-      "id": 13,
-      "name": "🛋️ Ranger ce qui traîne",
-      "frequency": "1xjour",
-      "priority": 4.0,
-      "initial_priority": 4.0,
-      "duration": 10,
-      "selected": true,
-      "due_date": "2026-07-14",
+      "due_date": "2026-07-20",
       "done_date": null
     },
     {
       "id": 14,
       "name": "🛋️ Passer l'aspirateur",
       "frequency": "1xsemaine",
-      "priority": 3.0,
+      "priority": 3.5,
       "initial_priority": 3.0,
       "duration": 25,
-      "selected": true,
-      "due_date": "2026-07-14",
-      "done_date": null
+      "due_date": "2026-07-21",
+      "done_date": "2026-07-14"
     },
     {
       "id": 15,
       "name": "🛋️ Passer la serpillère",
       "frequency": "1xsemaine",
-      "priority": 3.0,
+      "priority": 3.5,
       "initial_priority": 3.0,
       "duration": 25,
-      "selected": true,
-      "due_date": null,
-      "done_date": null
+      "due_date": "2026-07-21",
+      "done_date": "2026-07-14"
     },
     {
       "id": 16,
@@ -185,7 +149,6 @@
       "priority": 1.0,
       "initial_priority": 1.0,
       "duration": 40,
-      "selected": false,
       "due_date": null,
       "done_date": null
     },
@@ -196,7 +159,6 @@
       "priority": 1.0,
       "initial_priority": 1.0,
       "duration": 60,
-      "selected": false,
       "due_date": null,
       "done_date": null
     },
@@ -207,8 +169,7 @@
       "priority": 2.0,
       "initial_priority": 2.0,
       "duration": 20,
-      "selected": false,
-      "due_date": null,
+      "due_date": "2026-07-16",
       "done_date": null
     },
     {
@@ -218,7 +179,6 @@
       "priority": 1.0,
       "initial_priority": 1.0,
       "duration": 20,
-      "selected": false,
       "due_date": null,
       "done_date": null
     },
@@ -229,8 +189,7 @@
       "priority": 2.0,
       "initial_priority": 2.0,
       "duration": 10,
-      "selected": false,
-      "due_date": null,
+      "due_date": "2026-07-16",
       "done_date": null
     },
     {
@@ -240,7 +199,6 @@
       "priority": 2.0,
       "initial_priority": 2.0,
       "duration": 15,
-      "selected": false,
       "due_date": null,
       "done_date": null
     },
@@ -251,7 +209,6 @@
       "priority": 2.0,
       "initial_priority": 2.0,
       "duration": 30,
-      "selected": false,
       "due_date": null,
       "done_date": null
     },
@@ -262,9 +219,8 @@
       "priority": 3.0,
       "initial_priority": 3.0,
       "duration": 30,
-      "selected": true,
-      "due_date": null,
-      "done_date": null
+      "due_date": "2026-07-23",
+      "done_date": "2026-07-14"
     },
     {
       "id": 24,
@@ -273,7 +229,6 @@
       "priority": 2.0,
       "initial_priority": 2.0,
       "duration": 30,
-      "selected": false,
       "due_date": null,
       "done_date": null
     },
@@ -284,7 +239,6 @@
       "priority": 1.0,
       "initial_priority": 1.0,
       "duration": 30,
-      "selected": false,
       "due_date": null,
       "done_date": null
     },
@@ -295,8 +249,7 @@
       "priority": 3.0,
       "initial_priority": 3.0,
       "duration": 15,
-      "selected": true,
-      "due_date": null,
+      "due_date": "2026-07-16",
       "done_date": null
     },
     {
@@ -306,7 +259,6 @@
       "priority": 2.0,
       "initial_priority": 2.0,
       "duration": 30,
-      "selected": false,
       "due_date": null,
       "done_date": null
     },
@@ -314,12 +266,11 @@
       "id": 28,
       "name": "🛏 Changer les draps",
       "frequency": "2xmois",
-      "priority": 4.0,
+      "priority": 4.5,
       "initial_priority": 4.0,
       "duration": 20,
-      "selected": true,
-      "due_date": "2026-07-14",
-      "done_date": null
+      "due_date": "2026-07-29",
+      "done_date": "2026-07-14"
     },
     {
       "id": 29,
@@ -328,7 +279,6 @@
       "priority": 1.0,
       "initial_priority": 1.0,
       "duration": 120,
-      "selected": false,
       "due_date": null,
       "done_date": null
     },
@@ -339,7 +289,6 @@
       "priority": 2.0,
       "initial_priority": 2.0,
       "duration": 60,
-      "selected": false,
       "due_date": null,
       "done_date": null
     },
@@ -350,7 +299,6 @@
       "priority": 2.0,
       "initial_priority": 2.0,
       "duration": 15,
-      "selected": false,
       "due_date": null,
       "done_date": null
     },
@@ -361,7 +309,6 @@
       "priority": 2.0,
       "initial_priority": 2.0,
       "duration": 40,
-      "selected": false,
       "due_date": null,
       "done_date": null
     }

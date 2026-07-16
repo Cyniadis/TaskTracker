@@ -1,56 +1,59 @@
 """The 'General' tab: manage the full task library."""
 from __future__ import annotations
 
-import pandas as pd
 import streamlit as st
-from st_aggrid import AgGrid, DataReturnMode, GridOptionsBuilder, JsCode
 
 from .add_task_dialog import add_task_dialog
-from .grid_utils import date_type_definitions, find_task_by_id, frequency_cell_editor, tasks_to_dataframe,float_formatter
-
-from ..json_utils import load_tasks_backup
-
-
+from .grid_utils import find_task_by_id, tasks_to_dataframe, PERIOD_OPTIONS
 from . import ui_state
 
-def _on_delete_selection_click():
-    selected_rows = st.session_state.selected_rows
-    selected_ids: set[int] = set()
-    if len(selected_rows) > 0:
-        selected_ids = {int(row["id"]) for row in selected_rows.to_dict(orient="records")}
-        st.session_state.tasks = [t for t in st.session_state.tasks if t.id not in selected_ids ]
-        st.session_state.today_tasks = [t for t in st.session_state.today_tasks if t.id not in selected_ids ]
+# _COLUMN_ORDER = [
+#     "name", "frequency_count", "frequency_period",
+#     "priority", "initial_priority", "duration", "due_date", "done_date",
+# ]
 
-def _on_grid_event(grid_response) -> None:
-    event = grid_response.event_data
-    event_type = event.get("type")
-    if event_type == "selectionChanged":
-        st.session_state.selected_rows = grid_response.selected_rows
-    if event_type == "cellValueChanged":
-        field_name = event["column"]["colId"]
-        task = find_task_by_id(st.session_state.tasks, event["data"]["id"])
-        task.set_field(field_name, event.get("newValue"))
+
+def _column_config() -> dict:
+    return {
+        "id": None,
+        "name": st.column_config.TextColumn("Task", width="large"),
+        "frequency_count": st.column_config.NumberColumn("Every", min_value=1, step=1, format="%d", width="small"),
+        "frequency_period": st.column_config.SelectboxColumn("Period", options=PERIOD_OPTIONS, width="small"),
+        "priority": st.column_config.NumberColumn("Priority", step=0.5, format="%.1f"),
+        "initial_priority": st.column_config.NumberColumn("Initial Priority", step=0.5, format="%.1f"),
+        "duration": st.column_config.NumberColumn("Duration (min)", min_value=1, step=5),
+        "due_date": st.column_config.DateColumn("Due date", format="DD/MM/YYYY"),
+        "done_date": st.column_config.DateColumn("Done date", format="DD/MM/YYYY", disabled=True),
+    }
+
+
+def _sync_edits(df, edited_rows: dict) -> None:
+    """Push cell-level diffs from the editor back onto the real Task objects."""
+    for row_pos, changes in edited_rows.items():
+        task = find_task_by_id(st.session_state.tasks, int(df.iloc[row_pos]["id"]))
+
+        if "frequency_count" in changes or "frequency_period" in changes:
+            count = changes.get("frequency_count", df.iloc[row_pos]["frequency_count"])
+            period = changes.get("frequency_period", df.iloc[row_pos]["frequency_period"])
+            task.set_field("frequency", f"{int(count)}x{period}")
+
+        for field_name in ("name", "priority", "initial_priority", "duration", "due_date"):
+            if field_name in changes:
+                task.set_field(field_name, changes[field_name])
+
+    if edited_rows:
         ui_state.persist_tasks()
 
 
-
-def _build_grid_options(df: pd.DataFrame) -> dict:
-    gb = GridOptionsBuilder.from_dataframe(df)
-    gb.configure_default_column(sortable=True, filter=True, resizable=True, editable=True)
-    gb.configure_column("id", hide=True)
-    gb.configure_column("name", headerName="Task", autoHeight=True, wrapText=True, checkboxSelection=True, width=400)
-    gb.configure_column("frequency", headerName="Frequency", cellEditor=frequency_cell_editor(), cellEditorPopup=True)
-    gb.configure_column("priority", headerName="Priority", cellDataType="number", valueFormatter=float_formatter())
-    gb.configure_column("initial_priority", headerName="Initial Priority", cellDataType="number", valueFormatter=float_formatter())
-    gb.configure_column("duration", headerName="Duration (min)", cellDataType="number")
-    gb.configure_column("due_date", headerName="Due date", cellDataType="dateString")
-    gb.configure_column("done_date", headerName="Done date", cellDataType="dateString", editable=False)
-    gb.configure_selection("multiple", use_checkbox=True,
-                            rowMultiSelectWithClick=False,
-                            suppressRowClickSelection=False,
-                            suppressRowDeselection=False)
-    gb.configure_grid_options(domLayout="autoHeight", dataTypeDefinitions=date_type_definitions())
-    return gb.build()
+def _on_delete_selection_click(edited_df) -> None:
+    selected_ids = {int(row["id"]) for _, row in edited_df.iterrows() if row["delete"]}
+    if not selected_ids:
+        return
+    st.session_state.tasks = [t for t in st.session_state.tasks if t.id not in selected_ids]
+    st.session_state.today_tasks = [t for t in st.session_state.today_tasks if t.id not in selected_ids]
+    ui_state.persist_tasks()
+    ui_state.reload_manage_grid()
+    ui_state.reload_today_grid()
 
 
 def render() -> None:
@@ -60,30 +63,34 @@ def render() -> None:
         if st.button("➕ Add task"):
             add_task_dialog()
 
-        if st.button("🗑️ Delete selection"):
-            _on_delete_selection_click()
-
-        # if st.button("🔄️ Load backup"):
-        #     st.session_state.tasks = load_tasks_backup()
-        #     ui_state.reload_manage_grid()
-        if st.button("⭯ Discard changes"): 
-            ui_state.restore_tasks(st.session_state.today_tasks)
-            ui_state.reload_today_grid()
-
-
     df = tasks_to_dataframe(st.session_state.tasks)
     if df.empty:
         st.info("No tasks yet — use \u201cAdd task\u201d to create your first one.")
         return
 
-    grid_response = AgGrid(
+    df.insert(0, "delete", False)
+
+    key = st.session_state.manage_grid_key
+    edited_df = st.data_editor(
         df,
-        gridOptions=_build_grid_options(df),
+        column_config=_column_config(),
+        # column_order=_COLUMN_ORDER,
+        hide_index=True,
+        width="stretch",
         height=630,
-        key=st.session_state.manage_grid_key,
-        update_on=["cellValueChanged", "selectionChanged"],
-        callback=_on_grid_event,
-        data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
-        allow_unsafe_jscode=True,
+        key=key,
+        num_rows="dynamic"
     )
 
+    _sync_edits(df, st.session_state[key]["edited_rows"])
+
+    with st.container(horizontal=True, width="content"):
+        if st.button("🗑️ Delete selection"):
+            _on_delete_selection_click(edited_df)
+            st.rerun()
+
+        if st.button("⭯ Discard changes"):
+            ui_state.restore_tasks(st.session_state.today_tasks)
+            ui_state.reload_today_grid()
+            ui_state.reload_manage_grid()
+            st.rerun()
