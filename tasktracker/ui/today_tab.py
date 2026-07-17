@@ -5,7 +5,7 @@ import streamlit as st
 import pandas as pd 
 
 from . import ui_state
-from .grid_utils import find_task_by_id, tasks_to_dataframe
+from .grid_utils import find_task_by_id, tasks_to_toady_dataframe
 from ..json_utils import save_daily_limit
 
 
@@ -22,8 +22,7 @@ def edit_due_date(row: int):
     if st.button("Save"):
         task = find_task_by_id(st.session_state.today_tasks, st.session_state.df.at[row, 'id'])
         task.due_date = new_date
-        # st.session_state.df.at[row, "due_date"] = str(new_dae)
-        
+        ui_state.persist_tasks()
         st.rerun()
 
 def _on_reschedule_click():
@@ -72,7 +71,7 @@ def _column_config() -> dict:
         "duration": st.column_config.NumberColumn("Duration", width="small"),
         "due_date": st.column_config.DateColumn("Due date", format="localized"),
         "done_date": st.column_config.DateColumn("Done date", format="localized"),
-        "reschedule": st.column_config.ButtonColumn("Reschedule", on_click=_on_reschedule_click, key="reschedule_button", alignment="left")
+        "reschedule": st.column_config.ButtonColumn("", on_click=_on_reschedule_click, key="reschedule_button", alignment="left")
     }
 
 def _on_row_selected() -> None:
@@ -87,45 +86,15 @@ def _on_row_selected() -> None:
     ui_state.persist_tasks()
 
 
-
-
-# def _sync_edits(df, edited_rows: dict) -> None:
-#     reset_grid = False
-
-#     for row_pos, changes in edited_rows.items():
-#         task = find_task_by_id(st.session_state.tasks, int(df.iloc[row_pos]["id"]))
-
-#         if "done" in changes:
-#             if changes["done"]:
-#                 task.complete(ui_state.TODAY)
-#             else:
-#                 task.uncomplete()
-
-#         if "due_date" in changes:
-#             new_due_date = changes["due_date"]
-#             if new_due_date is None or new_due_date < ui_state.TODAY:
-#                 st.toast("Chosen due date is in the past", icon="⚠️")
-#                 reset_grid = True  # discard the invalid edit visually
-#             else:
-#                 task.due_date = new_due_date
-#                 ui_state.reload_manage_grid()
-
-#     if edited_rows:
-#         ui_state.persist_tasks()
-#     if reset_grid:
-#         ui_state.reload_today_grid()
-
-
 def render() -> None:
     _render_today_header()
 
-    df = tasks_to_dataframe(st.session_state.today_tasks)
+    df = tasks_to_toady_dataframe(st.session_state.today_tasks)
     st.session_state.df = df
     if df is None:
         st.info("No tasks were selected for today. Add or edit tasks in the General tab.")
         return
 
-    df["frequency"] = df["frequency_count"].astype(str) + "x" + df["frequency_period"]
     key = st.session_state.grid_key
     event = st.dataframe(
         df,
@@ -133,11 +102,8 @@ def render() -> None:
         # column_order=_COLUMN_ORDER,
         hide_index=True,
         width="stretch",
-        height=500,
+        height="auto",
         key=key,
         on_select=_on_row_selected,
         selection_mode=["multi-row"]
     )
-
-
-    # _sync_edits(df, st.session_state[key]["edited_rows"])
