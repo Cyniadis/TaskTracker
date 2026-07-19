@@ -318,5 +318,15 @@
     "duration": 30,
     "due_date": "2026-07-19",
     "done_date": null
+  },
+  {
+    "id": 36,
+    "name": "⚔ Entrainement épée longue",
+    "frequency": "1xjour",
+    "priority": 2,
+    "initial_priority": 2,
+    "duration": 15,
+    "due_date": null,
+    "done_date": null
   }
 ]
