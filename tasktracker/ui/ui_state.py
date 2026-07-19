@@ -11,7 +11,7 @@ from datetime import datetime
 
 import streamlit as st
 
-from ..json_utils import load_cached_daily_limit, load_tasks, save_tasks, cache_tasks, load_cached_task_ids
+from ..json_utils import load_cached_daily_limit, load_tasks, save_tasks, cache_tasks, load_cached_task_ids, load_include_completed
 from ..selector import compute_daily_tasks, update_tasks_priority_and_due_date
 from ..consts import TODAY
 from ..task import Task, normalize_date
@@ -20,24 +20,26 @@ from ..task import Task, normalize_date
 @st.cache_resource(show_spinner=False)
 def _init_general_task_list() -> tuple[list[Task], list[Task], int]:
     print("Initialize tasks lists")
-    # daily_limit = load_cached_daily_limit()
     tasks = load_tasks()
     update_tasks_priority_and_due_date(tasks)
-    # today_tasks = compute_daily_tasks(tasks, TODAY, daily_limit, include_completed_today)
     save_tasks(tasks)
     return tasks
 
 
 def load_today_tasks(tasks: list[Task], daily_limit: int, include_completed_today=False, force_regeneration=False) -> list[Task]: 
     cache_date, cached_task_ids = load_cached_task_ids()
-    if force_regeneration or normalize_date(cache_date) != TODAY: 
-        print("Regenerate today tasks")
-        return compute_daily_tasks(tasks, TODAY, daily_limit, include_completed_today)
-    else: 
-        return [t for t in tasks if t.id in cached_task_ids ]
     
+    completed_tasks = [t for t in tasks if t.is_completed_on(TODAY)] if include_completed_today else []
+    
+    if force_regeneration or normalize_date(cache_date) != TODAY: 
+        return compute_daily_tasks(tasks, TODAY, daily_limit, completed_tasks)
+    else: 
+        cached_tasks = [t for t in tasks if t.id in cached_task_ids ] 
+        cached_tasks += [ t for t in completed_tasks if t.id not in cached_task_ids ]
+        return compute_daily_tasks(tasks, TODAY, daily_limit, cached_tasks)
+        
 
-def init_session_state(include_completed_today=False, force_regeneration=False) -> None:
+def init_session_state(force_regeneration=False) -> None:
     """Populate `st.session_state` on first run; a no-op on later reruns."""
     # if "tasks" in st.session_state:
     #     return
@@ -45,19 +47,20 @@ def init_session_state(include_completed_today=False, force_regeneration=False) 
     print("Initialize session state")
     tasks = _init_general_task_list()
     daily_limit = load_cached_daily_limit()
-    today_tasks = load_today_tasks(tasks, daily_limit, include_completed_today, force_regeneration)
+    include_completed = load_include_completed()
+    today_tasks = load_today_tasks(tasks, daily_limit, include_completed, force_regeneration)
 
     st.session_state.update(
         tasks=tasks,
         today_tasks=today_tasks,
         daily_limit=daily_limit,
-        grid_key="TodayGrid1",
+        today_grid_key="TodayGrid1",
         general_grid_key="GeneralGrid1",
         timer_running=False,
         timer_start_time=None,
         elapsed_accum=0.0,
         selected_rows=[],
-        include_completed=True
+        include_completed=include_completed
     )
     cache_today_tasks()
 
@@ -72,8 +75,8 @@ def persist_tasks() -> None:
 def regenerate_today_tasks() -> None: 
     """Recompute today's task selection from scratch, keeping already-completed ones."""
     # _init_task_lists.clear()
-    print(f"include_completed = {st.session_state.include_completed}")
-    init_session_state(st.session_state.include_completed, True)
+    st.session_state[st.session_state.today_grid_key] =  {'selection': {'rows': []}}
+    init_session_state(True)
 
 def restore_tasks(tasks: list[Task]) -> None: 
     for task in tasks: 
@@ -96,7 +99,7 @@ def discard_completed_tasks() -> None:
 
 
 def reload_today_grid() -> None:
-    st.session_state.grid_key = f"TodayGrid{datetime.now().timestamp()}"
+    st.session_state.today_grid_key = f"TodayGrid{datetime.now().timestamp()}"
 
 
 def reload_general_grid() -> None:
@@ -134,3 +137,5 @@ def remove_tasks(task_ids: list[int]) -> None:
     st.session_state.today_tasks = [t for t in st.session_state.today_tasks if t.id not in ids_to_remove]
     persist_tasks()
     reload_today_grid()
+
+

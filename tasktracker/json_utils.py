@@ -37,33 +37,95 @@ def load_tasks(path: Path = TASKS_FILE) -> list[Task]:
     raw_tasks = _read_json(path) or []
     return json_to_task_list(raw_tasks)
 
-
 def save_tasks(tasks: list[Task], path: Path = TASKS_FILE) -> None:
     _write_json(path, task_list_to_json(tasks))
 
 
+# -- generic cache.json key/value store -----------------------------------
+#
+# cache.json is just a flat dict of arbitrary values (daily_limit, cache_date,
+# cached_tasks_ids, ...). These helpers let any part of the app read/write a
+# single cached value without knowing about the rest of the file, so adding
+# a new cached value is just "call get_cached_value / set_cached_value with
+# a new key" instead of hand-rolling another _read_json/_write_json pair.
+#
+# Example — adding a brand new cached value elsewhere in the app:
+#
+#     from .json_utils import get_cached_value, set_cached_value
+#
+#     def load_last_selected_tab() -> str:
+#         return get_cached_value("last_tab", "today")
+#
+#     def save_last_selected_tab(tab: str) -> None:
+#         set_cached_value("last_tab", tab)
+#
+# No new file, no new read/write plumbing needed.
+
+def _load_cache() -> dict:
+    return _read_json(CACHE_FILE) or {}
+
+
+def _save_cache(cache: dict) -> None:
+    _write_json(CACHE_FILE, cache)
+
+
+def get_cached_value(key: str, default: Any = None) -> Any:
+    """Read a single value from cache.json, or `default` if missing/absent."""
+    return _load_cache().get(key, default)
+
+
+def set_cached_value(key: str, value: Any) -> None:
+    """Write a single value into cache.json, preserving the other keys."""
+    cache = _load_cache()
+    cache[key] = value
+    _save_cache(cache)
+
+
+def set_cached_values(**values: Any) -> None:
+    """Write several values into cache.json at once (one read + one write)."""
+    cache = _load_cache()
+    cache.update(values)
+    _save_cache(cache)
+
+
+def delete_cached_value(key: str) -> None:
+    """Remove a key from cache.json, if present."""
+    cache = _load_cache()
+    if key in cache:
+        del cache[key]
+        _save_cache(cache)
+
+
+# -- app-specific cached values --------------------------------------------
+#
+# Thin, typed wrappers around the generic store above, kept so call sites
+# don't need to know the raw key names / defaults.
+
 def load_cached_daily_limit() -> int:
-    cached_params = _read_json(CACHE_FILE)
-    return cached_params.get("daily_limit", DEFAULT_DAILY_LIMIT_MINUTES)
+    return get_cached_value("daily_limit", DEFAULT_DAILY_LIMIT_MINUTES)
 
-def save_daily_limit(daily_limit: int) -> None:
-    cached_params = _read_json(CACHE_FILE)
-    cached_params['daily_limit'] = daily_limit
-    _write_json(CACHE_FILE, cached_params)
+def cache_daily_limit(daily_limit: int) -> None:
+    set_cached_value("daily_limit", daily_limit)
 
-def cache_tasks(tasks: list[Task]) -> None:
-    print("Create task Backup")
-    cached_params = _read_json(CACHE_FILE)
-    cached_params['cache_date'] = TODAY.strftime(DATE_FORMAT)
-    cached_params["cached_tasks_ids"]= [task.id for task in tasks]
-    _write_json(CACHE_FILE, cached_params)
 
 def load_cached_task_ids() -> None: 
     print("Load tasks backup")
-    cached_params = _read_json(CACHE_FILE)
-    cached_tasks_ids = cached_params.get("cached_tasks_ids", None)
-    cache_date = cached_params.get("cache_date", None)
+    cache_date = get_cached_value("cache_date")
+    cached_tasks_ids = get_cached_value("cached_tasks_ids")
     return cache_date, cached_tasks_ids
+
+def cache_tasks(tasks: list[Task]) -> None:
+    print("Create task Backup")
+    set_cached_values(
+        cache_date=TODAY.strftime(DATE_FORMAT),
+        cached_tasks_ids=[task.id for task in tasks],
+    )
+
+def load_include_completed(): 
+    return get_cached_value("include_completed", True)
+
+def cache_include_completed(include_completed: bool): 
+    return set_cached_value("include_completed", include_completed)
 
 def validate_and_parse_tasks(raw_data: Any) -> list[Task]:
     """Parse+validate raw JSON data (already `json.loads`-ed) into a list of Task objects.

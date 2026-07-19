@@ -13,6 +13,7 @@ import locale
 locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
 
 def main() -> None:
+    print()
     print("Starting Streamlit App")
     
     st.set_page_config(page_title="TaskTracker", layout="wide")

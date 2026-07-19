@@ -11,6 +11,8 @@ from enum import Enum
 from typing import Any
 from .consts import DATE_FORMAT, PRIORITY_INCREMENT
 
+_DATE_FIELDS = ("due_date", "done_date")
+
 class Period(str, Enum):
     """The recurrence unit of a task, e.g. 'twice a WEEK'."""
 
@@ -84,9 +86,9 @@ def normalize_date(value: Any) -> date | None:
     raise TypeError(f"Unsupported date value: {value!r}")
 
 
-_DATE_FIELDS = ("due_date", "done_date")
-
-
+def schedule_task_list(tasks: list[Task], date: datetime.date):
+    for task in tasks:
+        task.schedule_for(date)
 @dataclass
 class Task:
     """A recurring chore, with everything needed to schedule and track it."""
@@ -152,7 +154,7 @@ class Task:
         self.priority = self.initial_priority
 
     def uncomplete(self) -> None:
-        self.done_date = self.orig_done_date if self.orig_done_date != self.self.done_date else None
+        self.done_date = self.orig_done_date if self.orig_done_date != self.done_date else None
         self.priority = self.orig_priority
         pass
 
@@ -179,3 +181,4 @@ class Task:
         self.duration = self.orig_duration
         self.due_date = self.orig_due_date
         self.done_date = self.orig_done_date
+
