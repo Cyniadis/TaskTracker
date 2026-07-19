@@ -5,8 +5,9 @@ import streamlit as st
 import pandas as pd 
 
 from . import ui_state
-from .grid_utils import find_task_by_id, tasks_to_toady_dataframe
+from .grid_utils import find_task_by_id, tasks_to_toady_dataframe, get_theme_color
 from ..json_utils import save_daily_limit
+from ..consts import TODAY
 
 
 _COLUMN_ORDER = ["name", "frequency", "priority", "duration", "due_date", "done_date"]
@@ -49,9 +50,9 @@ def _render_today_header() -> None:
         if st.button("🔄 Regenerate"):
             ui_state.regenerate_today_tasks()
             st.rerun()
-        if st.button("🗑 Discard completed tasks"):
-            ui_state.discard_completed_tasks()
-            st.rerun()
+        # if st.button("🗑 Discard completed tasks"):
+        #     ui_state.discard_completed_tasks()
+        #     st.rerun()
 
     st.write(
         f"**Active duration:** {sum(t.duration for t in st.session_state.today_tasks)} min - "
@@ -86,6 +87,15 @@ def _on_row_selected() -> None:
     ui_state.persist_tasks()
 
 
+def color_by_due_date(row):
+    color = get_theme_color("textColor")
+    if row['due_date'] == row['done_date']: 
+        color = get_theme_color("doneTextColor") 
+    elif row['due_date'] != TODAY:
+        color = get_theme_color("hiddenTextColor")
+    return [f"color: {color}"] * len(row)
+
+
 def render() -> None:
     _render_today_header()
 
@@ -94,6 +104,8 @@ def render() -> None:
     if df is None:
         st.info("No tasks were selected for today. Add or edit tasks in the General tab.")
         return
+
+    df = df.style.apply(color_by_due_date, axis=1)
 
     key = st.session_state.grid_key
     event = st.dataframe(
@@ -105,5 +117,5 @@ def render() -> None:
         height="content",
         key=key,
         on_select=_on_row_selected,
-        selection_mode=["multi-row"]
+        selection_mode=["multi-row"],
     )
