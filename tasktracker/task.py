@@ -100,6 +100,7 @@ class Task:
     due_date: date | None = None
     done_date: date | None = None
 
+    orig_name: str = ""
     orig_frequency: str = "1xjour"
     orig_priority: float = 0.0
     orig_initial_priority: float = 0.0
@@ -109,8 +110,9 @@ class Task:
 
 
     def __post_init__(self) -> None:
-        for field_name in _DATE_FIELDS:
+        for field_name in ["due_date", "done_date"]:
             setattr(self, field_name, normalize_date(getattr(self, field_name)))
+        self.orig_name = self.name
         self.orig_frequency = self.frequency
         self.orig_priority = self.priority
         self.orig_initial_priority = self.initial_priority
@@ -150,7 +152,7 @@ class Task:
         self.priority = self.initial_priority
 
     def uncomplete(self) -> None:
-        self.done_date = self.orig_done_date
+        self.done_date = self.orig_done_date if self.orig_done_date != self.self.done_date else None
         self.priority = self.orig_priority
         pass
 
@@ -170,6 +172,7 @@ class Task:
         setattr(self, field_name, value)
 
     def restore(self): 
+        self.name = self.orig_name
         self.frequency = self.orig_frequency
         self.priority = self.orig_priority
         self.initial_priority = self.orig_initial_priority

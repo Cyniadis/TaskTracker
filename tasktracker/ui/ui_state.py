@@ -11,30 +11,42 @@ from datetime import datetime
 
 import streamlit as st
 
-from ..json_utils import load_daily_limit, load_tasks, save_tasks
-from ..selector import compute_daily_tasks, initialize_tasks
+from ..json_utils import load_cached_daily_limit, load_tasks, save_tasks, cache_tasks, load_cached_task_ids
+from ..selector import compute_daily_tasks, update_tasks_priority_and_due_date
 from ..consts import TODAY
-from ..task import Task
+from ..task import Task, normalize_date
 
 
 @st.cache_resource(show_spinner=False)
-def _init_task_lists(include_completed_today: bool = False) -> tuple[list[Task], list[Task], int]:
+def _init_general_task_list() -> tuple[list[Task], list[Task], int]:
     print("Initialize tasks lists")
-    daily_limit = load_daily_limit()
+    # daily_limit = load_cached_daily_limit()
     tasks = load_tasks()
-    initialize_tasks(tasks)
-    today_tasks = compute_daily_tasks(tasks, TODAY, daily_limit, include_completed_today)
+    update_tasks_priority_and_due_date(tasks)
+    # today_tasks = compute_daily_tasks(tasks, TODAY, daily_limit, include_completed_today)
     save_tasks(tasks)
-    return tasks, today_tasks, daily_limit
+    return tasks
 
 
-def init_session_state() -> None:
+def load_today_tasks(tasks: list[Task], daily_limit: int, include_completed_today=False, force_regeneration=False) -> list[Task]: 
+    cache_date, cached_task_ids = load_cached_task_ids()
+    if force_regeneration or normalize_date(cache_date) != TODAY: 
+        print("Regenerate today tasks")
+        return compute_daily_tasks(tasks, TODAY, daily_limit, include_completed_today)
+    else: 
+        return [t for t in tasks if t.id in cached_task_ids ]
+    
+
+def init_session_state(include_completed_today=False, force_regeneration=False) -> None:
     """Populate `st.session_state` on first run; a no-op on later reruns."""
-    if "tasks" in st.session_state:
-        return
+    # if "tasks" in st.session_state:
+    #     return
 
     print("Initialize session state")
-    tasks, today_tasks, daily_limit = _init_task_lists()
+    tasks = _init_general_task_list()
+    daily_limit = load_cached_daily_limit()
+    today_tasks = load_today_tasks(tasks, daily_limit, include_completed_today, force_regeneration)
+
     st.session_state.update(
         tasks=tasks,
         today_tasks=today_tasks,
@@ -46,18 +58,20 @@ def init_session_state() -> None:
         elapsed_accum=0.0,
         selected_rows=[]
     )
+    cache_today_tasks()
 
+def cache_today_tasks():
+    cache_tasks(st.session_state.today_tasks)
+    
 
 def persist_tasks() -> None:
     save_tasks(st.session_state.tasks)
 
 
-def regenerate_today_tasks() -> None:
+def regenerate_today_tasks(include_completed_today=True) -> None:
     """Recompute today's task selection from scratch, keeping already-completed ones."""
-    _init_task_lists.clear()
-    st.session_state.tasks, st.session_state.today_tasks, st.session_state.daily_limit = (
-        _init_task_lists(True)
-    )
+    # _init_task_lists.clear()
+    init_session_state(include_completed_today, True)
 
 def restore_tasks(tasks: list[Task]) -> None: 
     for task in tasks: 
