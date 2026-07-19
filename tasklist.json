@@ -15,7 +15,7 @@
     "frequency": "1xjour",
     "priority": 4.0,
     "initial_priority": 4.0,
-    "duration": 15,
+    "duration": 10,
     "due_date": "2026-07-19",
     "done_date": null
   },
@@ -25,7 +25,7 @@
     "frequency": "1xjour",
     "priority": 2,
     "initial_priority": 4.0,
-    "duration": 10,
+    "duration": 5,
     "due_date": "2026-07-19",
     "done_date": null
   },
@@ -35,7 +35,7 @@
     "frequency": "1xjour",
     "priority": 4.0,
     "initial_priority": 4.0,
-    "duration": 10,
+    "duration": 5,
     "due_date": "2026-07-19",
     "done_date": null
   },
@@ -45,7 +45,7 @@
     "frequency": "1xsemaine",
     "priority": 3.0,
     "initial_priority": 3.0,
-    "duration": 10,
+    "duration": 5,
     "due_date": "2026-07-26",
     "done_date": null
   },
@@ -162,10 +162,10 @@
   {
     "id": 20,
     "name": "🛋️ Nettoyer la table basse",
-    "frequency": "1xsemaine",
+    "frequency": "1xmois",
     "priority": 2.0,
     "initial_priority": 2.0,
-    "duration": 10,
+    "duration": 5,
     "due_date": null,
     "done_date": null
   },
@@ -231,11 +231,11 @@
   },
   {
     "id": 27,
-    "name": "🛏 Nettoyer le sol",
-    "frequency": "1xsemaine",
+    "name": "🛏 Nettoyer le matelas",
+    "frequency": "1xan",
     "priority": 2.0,
     "initial_priority": 2.0,
-    "duration": 30,
+    "duration": 60,
     "due_date": null,
     "done_date": null
   },
