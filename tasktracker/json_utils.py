@@ -42,7 +42,7 @@ def save_tasks(tasks: list[Task], path: Path = TASKS_FILE) -> None:
     _write_json(path, task_list_to_json(tasks))
 
 
-def load_daily_limit() -> int:
+def load_cached_daily_limit() -> int:
     cached_params = _read_json(CACHE_FILE)
     return cached_params.get("daily_limit", DEFAULT_DAILY_LIMIT_MINUTES)
 
@@ -51,6 +51,19 @@ def save_daily_limit(daily_limit: int) -> None:
     cached_params['daily_limit'] = daily_limit
     _write_json(CACHE_FILE, cached_params)
 
+def cache_tasks(tasks: list[Task]) -> None:
+    print("Create task Backup")
+    cached_params = _read_json(CACHE_FILE)
+    cached_params['cache_date'] = TODAY.strftime(DATE_FORMAT)
+    cached_params["cached_tasks_ids"]= [task.id for task in tasks]
+    _write_json(CACHE_FILE, cached_params)
+
+def load_cached_task_ids() -> None: 
+    print("Load tasks backup")
+    cached_params = _read_json(CACHE_FILE)
+    cached_tasks_ids = cached_params.get("cached_tasks_ids", None)
+    cache_date = cached_params.get("cache_date", None)
+    return cache_date, cached_tasks_ids
 
 def validate_and_parse_tasks(raw_data: Any) -> list[Task]:
     """Parse+validate raw JSON data (already `json.loads`-ed) into a list of Task objects.

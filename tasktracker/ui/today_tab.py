@@ -15,12 +15,12 @@ _COLUMN_ORDER = ["name", "frequency", "priority", "duration", "due_date", "done_
 
 @st.dialog("Rechedule task")
 def edit_due_date(row: int):
-    row_date = st.session_state.df.iloc[row]["due_date"]  
+    row_date = st.session_state.today_df.iloc[row]["due_date"]  
     current = row_date if  row_date is not None else TODAY
-    task = find_task_by_id(st.session_state.today_tasks, st.session_state.df.at[row, 'id'])
+    task = find_task_by_id(st.session_state.tasks, st.session_state.today_df.at[row, 'id'])
     with st.container(horizontal=True, vertical_alignment="bottom"):
         new_date = st.date_input(
-            f"**{st.session_state.df.iloc[row]['name']}**",
+            f"**{st.session_state.today_df.iloc[row]['name']}**",
             value=pd.to_datetime(current).date(),
             width=200
         )
@@ -80,14 +80,18 @@ def _column_config() -> dict:
 
 def _on_row_selected() -> None:
     selected_rows = st.session_state[st.session_state.grid_key]["selection"]["rows"]
-    filtered_df = st.session_state.df.iloc[selected_rows]
+    filtered_df = st.session_state.today_df.iloc[selected_rows]
     selected_ids = filtered_df["id"].values
     for task in st.session_state.today_tasks:
         if len(selected_ids) > 0 and task.id in selected_ids:
-            task.complete(ui_state.TODAY)
-        else:
+            task.complete(TODAY)
+        elif task.is_completed_on(TODAY) and task.id not in selected_ids:
+            print(task.name)
             task.uncomplete()
+            
+    ui_state.cache_today_tasks()
     ui_state.persist_tasks()
+    ui_state.reload_today_grid()
 
 
 def color_by_due_date(row):
@@ -99,20 +103,29 @@ def color_by_due_date(row):
     return [f"color: {color}"] * len(row)
 
 
+def pre_select_rows(df: pd.DataFrame) -> dict:
+    completed_tasks = [ task for task in st.session_state.tasks if task.is_completed_on(TODAY) ]
+    rows_to_select = { "rows": [] }
+    for task in completed_tasks:
+        completed_row = df.index[df["id"] == task.id]
+        if not completed_row.empty:
+            rows_to_select["rows"].append(completed_row[0])
+    return {"selection": rows_to_select}
+
 def render() -> None:
     _render_today_header()
 
     df = tasks_to_today_dataframe(st.session_state.today_tasks)
-    st.session_state.df = df
+    st.session_state.today_df = df
     if df is None:
         st.info("No tasks were selected for today. Add or edit tasks in the General tab.")
         return
 
-    df = df.style.apply(color_by_due_date, axis=1)
+    styled_df = df.style.apply(color_by_due_date, axis=1)
 
     key = st.session_state.grid_key
     event = st.dataframe(
-        df,
+        styled_df,
         column_config=_column_config(),
         # column_order=_COLUMN_ORDER,
         hide_index=True,
@@ -121,4 +134,5 @@ def render() -> None:
         key=key,
         on_select=_on_row_selected,
         selection_mode=["multi-row"],
+        selection_default=pre_select_rows(df)
     )

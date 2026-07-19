@@ -3,31 +3,31 @@
     "id": 0,
     "name": "🍴 Mettre la vaisselle au lave-vaisselle",
     "frequency": "2xsemaine",
-    "priority": 5.0,
+    "priority": 7.0,
     "initial_priority": 5.0,
     "duration": 5,
-    "due_date": "2026-07-19",
-    "done_date": null
+    "due_date": "2026-07-22",
+    "done_date": "2026-07-19"
   },
   {
     "id": 1,
     "name": "🍴 Nettoyer la vaisselle sale à la main",
     "frequency": "1xjour",
-    "priority": 4.0,
+    "priority": 6.0,
     "initial_priority": 4.0,
     "duration": 10,
-    "due_date": "2026-07-19",
-    "done_date": null
+    "due_date": "2026-07-20",
+    "done_date": "2026-07-19"
   },
   {
     "id": 2,
     "name": "🍴 Ranger la vaisselle propre de l'égouttoir ",
     "frequency": "1xjour",
-    "priority": 2,
+    "priority": 6.0,
     "initial_priority": 4.0,
     "duration": 5,
-    "due_date": "2026-07-19",
-    "done_date": null
+    "due_date": "2026-07-20",
+    "done_date": "2026-07-19"
   },
   {
     "id": 5,
@@ -53,11 +53,11 @@
     "id": 7,
     "name": "🍴 Nettoyer la plaque de cuisson",
     "frequency": "1xsemaine",
-    "priority": 2,
+    "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 20,
-    "due_date": null,
-    "done_date": null
+    "due_date": "2026-07-26",
+    "done_date": "2026-07-19"
   },
   {
     "id": 8,
@@ -76,8 +76,8 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 10,
-    "due_date": null,
-    "done_date": null
+    "due_date": "2026-08-03",
+    "done_date": "2026-07-19"
   },
   {
     "id": 10,
@@ -86,7 +86,7 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 10,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -123,11 +123,11 @@
     "id": 15,
     "name": "🛋️ Passer la serpillère",
     "frequency": "2xmois",
-    "priority": 3.0,
+    "priority": 5.0,
     "initial_priority": 3.0,
     "duration": 25,
-    "due_date": "2026-07-19",
-    "done_date": null
+    "due_date": "2026-08-03",
+    "done_date": "2026-07-19"
   },
   {
     "id": 16,
@@ -293,21 +293,21 @@
     "id": 33,
     "name": "🍴 Ranger la vaisselle propre du lave-vaisselle",
     "frequency": "1xjour",
-    "priority": 2,
+    "priority": 3.5,
     "initial_priority": 2,
     "duration": 5,
-    "due_date": "2026-07-19",
-    "done_date": null
+    "due_date": "2026-07-20",
+    "done_date": "2026-07-19"
   },
   {
     "id": 34,
     "name": "🛏 Ranger les vêtements de l'étendoir",
     "frequency": "1xsemaine",
-    "priority": 2,
+    "priority": 3.0,
     "initial_priority": 2,
     "duration": 10,
-    "due_date": "2026-07-19",
-    "done_date": null
+    "due_date": "2026-07-26",
+    "done_date": "2026-07-19"
   },
   {
     "id": 35,

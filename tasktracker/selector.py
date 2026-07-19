@@ -64,7 +64,7 @@ def _select_by_priority(tasks: list[Task], time_budget: int) -> list[Task]:
 
 
 # to be called before compute_daily_tasks()
-def initialize_tasks(tasks: list[Task]) -> None:
+def update_tasks_priority_and_due_date(tasks: list[Task]) -> None:
     for task in tasks: 
         if task.done_date and task.due_date: 
             if not task.is_completed_on(task.due_date):  # task not has been completed

@@ -155,7 +155,7 @@ def render() -> None:
 
     container = st.container(horizontal=True, width="content", vertical_alignment="bottom")
     if container.button("⭯ Discard all changes"):
-        ui_state.restore_tasks(st.session_state.today_tasks)
+        ui_state.restore_tasks(st.session_state.tasks)
         ui_state.reload_today_grid()
         ui_state.reload_general_grid()
         st.rerun()

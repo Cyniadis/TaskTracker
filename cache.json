@@ -1,3 +1,11 @@
 {
-  "daily_limit": 120
+  "daily_limit": 120,
+  "cache_date": "19/07/2026",
+  "cached_tasks_ids": [
+    10,
+    23,
+    24,
+    28,
+    35
+  ]
 }
