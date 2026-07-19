@@ -33,7 +33,7 @@ def _column_config() -> dict:
 
 
 def _on_data_change():
-    key = st.session_state.manage_grid_key
+    key = st.session_state.general_grid_key
     added_rows = st.session_state[key]["added_rows"]
     edited_rows = st.session_state[key]["edited_rows"]
     deleted_rows = st.session_state[key]["deleted_rows"]
@@ -121,7 +121,7 @@ def render() -> None:
         if st.button("⭯ Discard changes"):
             ui_state.restore_tasks(st.session_state.today_tasks)
             ui_state.reload_today_grid()
-            ui_state.reload_manage_grid()
+            ui_state.reload_general_grid()
             st.rerun()
 
         st.download_button(
@@ -141,7 +141,7 @@ def render() -> None:
     
     st.session_state.general_df = df
 
-    key = st.session_state.manage_grid_key
+    key = st.session_state.general_grid_key
     edited_df = st.data_editor(
         df,
         column_config=_column_config(),

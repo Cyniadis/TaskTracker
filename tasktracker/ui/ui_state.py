@@ -40,7 +40,7 @@ def init_session_state() -> None:
         today_tasks=today_tasks,
         daily_limit=daily_limit,
         grid_key="TodayGrid1",
-        manage_grid_key="ManageGrid1",
+        general_grid_key="GeneralGrid1",
         timer_running=False,
         timer_start_time=None,
         elapsed_accum=0.0,
@@ -84,8 +84,8 @@ def reload_today_grid() -> None:
     st.session_state.grid_key = f"TodayGrid{datetime.now().timestamp()}"
 
 
-def reload_manage_grid() -> None:
-    st.session_state.manage_grid_key = f"ManageGrid{datetime.now().timestamp()}"
+def reload_general_grid() -> None:
+    st.session_state.general_grid_key = f"GeneralGrid{datetime.now().timestamp()}"
 
 
 def reset_app() -> None:
@@ -101,7 +101,7 @@ def next_task_id() -> int:
 def add_task(task: Task) -> None:
     st.session_state.tasks.append(task)
     persist_tasks()
-    reload_manage_grid()
+    reload_general_grid()
 
 
 def schedule_task_for_today(task: Task) -> None:
