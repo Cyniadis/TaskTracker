@@ -53,7 +53,7 @@ def on_data_change():
         return
     
     added_rows = st.session_state[key]["added_rows"]
-    new_row = [-1]
+    new_row = added_rows[-1]
     task = Task(
         id=ui_state.next_task_id(),
         name=new_row['name'].strip(),
