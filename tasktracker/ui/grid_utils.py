@@ -64,6 +64,8 @@ def tasks_to_general_dataframe(tasks: list[Task]) -> pd.DataFrame:
             "duration": task.duration,
             "due_date": task.due_date,
             "done_date": task.done_date,
+            "schedule_today": ":material/playlist_add: Add to today",
+
         })
     return pd.DataFrame.from_records(records)
 
