@@ -101,8 +101,8 @@ def render() -> None:
         column_config=_column_config(),
         # column_order=_COLUMN_ORDER,
         hide_index=True,
-        width="stretch",
-        height="auto",
+        width="content",
+        height="content",
         key=key,
         on_select=_on_row_selected,
         selection_mode=["multi-row"]
