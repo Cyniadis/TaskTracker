@@ -28,11 +28,16 @@ def edit_due_date(row: int):
             task.due_date = new_date
             ui_state.persist_tasks
             st.rerun()
-            
-    if st.button("Skip this time"):
-        task.due_date = task.compute_next_due_date(task.due_date)
-        ui_state.persist_tasks()
-        st.rerun()
+    
+    with st.container(horizontal=True, vertical_alignment="bottom"):
+        if st.button("Cancel task"): 
+            task.due_date = None 
+            ui_state.persist_tasks()
+            st.rerun() 
+        if st.button("To next due date"):
+            task.due_date = task.compute_next_due_date(task.due_date)
+            ui_state.persist_tasks()
+            st.rerun()
 
 def _on_reschedule_click():
     click = st.session_state.reschedule_button
@@ -56,6 +61,8 @@ def _render_today_header() -> None:
         )
 
         st.button("🔄 Regenerate", on_click=ui_state.regenerate_today_tasks)
+        print(st.session_state.include_completed)
+        st.session_state.include_completed = st.checkbox("Regenerate with completed tasks")
 
     st.write(
         f"**Active duration:** {sum(t.duration for t in st.session_state.today_tasks)} min - "
