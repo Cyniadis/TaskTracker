@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .consts import DEFAULT_DAILY_LIMIT_MINUTES, CACHE_FILE, TASKS_FILE, PROJECT_ROOT,DATE_FORMAT, TODAY
-from .task import Task, normalize_date
+from .task import Task, normalize_date, Frequency
 
 def _read_json(path: Path) -> Any:
     try:
@@ -69,3 +69,88 @@ def load_tasks_backup() -> None:
     cached_params = _read_json(CACHE_FILE)
     cached_tasks = cached_params.get("backup_tasks", None)
     return json_to_task_list(cached_tasks)
+
+
+
+def validate_and_parse_tasks(raw_data: Any) -> list[Task]:
+    """Parse+validate raw JSON data (already `json.loads`-ed) into a list of Task objects.
+
+    Raises `ValueError` with a human-readable message on the first problem found.
+    Used for imported task files, where we can't trust the shape of the data.
+    """
+    if not isinstance(raw_data, list):
+        raise ValueError("The file must contain a JSON array of tasks.")
+
+    if not raw_data:
+        raise ValueError("The task list is empty.")
+
+    tasks: list[Task] = []
+    seen_ids: set[int] = set()
+
+    for idx, item in enumerate(raw_data):
+        label = f"Task #{idx}"
+
+        if not isinstance(item, dict):
+            raise ValueError(f"{label}: expected a JSON object, got {type(item).__name__}.")
+
+        if "id" not in item:
+            raise ValueError(f"{label}: missing required field 'id'.")
+        if not isinstance(item["id"], int):
+            raise ValueError(f"{label}: field 'id' must be an integer.")
+        if item["id"] in seen_ids:
+            raise ValueError(f"{label}: duplicate id {item['id']}.")
+
+        if "name" not in item or not str(item.get("name", "")).strip():
+            raise ValueError(f"{label} (id={item['id']}): missing or empty required field 'name'.")
+
+        if "frequency" in item and item["frequency"] is not None:
+            freq_text = str(item["frequency"])
+            parsed_freq = Frequency.parse(freq_text)
+            if str(parsed_freq) != freq_text.lower():
+                raise ValueError(
+                    f"{label} ('{item['name']}'): invalid 'frequency' value '{item['frequency']}' "
+                    "(expected format like '2xsemaine')."
+                )
+
+        for field_name in ("priority", "initial_priority"):
+            if field_name in item and item[field_name] is not None:
+                if not isinstance(item[field_name], (int, float)) or isinstance(item[field_name], bool):
+                    raise ValueError(f"{label} ('{item['name']}'): field '{field_name}' must be a number.")
+
+        if "duration" in item and item["duration"] is not None:
+            if not isinstance(item["duration"], int) or isinstance(item["duration"], bool) or item["duration"] < 0:
+                raise ValueError(f"{label} ('{item['name']}'): field 'duration' must be a non-negative integer.")
+
+        for field_name in ("due_date", "done_date"):
+            if field_name in item and item[field_name] not in (None, ""):
+                try:
+                    normalize_date(item[field_name])
+                except (TypeError, ValueError) as exc:
+                    raise ValueError(
+                        f"{label} ('{item['name']}'): invalid '{field_name}' value '{item[field_name]}': {exc}"
+                    ) from exc
+
+        try:
+            task = Task.from_dict(item)
+        except TypeError as exc:
+            raise ValueError(f"{label} ('{item.get('name', '?')}'): {exc}") from exc
+
+        seen_ids.add(task.id)
+        tasks.append(task)
+
+    return tasks
+
+
+def import_tasks_from_json_bytes(raw_bytes: bytes) -> list[Task]:
+    """Decode + validate an uploaded tasks JSON file. Raises ValueError on any problem."""
+    try:
+        text = raw_bytes.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"File is not valid UTF-8 text: {exc}") from exc
+
+    try:
+        raw_data = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"File is not valid JSON: {exc}") from exc
+
+    return validate_and_parse_tasks(raw_data)

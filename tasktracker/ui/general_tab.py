@@ -1,16 +1,14 @@
 """The 'General' tab: manage the full task library."""
 from __future__ import annotations
 
+import json
+
 import streamlit as st
 
 from .grid_utils import find_task_by_id, tasks_to_general_dataframe, PERIOD_OPTIONS
 from . import ui_state
 from ..task import Task
-
-# _COLUMN_ORDER = [
-#     "name", "frequency_count", "frequency_period",
-#     "priority", "initial_priority", "duration", "due_date", "done_date",
-# ]
+from ..json_utils import task_list_to_json, save_tasks, import_tasks_from_json_bytes
 
 
 def _column_config() -> dict:
@@ -45,13 +43,12 @@ def _sync_edits(df, edited_rows: dict) -> None:
         ui_state.persist_tasks()
 
 
-
 def on_data_change():
     key = st.session_state.manage_grid_key
     added_rows = st.session_state[key]["added_rows"]
     if not added_rows:
         return
-    
+
     added_rows = st.session_state[key]["added_rows"]
     new_row = added_rows[-1]
     task = Task(
@@ -68,6 +65,38 @@ def on_data_change():
     ui_state.persist_tasks()
 
 
+def _export_json_bytes() -> bytes:
+    payload = task_list_to_json(st.session_state.tasks)
+    return json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
+
+
+@st.dialog("Import tasks")
+def _import_tasks_dialog() -> None:
+    st.warning(
+        "⚠️ Importing a file will **replace your entire task list** "
+        "(priorities, due dates, done dates — everything) and cannot be undone."
+    )
+
+    uploaded_file = st.file_uploader("Choose a JSON file", type=["json"], key="import_file_uploader")
+
+    if uploaded_file is None:
+        return
+
+    try:
+        new_tasks = import_tasks_from_json_bytes(uploaded_file.getvalue())
+    except ValueError as exc:
+        st.error(f"Could not import this file:\n\n{exc}")
+        return
+
+    st.success(f"File looks valid — {len(new_tasks)} tasks found.")
+    st.caption("Click confirm below to replace your current tasks and reload the app.")
+
+    if st.button("✅ Replace all tasks and reload", type="primary"):
+        save_tasks(new_tasks)
+        ui_state.reset_app()
+        st.rerun()
+
+
 def render() -> None:
     st.markdown("### Edit tasks", anchors=False)
 
@@ -78,17 +107,25 @@ def render() -> None:
             ui_state.reload_manage_grid()
             st.rerun()
 
+        st.download_button(
+            "⬇️ Export tasks",
+            data=_export_json_bytes(),
+            file_name="tasklist.json",
+            mime="application/json",
+        )
+
+        if st.button("⬆️ Import tasks"):
+            _import_tasks_dialog()
+
     df = tasks_to_general_dataframe(st.session_state.tasks)
     if df.empty:
         st.info("No tasks yet — use \u201cAdd task\u201d to create your first one.")
         return
 
-
     key = st.session_state.manage_grid_key
     edited_df = st.data_editor(
         df,
         column_config=_column_config(),
-        # column_order=_COLUMN_ORDER,
         hide_index=True,
         width="content",
         height="content",
@@ -98,4 +135,3 @@ def render() -> None:
     )
 
     _sync_edits(df, st.session_state[key]["edited_rows"])
-
