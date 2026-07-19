@@ -143,37 +143,42 @@ def _import_tasks_dialog() -> None:
         ui_state.reset_app()
         st.rerun()
 
+def toggle_sort():
+    st.session_state.ascending = not st.session_state.ascending
+
 
 def render() -> None:
     st.markdown("### Edit tasks", anchors=False)
 
-    with st.container(horizontal=True, width="content"):
-        if st.button("⭯ Discard all changes"):
-            ui_state.restore_tasks(st.session_state.today_tasks)
-            ui_state.reload_today_grid()
-            ui_state.reload_general_grid()
-            st.rerun()
+    if "ascending" not in st.session_state:
+        st.session_state.ascending = True
 
-        st.download_button(
-            "⬇️ Export tasks",
-            data=_export_json_bytes(),
-            file_name="tasklist.json",
-            mime="application/json",
-        )
+    container = st.container(horizontal=True, width="content", vertical_alignment="bottom")
+    if container.button("⭯ Discard all changes"):
+        ui_state.restore_tasks(st.session_state.today_tasks)
+        ui_state.reload_today_grid()
+        ui_state.reload_general_grid()
+        st.rerun()
 
-        if st.button("⬆️ Import tasks"):
-            _import_tasks_dialog()
+    container.download_button("⭳ Export tasks",data=_export_json_bytes(),file_name="tasklist.json",mime="application/json",)
 
+    if container.button("⭱ Import tasks"):
+        _import_tasks_dialog()
+        
     df = tasks_to_general_dataframe(st.session_state.tasks)
     if df.empty:
         st.info("No tasks yet — use \u201cAdd task\u201d to create your first one.")
         return
-    
-    st.session_state.general_df = df
+ 
+    col = container.selectbox("Sort by", options=df.columns)
+    container.button(label="▲ Ascending" if st.session_state.ascending else "▼ Descending", on_click=toggle_sort, width="content")
+
+    sorted_df = df.sort_values(by=col, ascending=st.session_state.ascending).reset_index(drop=True)
+    st.session_state.general_df = sorted_df
 
     key = st.session_state.general_grid_key
     edited_df = st.data_editor(
-        df,
+        sorted_df,
         column_config=_column_config(),
         hide_index=True,
         width="content",
