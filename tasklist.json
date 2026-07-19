@@ -2,10 +2,10 @@
   {
     "id": 0,
     "name": "🍴 Mettre la vaisselle au lave-vaisselle",
-    "frequency": "1xjour",
+    "frequency": "2xsemaine",
     "priority": 5.0,
     "initial_priority": 5.0,
-    "duration": 5,
+    "duration": 7,
     "due_date": "2026-07-19",
     "done_date": null
   },
@@ -56,7 +56,7 @@
     "priority": 2.5,
     "initial_priority": 2.0,
     "duration": 20,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -66,7 +66,7 @@
     "priority": 2.0,
     "initial_priority": 3.0,
     "duration": 10,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -122,7 +122,7 @@
   {
     "id": 15,
     "name": "🛋️ Passer la serpillère",
-    "frequency": "1xmois",
+    "frequency": "2xmois",
     "priority": 3.0,
     "initial_priority": 3.0,
     "duration": 25,
@@ -206,7 +206,7 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 30,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -226,7 +226,7 @@
     "priority": 3.0,
     "initial_priority": 3.0,
     "duration": 15,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -296,7 +296,7 @@
     "priority": 2,
     "initial_priority": 2,
     "duration": 5,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -306,7 +306,7 @@
     "priority": 2,
     "initial_priority": 2,
     "duration": 10,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   }
 ]
