@@ -5,7 +5,7 @@
     "frequency": "2xsemaine",
     "priority": 5.0,
     "initial_priority": 5.0,
-    "duration": 7,
+    "duration": 5,
     "due_date": "2026-07-19",
     "done_date": null
   },
@@ -36,7 +36,7 @@
     "priority": 4.0,
     "initial_priority": 4.0,
     "duration": 5,
-    "due_date": "2026-07-19",
+    "due_date": "2026-07-20",
     "done_date": null
   },
   {
@@ -53,10 +53,10 @@
     "id": 7,
     "name": "🍴 Nettoyer la plaque de cuisson",
     "frequency": "1xsemaine",
-    "priority": 2.5,
+    "priority": 2,
     "initial_priority": 2.0,
     "duration": 20,
-    "due_date": "2026-07-19",
+    "due_date": null,
     "done_date": null
   },
   {
@@ -66,7 +66,7 @@
     "priority": 2.0,
     "initial_priority": 3.0,
     "duration": 10,
-    "due_date": "2026-07-19",
+    "due_date": "2026-07-26",
     "done_date": null
   },
   {
