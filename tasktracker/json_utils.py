@@ -52,26 +52,6 @@ def save_daily_limit(daily_limit: int) -> None:
     _write_json(CACHE_FILE, cached_params)
 
 
-def create_tasks_backup(tasks: list[Task]) -> None:
-    cached_params = _read_json(CACHE_FILE)
-    backup_date = cached_params['backup_date'] 
-    if normalize_date(backup_date) == normalize_date(TODAY):
-        return
-    else:
-        print("Create task Backup")
-        cached_params['backup_date'] = TODAY.strftime(DATE_FORMAT)
-        cached_params["backup_tasks"]= task_list_to_json(tasks)
-        _write_json(CACHE_FILE, cached_params)
-
-    
-def load_tasks_backup() -> None: 
-    print("Load tasks backup")
-    cached_params = _read_json(CACHE_FILE)
-    cached_tasks = cached_params.get("backup_tasks", None)
-    return json_to_task_list(cached_tasks)
-
-
-
 def validate_and_parse_tasks(raw_data: Any) -> list[Task]:
     """Parse+validate raw JSON data (already `json.loads`-ed) into a list of Task objects.
 
