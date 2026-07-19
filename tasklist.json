@@ -3,20 +3,20 @@
     "id": 0,
     "name": "🍴 Mettre la vaisselle au lave-vaisselle",
     "frequency": "1xjour",
-    "priority": 27.0,
+    "priority": 28.5,
     "initial_priority": 5.0,
     "duration": 5,
-    "due_date": "2026-07-17",
+    "due_date": "2026-07-19",
     "done_date": "2026-07-16"
   },
   {
     "id": 1,
     "name": "🍴 Nettoyer la vaisselle sale à la main",
     "frequency": "1xjour",
-    "priority": 29.0,
+    "priority": 30.5,
     "initial_priority": 4.0,
     "duration": 15,
-    "due_date": "2026-07-17",
+    "due_date": "2026-07-19",
     "done_date": "2026-07-14"
   },
   {
@@ -26,7 +26,7 @@
     "priority": 4.0,
     "initial_priority": 4.0,
     "duration": 10,
-    "due_date": "2026-07-17",
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -36,7 +36,7 @@
     "priority": 4.0,
     "initial_priority": 4.0,
     "duration": 10,
-    "due_date": "2026-07-17",
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -46,14 +46,14 @@
     "priority": 4.0,
     "initial_priority": 4.0,
     "duration": 10,
-    "due_date": "2026-07-17",
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
     "id": 6,
     "name": "🍴 Sortir les poubelles",
     "frequency": "1xsemaine",
-    "priority": 33.5,
+    "priority": 35.0,
     "initial_priority": 3.0,
     "duration": 10,
     "due_date": "2026-07-21",
@@ -66,7 +66,7 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 20,
-    "due_date": "2026-07-18",
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -76,7 +76,7 @@
     "priority": 2.0,
     "initial_priority": 3.0,
     "duration": 10,
-    "due_date": "2026-07-18",
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -86,7 +86,7 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 10,
-    "due_date": "2026-07-17",
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -96,7 +96,7 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 10,
-    "due_date": "2026-07-17",
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -106,7 +106,7 @@
     "priority": 3.0,
     "initial_priority": 5,
     "duration": 5,
-    "due_date": "2026-07-17",
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -123,7 +123,7 @@
     "id": 14,
     "name": "🛋️ Passer l'aspirateur",
     "frequency": "1xsemaine",
-    "priority": 33.5,
+    "priority": 35.0,
     "initial_priority": 3.0,
     "duration": 25,
     "due_date": "2026-07-21",
@@ -133,7 +133,7 @@
     "id": 15,
     "name": "🛋️ Passer la serpillère",
     "frequency": "1xsemaine",
-    "priority": 33.5,
+    "priority": 35.0,
     "initial_priority": 3.0,
     "duration": 25,
     "due_date": "2026-07-21",
@@ -166,7 +166,7 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 20,
-    "due_date": "2026-07-17",
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -186,14 +186,14 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 10,
-    "due_date": "2026-07-18",
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
     "id": 21,
     "name": "🛋️ Nettoyer les bureaux",
     "frequency": "1xsemaine",
-    "priority": 23.0,
+    "priority": 24.5,
     "initial_priority": 2.0,
     "duration": 15,
     "due_date": "2026-07-23",
@@ -206,14 +206,14 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 30,
-    "due_date": "2026-07-17",
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
     "id": 23,
     "name": "👕 Faire la lessive vêtements AC",
     "frequency": "1xsemaine",
-    "priority": 33.0,
+    "priority": 34.5,
     "initial_priority": 3.0,
     "duration": 30,
     "due_date": "2026-07-23",
@@ -246,7 +246,7 @@
     "priority": 3.0,
     "initial_priority": 3.0,
     "duration": 15,
-    "due_date": "2026-07-17",
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -263,7 +263,7 @@
     "id": 28,
     "name": "🛏 Changer les draps",
     "frequency": "2xmois",
-    "priority": 34.5,
+    "priority": 36.0,
     "initial_priority": 4.0,
     "duration": 20,
     "due_date": "2026-07-29",
@@ -313,10 +313,10 @@
     "id": 33,
     "name": "hgh",
     "frequency": "2xsemaine",
-    "priority": 56,
+    "priority": 57.0,
     "initial_priority": 56,
     "duration": 45,
-    "due_date": "2026-07-17",
+    "due_date": "2026-07-22",
     "done_date": "2026-07-17"
   }
 ]
