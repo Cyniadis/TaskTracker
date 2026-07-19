@@ -70,25 +70,6 @@ def on_data_change():
 
 def render() -> None:
     st.markdown("### Edit tasks", anchors=False)
-    df = tasks_to_general_dataframe(st.session_state.tasks)
-    if df.empty:
-        st.info("No tasks yet — use \u201cAdd task\u201d to create your first one.")
-        return
-
-    key = st.session_state.manage_grid_key
-    edited_df = st.data_editor(
-        df,
-        column_config=_column_config(),
-        # column_order=_COLUMN_ORDER,
-        hide_index=True,
-        width="stretch",
-        height="auto",
-        key=key,
-        num_rows="dynamic",
-        on_change=on_data_change
-    )
-
-    _sync_edits(df, st.session_state[key]["edited_rows"])
 
     with st.container(horizontal=True, width="content"):
         if st.button("⭯ Discard changes"):
@@ -96,3 +77,25 @@ def render() -> None:
             ui_state.reload_today_grid()
             ui_state.reload_manage_grid()
             st.rerun()
+
+    df = tasks_to_general_dataframe(st.session_state.tasks)
+    if df.empty:
+        st.info("No tasks yet — use \u201cAdd task\u201d to create your first one.")
+        return
+
+
+    key = st.session_state.manage_grid_key
+    edited_df = st.data_editor(
+        df,
+        column_config=_column_config(),
+        # column_order=_COLUMN_ORDER,
+        hide_index=True,
+        width="content",
+        height="content",
+        key=key,
+        num_rows="dynamic",
+        on_change=on_data_change
+    )
+
+    _sync_edits(df, st.session_state[key]["edited_rows"])
+
