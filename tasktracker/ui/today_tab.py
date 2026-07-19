@@ -6,7 +6,7 @@ import pandas as pd
 
 from . import ui_state
 from .grid_utils import find_task_by_id, tasks_to_today_dataframe, get_theme_color
-from ..json_utils import save_daily_limit
+from ..json_utils import cache_daily_limit, cache_include_completed, load_include_completed
 from ..consts import TODAY
 
 
@@ -56,13 +56,13 @@ def _render_today_header() -> None:
             max_value=720,
             step=15,
             key="daily_limit",
-            on_change=lambda: save_daily_limit(daily_limit=st.session_state.daily_limit),
+            on_change=lambda: cache_daily_limit(daily_limit=st.session_state.daily_limit),
             width=100,
         )
 
         st.button("🔄 Regenerate", on_click=ui_state.regenerate_today_tasks)
-        print(st.session_state.include_completed)
-        st.session_state.include_completed = st.checkbox("Regenerate with completed tasks")
+        include_completed = st.checkbox("Regenerate with completed tasks", load_include_completed()) 
+        cache_include_completed(include_completed)
 
     st.write(
         f"**Active duration:** {sum(t.duration for t in st.session_state.today_tasks)} min - "
@@ -86,19 +86,19 @@ def _column_config() -> dict:
     }
 
 def _on_row_selected() -> None:
-    selected_rows = st.session_state[st.session_state.grid_key]["selection"]["rows"]
+    print("_on_row_selected")
+    selected_rows = st.session_state[st.session_state.today_grid_key]["selection"]["rows"]
+    print(selected_rows)
     filtered_df = st.session_state.today_df.iloc[selected_rows]
     selected_ids = filtered_df["id"].values
     for task in st.session_state.today_tasks:
         if len(selected_ids) > 0 and task.id in selected_ids:
             task.complete(TODAY)
         elif task.is_completed_on(TODAY) and task.id not in selected_ids:
-            print(task.name)
             task.uncomplete()
             
     ui_state.cache_today_tasks()
     ui_state.persist_tasks()
-    ui_state.reload_today_grid()
 
 
 def color_by_due_date(row):
@@ -111,6 +111,7 @@ def color_by_due_date(row):
 
 
 def pre_select_rows(df: pd.DataFrame) -> dict:
+    print("pre_select_rows")
     completed_tasks = [ task for task in st.session_state.tasks if task.is_completed_on(TODAY) ]
     rows_to_select = { "rows": [] }
     for task in completed_tasks:
@@ -130,7 +131,7 @@ def render() -> None:
 
     styled_df = df.style.apply(color_by_due_date, axis=1)
 
-    key = st.session_state.grid_key
+    key = st.session_state.today_grid_key
     event = st.dataframe(
         styled_df,
         column_config=_column_config(),

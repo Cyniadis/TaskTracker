@@ -12,7 +12,7 @@ from __future__ import annotations
 from datetime import date
 from enum import Enum, auto
 
-from .task import Task
+from .task import Task, schedule_task_list
 from .consts import TODAY
 
 class Eligibility(Enum):
@@ -22,19 +22,20 @@ class Eligibility(Enum):
 
 
 def _eligibility(task: Task, current_date: date) -> Eligibility:
+    if task.done_date == current_date:
+        return Eligibility.NOT_ELIGIBLE
+
     if task.due_date == current_date:
         return Eligibility.ELIGIBLE
-
+    
     if not task.due_date or task.due_date < current_date:
         if task.done_date:
             days_since_done = (current_date - task.done_date).days
-            return (
-                Eligibility.ELIGIBLE
-                if days_since_done >= task.frequency_obj.days
-                else Eligibility.NOT_ELIGIBLE
-            )
+            if days_since_done >= task.frequency_obj.days:
+                return Eligibility.NOT_ELIGIBLE
+            else: 
+                return Eligibility.ELIGIBLE
         return Eligibility.MAYBE_ELIGIBLE
-
     return Eligibility.NOT_ELIGIBLE
 
 
@@ -76,7 +77,7 @@ def compute_daily_tasks(
     tasks: list[Task],
     current_date: date,
     daily_time_limit: int,
-    include_completed_today: bool = False,
+    pre_selected_tasks: list[Task] = [],
 ) -> list[Task]:
     """Return the subset of `tasks` scheduled for `current_date`.
 
@@ -84,35 +85,31 @@ def compute_daily_tasks(
     time reserved first) when `include_completed_today` is set.
     """
     eligible = [t for t in tasks if _eligibility(t, current_date) is not Eligibility.NOT_ELIGIBLE]
-    completed_today = [t for t in eligible if t.is_completed_on(current_date)]
+    # completed_today = [t for t in eligible if t.is_completed_on(current_date)]
 
-    if include_completed_today and completed_today:
-        for task in completed_today:
-            task.schedule_for(current_date)
+    if len(pre_selected_tasks) > 0:
+        schedule_task_list(pre_selected_tasks, current_date)
 
-        remaining_time = daily_time_limit - sum(t.duration for t in completed_today)
+        remaining_time = daily_time_limit - sum(t.duration for t in pre_selected_tasks)
         if remaining_time <= 0:
-            return completed_today
+            schedule_task_list(pre_selected_tasks, current_date)
+            return pre_selected_tasks
 
-        completed_ids = {t.id for t in completed_today}
-        candidates = [t for t in eligible if t.id not in completed_ids]
+        pre_selected_ids = {t.id for t in pre_selected_tasks}
+        candidates = [t for t in eligible if t.id not in pre_selected_ids]
 
         if sum(t.duration for t in candidates) <= remaining_time:
-            for task in candidates:
-                task.schedule_for(current_date)
-            return completed_today + candidates
+            schedule_task_list(candidates, current_date)
+            return pre_selected_tasks + candidates
 
         extra = _select_by_priority(candidates, remaining_time)
-        for task in extra:
-            task.schedule_for(current_date)
-        return completed_today + extra
+        schedule_task_list(extra, current_date)
+        return pre_selected_tasks + extra
 
     if sum(t.duration for t in eligible) <= daily_time_limit:
-        for task in eligible:
-            task.schedule_for(current_date)
+        schedule_task_list(eligible, current_date)
         return eligible
 
     selected = _select_by_priority(eligible, daily_time_limit)
-    for task in selected:
-        task.schedule_for(current_date)
+    schedule_task_list(selected, current_date)
     return selected
