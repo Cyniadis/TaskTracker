@@ -6,7 +6,7 @@
     "priority": 5.0,
     "initial_priority": 5.0,
     "duration": 5,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -16,17 +16,17 @@
     "priority": 4.0,
     "initial_priority": 4.0,
     "duration": 15,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
     "id": 2,
-    "name": "🍴 Ranger la vaisselle propre",
+    "name": "🍴 Ranger la vaisselle propre de l'égouttoir ",
     "frequency": "1xjour",
-    "priority": 4.0,
+    "priority": 2,
     "initial_priority": 4.0,
     "duration": 10,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -36,7 +36,7 @@
     "priority": 4.0,
     "initial_priority": 4.0,
     "duration": 10,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -46,7 +46,7 @@
     "priority": 4.0,
     "initial_priority": 4.0,
     "duration": 10,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -56,7 +56,7 @@
     "priority": 3.0,
     "initial_priority": 3.0,
     "duration": 10,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -101,12 +101,12 @@
   },
   {
     "id": 11,
-    "name": "😺 Changer l'eau",
+    "name": "😺 Changer l'eau et donner de la pâtée",
     "frequency": "1xjour",
     "priority": 3.0,
     "initial_priority": 5,
     "duration": 5,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -116,7 +116,7 @@
     "priority": 3.0,
     "initial_priority": 3.0,
     "duration": 10,
-    "due_date": null,
+    "due_date": "2026-07-24",
     "done_date": null
   },
   {
@@ -126,7 +126,7 @@
     "priority": 3.0,
     "initial_priority": 3.0,
     "duration": 25,
-    "due_date": null,
+    "due_date": "2026-07-24",
     "done_date": null
   },
   {
@@ -191,7 +191,7 @@
   },
   {
     "id": 21,
-    "name": "🛋️ Nettoyer les bureaux",
+    "name": "🛋️ Nettoyer le bureau",
     "frequency": "1xsemaine",
     "priority": 2.0,
     "initial_priority": 2.0,
@@ -266,7 +266,7 @@
     "priority": 4.0,
     "initial_priority": 4.0,
     "duration": 20,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -306,6 +306,16 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 40,
+    "due_date": null,
+    "done_date": null
+  },
+  {
+    "id": 33,
+    "name": "🍴 Ranger la vaisselle propre du lave-vaisselle",
+    "frequency": "1xjour",
+    "priority": 2,
+    "initial_priority": 2,
+    "duration": 5,
     "due_date": null,
     "done_date": null
   }
