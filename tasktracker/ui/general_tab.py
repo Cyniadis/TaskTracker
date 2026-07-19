@@ -22,6 +22,13 @@ def _column_config() -> dict:
         "duration": st.column_config.NumberColumn("Duration (min)", min_value=1, step=5, required=True),
         "due_date": st.column_config.DateColumn("Due date", format="DD/MM/YYYY"),
         "done_date": st.column_config.DateColumn("Done date", format="DD/MM/YYYY", disabled=True),
+        "schedule_today": st.column_config.ButtonColumn(
+            "",
+            on_click=_on_schedule_today_click,
+            key="schedule_today_button",
+            alignment="center",
+        ),
+
     }
 
 
@@ -43,7 +50,7 @@ def _sync_edits(df, edited_rows: dict) -> None:
         ui_state.persist_tasks()
 
 
-def on_data_change():
+def _on_data_change():
     key = st.session_state.manage_grid_key
     added_rows = st.session_state[key]["added_rows"]
     if not added_rows:
@@ -68,6 +75,15 @@ def on_data_change():
 def _export_json_bytes() -> bytes:
     payload = task_list_to_json(st.session_state.tasks)
     return json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
+
+    
+def _on_schedule_today_click() -> None:
+    click = st.session_state.schedule_today_button
+    row = click["row"]
+    task_id = int(st.session_state.general_df.iloc[row]["id"])
+    task = find_task_by_id(st.session_state.tasks, task_id)
+    ui_state.schedule_task_for_today(task)
+    st.rerun()
 
 
 @st.dialog("Import tasks")
@@ -121,6 +137,8 @@ def render() -> None:
     if df.empty:
         st.info("No tasks yet — use \u201cAdd task\u201d to create your first one.")
         return
+    
+    st.session_state.general_df = df
 
     key = st.session_state.manage_grid_key
     edited_df = st.data_editor(
@@ -131,7 +149,8 @@ def render() -> None:
         height="content",
         key=key,
         num_rows="dynamic",
-        on_change=on_data_change
+        on_change=_on_data_change
     )
 
     _sync_edits(df, st.session_state[key]["edited_rows"])
+    

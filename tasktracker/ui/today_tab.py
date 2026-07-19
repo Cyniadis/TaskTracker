@@ -47,12 +47,7 @@ def _render_today_header() -> None:
             width=100,
         )
 
-        if st.button("🔄 Regenerate"):
-            ui_state.regenerate_today_tasks()
-            st.rerun()
-        # if st.button("🗑 Discard completed tasks"):
-        #     ui_state.discard_completed_tasks()
-        #     st.rerun()
+        st.button("🔄 Regenerate", on_click=ui_state.regenerate_today_tasks)
 
     st.write(
         f"**Active duration:** {sum(t.duration for t in st.session_state.today_tasks)} min - "

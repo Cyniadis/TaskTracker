@@ -102,3 +102,12 @@ def add_task(task: Task) -> None:
     st.session_state.tasks.append(task)
     persist_tasks()
     reload_manage_grid()
+
+
+def schedule_task_for_today(task: Task) -> None:
+    """Manually add a task to today's list, ignoring the daily time budget."""
+    task.schedule_for(TODAY)
+    if task not in st.session_state.today_tasks:
+        st.session_state.today_tasks.append(task)
+    persist_tasks()
+    reload_today_grid()
