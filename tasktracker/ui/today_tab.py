@@ -84,7 +84,7 @@ def _on_row_selected() -> None:
 
 def color_by_due_date(row):
     color = get_theme_color("textColor")
-    if row['due_date'] == row['done_date']: 
+    if TODAY == row['done_date']: 
         color = get_theme_color("doneTextColor") 
     elif row['due_date'] != TODAY:
         color = get_theme_color("hiddenTextColor")

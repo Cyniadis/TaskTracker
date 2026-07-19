@@ -134,7 +134,3 @@ def get_theme_color(name: str) -> str:
     theme_type = st.context.theme.type  # "light" or "dark"
     colors = _THEME_COLORS.get(theme_type, _THEME_COLORS["dark"])
     return colors[name]
-
-
-
-
