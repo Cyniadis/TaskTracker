@@ -111,3 +111,11 @@ def schedule_task_for_today(task: Task) -> None:
         st.session_state.today_tasks.append(task)
     persist_tasks()
     reload_today_grid()
+
+def remove_tasks(task_ids: list[int]) -> None:
+    """Remove tasks by id from both the full list and today's list, then persist."""
+    ids_to_remove = set(task_ids)
+    st.session_state.tasks = [t for t in st.session_state.tasks if t.id not in ids_to_remove]
+    st.session_state.today_tasks = [t for t in st.session_state.today_tasks if t.id not in ids_to_remove]
+    persist_tasks()
+    reload_today_grid()

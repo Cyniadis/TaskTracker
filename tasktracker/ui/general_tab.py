@@ -36,6 +36,9 @@ def _on_data_change():
     key = st.session_state.manage_grid_key
     added_rows = st.session_state[key]["added_rows"]
     edited_rows = st.session_state[key]["edited_rows"]
+    deleted_rows = st.session_state[key]["deleted_rows"]
+    df = st.session_state.general_df
+
     if added_rows:
         added_rows = st.session_state[key]["added_rows"]
         new_row = added_rows[-1]
@@ -50,10 +53,8 @@ def _on_data_change():
             done_date=None
         )
         ui_state.add_task(task)
-        ui_state.persist_tasks()
 
-    elif edited_rows:
-        df = st.session_state.general_df
+    if edited_rows:
         for row_pos, changes in edited_rows.items():
             task = find_task_by_id(st.session_state.tasks, int(df.iloc[row_pos]["id"]))
             
@@ -65,8 +66,12 @@ def _on_data_change():
 
                 else:
                     task.set_field(column_name, changes[column_name])
+    
+    if deleted_rows:
+        deleted_ids = [int(df.iloc[row_pos]["id"]) for row_pos in deleted_rows]
+        ui_state.remove_tasks(deleted_ids)
 
-        ui_state.persist_tasks()
+    ui_state.persist_tasks()
 
 
 def _export_json_bytes() -> bytes:
