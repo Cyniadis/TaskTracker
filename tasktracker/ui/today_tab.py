@@ -15,14 +15,22 @@ _COLUMN_ORDER = ["name", "frequency", "priority", "duration", "due_date", "done_
 
 @st.dialog("Rechedule task")
 def edit_due_date(row: int):
-    current = st.session_state.df.iloc[row]["due_date"]
-    new_date = st.date_input(
-        f"**{st.session_state.df.iloc[row]['name']}**",
-        value=pd.to_datetime(current).date(),
-    )
-    if st.button("Save"):
-        task = find_task_by_id(st.session_state.today_tasks, st.session_state.df.at[row, 'id'])
-        task.due_date = new_date
+    row_date = st.session_state.df.iloc[row]["due_date"]  
+    current = row_date if  row_date is not None else TODAY
+    task = find_task_by_id(st.session_state.today_tasks, st.session_state.df.at[row, 'id'])
+    with st.container(horizontal=True, vertical_alignment="bottom"):
+        new_date = st.date_input(
+            f"**{st.session_state.df.iloc[row]['name']}**",
+            value=pd.to_datetime(current).date(),
+            width=200
+        )
+        if st.button("Save"):
+            task.due_date = new_date
+            ui_state.persist_tasks
+            st.rerun()
+            
+    if st.button("Skip this time"):
+        task.due_date = task.compute_next_due_date(task.due_date)
         ui_state.persist_tasks()
         st.rerun()
 
