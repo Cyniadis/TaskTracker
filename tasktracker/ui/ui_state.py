@@ -56,7 +56,8 @@ def init_session_state(include_completed_today=False, force_regeneration=False) 
         timer_running=False,
         timer_start_time=None,
         elapsed_accum=0.0,
-        selected_rows=[]
+        selected_rows=[],
+        include_completed=True
     )
     cache_today_tasks()
 
@@ -68,10 +69,11 @@ def persist_tasks() -> None:
     save_tasks(st.session_state.tasks)
 
 
-def regenerate_today_tasks(include_completed_today=True) -> None:
+def regenerate_today_tasks() -> None: 
     """Recompute today's task selection from scratch, keeping already-completed ones."""
     # _init_task_lists.clear()
-    init_session_state(include_completed_today, True)
+    print(f"include_completed = {st.session_state.include_completed}")
+    init_session_state(st.session_state.include_completed, True)
 
 def restore_tasks(tasks: list[Task]) -> None: 
     for task in tasks: 
