@@ -30,16 +30,6 @@
     "done_date": null
   },
   {
-    "id": 3,
-    "name": "🍴 Nettoyer la table à manger",
-    "frequency": "1xjour",
-    "priority": 4.0,
-    "initial_priority": 4.0,
-    "duration": 10,
-    "due_date": "2026-07-19",
-    "done_date": null
-  },
-  {
     "id": 5,
     "name": "🍴 Nettoyer le plan de travail",
     "frequency": "1xjour",
@@ -56,7 +46,7 @@
     "priority": 3.0,
     "initial_priority": 3.0,
     "duration": 10,
-    "due_date": "2026-07-19",
+    "due_date": "2026-07-26",
     "done_date": null
   },
   {
@@ -103,8 +93,8 @@
     "id": 11,
     "name": "😺 Changer l'eau et donner de la pâtée",
     "frequency": "1xjour",
-    "priority": 3.0,
-    "initial_priority": 5,
+    "priority": 7,
+    "initial_priority": 7,
     "duration": 5,
     "due_date": "2026-07-19",
     "done_date": null
@@ -132,30 +122,20 @@
   {
     "id": 15,
     "name": "🛋️ Passer la serpillère",
-    "frequency": "1xsemaine",
+    "frequency": "1xmois",
     "priority": 3.0,
     "initial_priority": 3.0,
     "duration": 25,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
     "id": 16,
-    "name": "🛋️ Nettoyer le canapé",
-    "frequency": "3xan",
+    "name": "🛋️ Nettoyer le fauteuil",
+    "frequency": "1xmois",
     "priority": 1.0,
     "initial_priority": 1.0,
     "duration": 40,
-    "due_date": null,
-    "done_date": null
-  },
-  {
-    "id": 17,
-    "name": "🛋️ Nettoyer les vitrines",
-    "frequency": "3xan",
-    "priority": 1.0,
-    "initial_priority": 1.0,
-    "duration": 60,
     "due_date": null,
     "done_date": null
   },
@@ -211,12 +191,12 @@
   },
   {
     "id": 23,
-    "name": "👕 Faire la lessive vêtements AC",
+    "name": "👕 Faire la lessive vêtements",
     "frequency": "1xsemaine",
     "priority": 3.0,
     "initial_priority": 3.0,
     "duration": 30,
-    "due_date": null,
+    "due_date": "2026-07-19",
     "done_date": null
   },
   {
@@ -316,6 +296,16 @@
     "priority": 2,
     "initial_priority": 2,
     "duration": 5,
+    "due_date": null,
+    "done_date": null
+  },
+  {
+    "id": 34,
+    "name": "🛏 Ranger les vêtements de l'étendoir",
+    "frequency": "1xsemaine",
+    "priority": 2,
+    "initial_priority": 2,
+    "duration": 10,
     "due_date": null,
     "done_date": null
   }
