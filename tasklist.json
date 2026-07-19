@@ -308,5 +308,15 @@
     "duration": 10,
     "due_date": "2026-07-19",
     "done_date": null
+  },
+  {
+    "id": 35,
+    "name": "📞 Appeler les parents",
+    "frequency": "1xsemaine",
+    "priority": 3,
+    "initial_priority": 3,
+    "duration": 30,
+    "due_date": "2026-07-19",
+    "done_date": null
   }
 ]
