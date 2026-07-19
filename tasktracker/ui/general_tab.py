@@ -5,7 +5,7 @@ import json
 
 import streamlit as st
 
-from .grid_utils import find_task_by_id, tasks_to_general_dataframe, PERIOD_OPTIONS
+from .grid_utils import find_task_by_id, tasks_to_general_dataframe, task_diffs, PERIOD_OPTIONS
 from . import ui_state
 from ..task import Task
 from ..json_utils import task_list_to_json, save_tasks, import_tasks_from_json_bytes
@@ -28,7 +28,13 @@ def _column_config() -> dict:
             key="schedule_today_button",
             alignment="center",
         ),
-
+        "edited": st.column_config.ButtonColumn(
+            "",
+            on_click=_on_show_changes_click,
+            key="show_changes_button",
+            alignment="center",
+            width="small",
+        ),
     }
 
 
@@ -86,6 +92,30 @@ def _on_schedule_today_click() -> None:
     task = find_task_by_id(st.session_state.tasks, task_id)
     ui_state.schedule_task_for_today(task)
 
+@st.dialog("Changes")
+def _show_changes_dialog(row: int) -> None:
+    df = st.session_state.general_df
+    task_id = int(df.iloc[row]["id"])
+    task = find_task_by_id(st.session_state.tasks, task_id)
+
+    st.markdown(f"**{task.name}**")
+
+    diffs = task_diffs(task)
+    if not diffs:
+        st.info("No changes on this task.")
+        return
+
+    for label, old, new in diffs:
+        st.markdown(f"**{label}:** ~~{old}~~ → {new}")
+
+    if st.button("Discard changes"): 
+        task.restore()
+        st.rerun()
+
+def _on_show_changes_click() -> None:
+    click = st.session_state.show_changes_button
+    _show_changes_dialog(click["row"])
+
 
 @st.dialog("Import tasks")
 def _import_tasks_dialog() -> None:
@@ -118,7 +148,7 @@ def render() -> None:
     st.markdown("### Edit tasks", anchors=False)
 
     with st.container(horizontal=True, width="content"):
-        if st.button("⭯ Discard changes"):
+        if st.button("⭯ Discard all changes"):
             ui_state.restore_tasks(st.session_state.today_tasks)
             ui_state.reload_today_grid()
             ui_state.reload_general_grid()
