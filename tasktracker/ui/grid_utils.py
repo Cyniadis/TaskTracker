@@ -6,6 +6,8 @@ import pandas as pd
 from ..task import Task, Period
 import streamlit as st
 
+from ..consts import TODAY
+
 PERIOD_OPTIONS = [p.value for p in Period]
 
 
@@ -26,6 +28,7 @@ def tasks_to_today_dataframe(tasks: list[Task]) -> pd.DataFrame:
         freq = task.frequency_obj
         records.append({
             "id": task.id,
+            "completed": "🗹" if task.is_completed_on(TODAY) else "☐",
             "name": task.name,
             "frequency": task.frequency,
             "priority": task.priority,

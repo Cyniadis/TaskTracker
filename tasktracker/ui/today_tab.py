@@ -76,6 +76,7 @@ def _column_config() -> dict:
         "frequency_count": None,
         "frequency_period": None,
         "initial_priority": None,
+        "completed": st.column_config.ButtonColumn("", width=30, key="complete_button", on_click=_on_row_selected, type="tertiary",),
         "name": st.column_config.TextColumn("Task", width="large"),
         "frequency": st.column_config.TextColumn("Frequency", width="small"),
         "priority": st.column_config.NumberColumn("Priority", format="%.1f", width="small"),
@@ -87,16 +88,18 @@ def _column_config() -> dict:
 
 def _on_row_selected() -> None:
     print("_on_row_selected")
-    selected_rows = st.session_state[st.session_state.today_grid_key]["selection"]["rows"]
-    print(selected_rows)
-    filtered_df = st.session_state.today_df.iloc[selected_rows]
-    selected_ids = filtered_df["id"].values
-    for task in st.session_state.today_tasks:
-        if len(selected_ids) > 0 and task.id in selected_ids:
-            task.complete(TODAY)
-        elif task.is_completed_on(TODAY) and task.id not in selected_ids:
-            task.uncomplete()
-            
+    clicked_row = st.session_state.complete_button["row"]
+    task = find_task_by_id(st.session_state.tasks, st.session_state.today_df.at[clicked_row, 'id'])
+    label = st.session_state.today_df.at[clicked_row, "completed"]
+    completed = (label == "☐")
+    print(completed)
+    if completed:
+        task.complete(TODAY)
+        label = "🗹"
+    else: 
+        task.uncomplete()
+        label = "☐"
+    
     ui_state.cache_today_tasks()
     ui_state.persist_tasks()
 
@@ -110,16 +113,6 @@ def color_by_due_date(row):
     return [f"color: {color}"] * len(row)
 
 
-def pre_select_rows(df: pd.DataFrame) -> dict:
-    print("pre_select_rows")
-    completed_tasks = [ task for task in st.session_state.tasks if task.is_completed_on(TODAY) ]
-    rows_to_select = { "rows": [] }
-    for task in completed_tasks:
-        completed_row = df.index[df["id"] == task.id]
-        if not completed_row.empty:
-            rows_to_select["rows"].append(completed_row[0])
-    return {"selection": rows_to_select}
-
 def render() -> None:
     _render_today_header()
 
@@ -132,15 +125,12 @@ def render() -> None:
     styled_df = df.style.apply(color_by_due_date, axis=1)
 
     key = st.session_state.today_grid_key
-    event = st.dataframe(
+    edited_df = st.dataframe(
         styled_df,
         column_config=_column_config(),
-        # column_order=_COLUMN_ORDER,
         hide_index=True,
         width="content",
         height="content",
         key=key,
-        on_select=_on_row_selected,
-        selection_mode=["multi-row"],
-        selection_default=pre_select_rows(df)
+        selection_mode=[]
     )
