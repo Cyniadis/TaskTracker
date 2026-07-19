@@ -9,7 +9,7 @@ import streamlit as st
 PERIOD_OPTIONS = [p.value for p in Period]
 
 
-def tasks_to_toady_dataframe(tasks: list[Task]) -> pd.DataFrame:
+def tasks_to_today_dataframe(tasks: list[Task]) -> pd.DataFrame:
     """Convert tasks into a display-ready dataframe.
 
     Frequency is split into `frequency_count` / `frequency_period` so each

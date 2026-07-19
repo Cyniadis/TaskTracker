@@ -32,44 +32,41 @@ def _column_config() -> dict:
     }
 
 
-def _sync_edits(df, edited_rows: dict) -> None:
-    """Push cell-level diffs from the editor back onto the real Task objects."""
-    for row_pos, changes in edited_rows.items():
-        task = find_task_by_id(st.session_state.tasks, int(df.iloc[row_pos]["id"]))
-
-        if "frequency_count" in changes or "frequency_period" in changes:
-            count = changes.get("frequency_count", df.iloc[row_pos]["frequency_count"])
-            period = changes.get("frequency_period", df.iloc[row_pos]["frequency_period"])
-            task.set_field("frequency", f"{int(count)}x{period}")
-
-        for field_name in ("name", "priority", "initial_priority", "duration", "due_date"):
-            if field_name in changes:
-                task.set_field(field_name, changes[field_name])
-
-    if edited_rows:
-        ui_state.persist_tasks()
-
-
 def _on_data_change():
     key = st.session_state.manage_grid_key
     added_rows = st.session_state[key]["added_rows"]
-    if not added_rows:
-        return
+    edited_rows = st.session_state[key]["edited_rows"]
+    if added_rows:
+        added_rows = st.session_state[key]["added_rows"]
+        new_row = added_rows[-1]
+        task = Task(
+            id=ui_state.next_task_id(),
+            name=new_row['name'].strip(),
+            frequency=f"{int(new_row['frequency_count'])}x{new_row['frequency_period']}",
+            priority=new_row['initial_priority'],
+            initial_priority=new_row['initial_priority'],
+            duration=int(new_row['duration']),
+            due_date=None,
+            done_date=None
+        )
+        ui_state.add_task(task)
+        ui_state.persist_tasks()
 
-    added_rows = st.session_state[key]["added_rows"]
-    new_row = added_rows[-1]
-    task = Task(
-        id=ui_state.next_task_id(),
-        name=new_row['name'].strip(),
-        frequency=f"{int(new_row['frequency_count'])}x{new_row['frequency_period']}",
-        priority=new_row['initial_priority'],
-        initial_priority=new_row['initial_priority'],
-        duration=int(new_row['duration']),
-        due_date=None,
-        done_date=None
-    )
-    ui_state.add_task(task)
-    ui_state.persist_tasks()
+    elif edited_rows:
+        df = st.session_state.general_df
+        for row_pos, changes in edited_rows.items():
+            task = find_task_by_id(st.session_state.tasks, int(df.iloc[row_pos]["id"]))
+            
+            for column_name in changes.keys():
+                if column_name in ["frequency_count", "frequency_period" ]: 
+                    count = changes.get("frequency_count", df.iloc[row_pos]["frequency_count"])
+                    period = changes.get("frequency_period", df.iloc[row_pos]["frequency_period"])
+                    task.set_field("frequency", f"{int(count)}x{period}")
+
+                else:
+                    task.set_field(column_name, changes[column_name])
+
+        ui_state.persist_tasks()
 
 
 def _export_json_bytes() -> bytes:
@@ -83,7 +80,6 @@ def _on_schedule_today_click() -> None:
     task_id = int(st.session_state.general_df.iloc[row]["id"])
     task = find_task_by_id(st.session_state.tasks, task_id)
     ui_state.schedule_task_for_today(task)
-    st.rerun()
 
 
 @st.dialog("Import tasks")
@@ -152,5 +148,4 @@ def render() -> None:
         on_change=_on_data_change
     )
 
-    _sync_edits(df, st.session_state[key]["edited_rows"])
     

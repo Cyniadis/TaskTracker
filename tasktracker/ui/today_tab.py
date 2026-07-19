@@ -5,7 +5,7 @@ import streamlit as st
 import pandas as pd 
 
 from . import ui_state
-from .grid_utils import find_task_by_id, tasks_to_toady_dataframe, get_theme_color
+from .grid_utils import find_task_by_id, tasks_to_today_dataframe, get_theme_color
 from ..json_utils import save_daily_limit
 from ..consts import TODAY
 
@@ -94,7 +94,7 @@ def color_by_due_date(row):
 def render() -> None:
     _render_today_header()
 
-    df = tasks_to_toady_dataframe(st.session_state.today_tasks)
+    df = tasks_to_today_dataframe(st.session_state.today_tasks)
     st.session_state.df = df
     if df is None:
         st.info("No tasks were selected for today. Add or edit tasks in the General tab.")
