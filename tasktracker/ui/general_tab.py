@@ -174,8 +174,8 @@ def render() -> None:
         st.info("No tasks yet — use \u201cAdd task\u201d to create your first one.")
         return
  
-    col = container.selectbox("Sort by", options=df.columns)
-    container.button(label="▲ Ascending" if st.session_state.ascending else "▼ Descending", on_click=_toggle_sort, width="content")
+    col = container.selectbox("Sort by", options=df.columns, width=150)
+    container.button(label="▲ Ascending" if st.session_state.ascending else "▼ Descending", on_click=_toggle_sort, width="content", type="tertiary")
 
     container.button(label="Reset priorities", on_click=_reset_priorities)
 
