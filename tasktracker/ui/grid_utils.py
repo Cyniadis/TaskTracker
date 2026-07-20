@@ -68,7 +68,7 @@ def tasks_to_general_dataframe(tasks: list[Task]) -> pd.DataFrame:
             "due_date": task.due_date,
             "done_date": task.done_date,
             "schedule_today": ":material/playlist_add: Add to today",
-            "edited": ":material/edit_note: Changes" if task_diffs(task) else None,
+            "changes": ":material/edit_note: Changes" if task_diffs(task) else None,
         })
     return pd.DataFrame.from_records(records)
 
@@ -151,6 +151,8 @@ def task_diffs(task: Task) -> list[tuple[str, str, str]]:
     """
     diffs = []
 
+    if task.name != task.orig_name:
+        diffs.append(("Name", task.orig_name, task.name))
     if task.frequency != task.orig_frequency:
         diffs.append(("Frequency", task.orig_frequency, task.frequency))
     if task.priority != task.orig_priority:

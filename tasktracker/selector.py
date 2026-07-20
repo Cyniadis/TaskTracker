@@ -82,10 +82,11 @@ def compute_daily_tasks(
     """Return the subset of `tasks` scheduled for `current_date`.
 
     Tasks already completed today are optionally always kept (and their
-    time reserved first) when `include_completed_today` is set.
+    time reserved first) when `show_completed_today` is set.
     """
     eligible = [t for t in tasks if _eligibility(t, current_date) is not Eligibility.NOT_ELIGIBLE]
     # completed_today = [t for t in eligible if t.is_completed_on(current_date)]
+    pre_selected_tasks = [t for t in pre_selected_tasks if _eligibility(t, current_date) is not Eligibility.NOT_ELIGIBLE ]
 
     if len(pre_selected_tasks) > 0:
         schedule_task_list(pre_selected_tasks, current_date)
