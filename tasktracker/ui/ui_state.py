@@ -15,7 +15,6 @@ from ..json_utils import load_cached_daily_limit, load_tasks, save_tasks, cache_
 from ..selector import compute_daily_tasks, update_tasks_priority_and_due_date
 from ..consts import TODAY
 from ..task import Task, normalize_date, schedule_task_list
-from .grid_utils import task_diffs
 
 @st.cache_resource(show_spinner=False)
 def _init_general_task_list() -> tuple[list[Task], list[Task], int]:
@@ -31,10 +30,7 @@ def load_today_tasks(tasks: list[Task], daily_limit: int, show_completed=False, 
     
     today_tasks = []
     completed_tasks = [t for t in tasks if t.is_completed_on(TODAY)] if show_completed else []
-    rescheduled_tasks = [ t for t in tasks if "Due date" == task_diffs(t)[0] ] if show_rescheduled else []
-    
-    for t in tasks: 
-        print(task_diffs(t))
+    rescheduled_tasks = [ t for t in tasks if any(diff[0] == "Due date" for diff in t.get_changes()) ] if show_rescheduled else []
     
     if force_regeneration or normalize_date(cache_date) != TODAY: 
         today_tasks = compute_daily_tasks(tasks, TODAY, daily_limit)

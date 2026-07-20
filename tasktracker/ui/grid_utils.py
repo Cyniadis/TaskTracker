@@ -68,7 +68,7 @@ def tasks_to_general_dataframe(tasks: list[Task]) -> pd.DataFrame:
             "due_date": task.due_date,
             "done_date": task.done_date,
             "schedule_today": ":material/playlist_add: Add to today",
-            "changes": ":material/edit_note: Changes" if task_diffs(task) else None,
+            "changes": ":material/edit_note: Changes" if task.get_changes() else None,
         })
     return pd.DataFrame.from_records(records)
 
@@ -138,32 +138,3 @@ def get_theme_color(name: str) -> str:
     colors = _THEME_COLORS.get(theme_type, _THEME_COLORS["dark"])
     return colors[name]
 
-
-def _format_value(value):
-    if value is None:
-        return "—"
-    return str(value)
-
-def task_diffs(task: Task) -> list[tuple[str, str, str]]:
-    """Return a list of (field_label, old_value, new_value) for every
-    field that differs from the task's original (orig_*) snapshot.
-    Empty list if nothing changed.
-    """
-    diffs = []
-
-    if task.name != task.orig_name:
-        diffs.append(("Name", task.orig_name, task.name))
-    if task.frequency != task.orig_frequency:
-        diffs.append(("Frequency", task.orig_frequency, task.frequency))
-    if task.priority != task.orig_priority:
-        diffs.append(("Priority", _format_value(task.orig_priority), _format_value(task.priority)))
-    if task.initial_priority != task.orig_initial_priority:
-        diffs.append(("Initial priority", _format_value(task.orig_initial_priority), _format_value(task.initial_priority)))
-    if task.duration != task.orig_duration:
-        diffs.append(("Duration", _format_value(task.orig_duration), _format_value(task.duration)))
-    if task.due_date != task.orig_due_date:
-        diffs.append(("Due date", _format_value(task.orig_due_date), _format_value(task.due_date)))
-    if task.done_date != task.orig_done_date:
-        diffs.append(("Done date", _format_value(task.orig_done_date), _format_value(task.done_date)))
-
-    return diffs

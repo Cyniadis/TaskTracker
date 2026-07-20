@@ -5,7 +5,7 @@ import json
 
 import streamlit as st
 
-from .grid_utils import find_task_by_id, tasks_to_general_dataframe, task_diffs, PERIOD_OPTIONS
+from .grid_utils import find_task_by_id, tasks_to_general_dataframe, PERIOD_OPTIONS
 from . import ui_state
 from ..task import Task
 from ..json_utils import task_list_to_json, save_tasks, import_tasks_from_json_bytes
@@ -100,7 +100,7 @@ def _show_changes_dialog(row: int) -> None:
 
     st.markdown(f"**{task.name}**")
 
-    diffs = task_diffs(task)
+    diffs = task.get_changes()
     if not diffs:
         st.info("No changes on this task.")
         return
@@ -143,9 +143,13 @@ def _import_tasks_dialog() -> None:
         ui_state.reset_app()
         st.rerun()
 
-def toggle_sort():
+def _toggle_sort():
     st.session_state.ascending = not st.session_state.ascending
 
+def _reset_priorities():
+    for task in st.session_state.tasks: 
+        task.priority = task.initial_priority
+    ui_state.persist_tasks()
 
 def render() -> None:
     st.markdown("### Edit tasks", anchors=False)
@@ -171,7 +175,9 @@ def render() -> None:
         return
  
     col = container.selectbox("Sort by", options=df.columns)
-    container.button(label="▲ Ascending" if st.session_state.ascending else "▼ Descending", on_click=toggle_sort, width="content")
+    container.button(label="▲ Ascending" if st.session_state.ascending else "▼ Descending", on_click=_toggle_sort, width="content")
+
+    container.button(label="Reset priorities", on_click=_reset_priorities)
 
     sorted_df = df.sort_values(by=col, ascending=st.session_state.ascending).reset_index(drop=True)
     st.session_state.general_df = sorted_df
