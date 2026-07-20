@@ -183,3 +183,31 @@ class Task:
         self.due_date = self.orig_due_date
         self.done_date = self.orig_done_date
 
+
+    def get_changes(self) -> list[tuple[str, str, str]]:
+        """Return a list of (field_label, old_value, new_value) for every
+        field that differs from the task's original (orig_*) snapshot.
+        Empty list if nothing changed.
+        """
+        def _format_value(value):
+            if value is None:
+                return "—"
+            return str(value)
+        diffs = []
+
+        if self.name != self.orig_name:
+            diffs.append(("Name", self.orig_name, self.name))
+        if self.frequency != self.orig_frequency:
+            diffs.append(("Frequency", self.orig_frequency, self.frequency))
+        if self.priority != self.orig_priority:
+            diffs.append(("Priority", _format_value(self.orig_priority), _format_value(self.priority)))
+        if self.initial_priority != self.orig_initial_priority:
+            diffs.append(("Initial priority", _format_value(self.orig_initial_priority), _format_value(self.initial_priority)))
+        if self.duration != self.orig_duration:
+            diffs.append(("Duration", _format_value(self.orig_duration), _format_value(self.duration)))
+        if self.due_date != self.orig_due_date:
+            diffs.append(("Due date", _format_value(self.orig_due_date), _format_value(self.due_date)))
+        if self.done_date != self.orig_done_date:
+            diffs.append(("Done date", _format_value(self.orig_done_date), _format_value(self.done_date)))
+
+        return diffs
