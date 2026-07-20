@@ -109,23 +109,28 @@ def cache_daily_limit(daily_limit: int) -> None:
 
 
 def load_cached_task_ids() -> None: 
-    print("Load tasks backup")
     cache_date = get_cached_value("cache_date")
     cached_tasks_ids = get_cached_value("cached_tasks_ids")
     return cache_date, cached_tasks_ids
 
 def cache_tasks(tasks: list[Task]) -> None:
-    print("Create task Backup")
     set_cached_values(
         cache_date=TODAY.strftime(DATE_FORMAT),
         cached_tasks_ids=[task.id for task in tasks],
     )
 
-def load_include_completed(): 
-    return get_cached_value("include_completed", True)
+def load_show_completed(): 
+    return get_cached_value("show_completed", True)
 
-def cache_include_completed(include_completed: bool): 
-    return set_cached_value("include_completed", include_completed)
+def cache_show_completed(show_completed: bool): 
+    return set_cached_value("show_completed", show_completed)
+
+
+def load_show_rescheduled(): 
+    return get_cached_value("show_rescheduled", True)
+
+def cache_show_rescheduled(show_rescheduled: bool): 
+    return set_cached_value("show_rescheduled", show_rescheduled)
 
 def validate_and_parse_tasks(raw_data: Any) -> list[Task]:
     """Parse+validate raw JSON data (already `json.loads`-ed) into a list of Task objects.

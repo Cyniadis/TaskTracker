@@ -11,11 +11,11 @@ from datetime import datetime
 
 import streamlit as st
 
-from ..json_utils import load_cached_daily_limit, load_tasks, save_tasks, cache_tasks, load_cached_task_ids, load_include_completed
+from ..json_utils import load_cached_daily_limit, load_tasks, save_tasks, cache_tasks, load_cached_task_ids, load_show_completed, load_show_rescheduled
 from ..selector import compute_daily_tasks, update_tasks_priority_and_due_date
 from ..consts import TODAY
-from ..task import Task, normalize_date
-
+from ..task import Task, normalize_date, schedule_task_list
+from .grid_utils import task_diffs
 
 @st.cache_resource(show_spinner=False)
 def _init_general_task_list() -> tuple[list[Task], list[Task], int]:
@@ -26,17 +26,25 @@ def _init_general_task_list() -> tuple[list[Task], list[Task], int]:
     return tasks
 
 
-def load_today_tasks(tasks: list[Task], daily_limit: int, include_completed_today=False, force_regeneration=False) -> list[Task]: 
+def load_today_tasks(tasks: list[Task], daily_limit: int, show_completed=False, show_rescheduled=False, force_regeneration=False) -> list[Task]: 
     cache_date, cached_task_ids = load_cached_task_ids()
     
-    completed_tasks = [t for t in tasks if t.is_completed_on(TODAY)] if include_completed_today else []
+    today_tasks = []
+    completed_tasks = [t for t in tasks if t.is_completed_on(TODAY)] if show_completed else []
+    rescheduled_tasks = [ t for t in tasks if "Due date" == task_diffs(t)[0] ] if show_rescheduled else []
+    
+    for t in tasks: 
+        print(task_diffs(t))
     
     if force_regeneration or normalize_date(cache_date) != TODAY: 
-        return compute_daily_tasks(tasks, TODAY, daily_limit, completed_tasks)
+        today_tasks = compute_daily_tasks(tasks, TODAY, daily_limit)
     else: 
         cached_tasks = [t for t in tasks if t.id in cached_task_ids ] 
-        cached_tasks += [ t for t in completed_tasks if t.id not in cached_task_ids ]
-        return compute_daily_tasks(tasks, TODAY, daily_limit, cached_tasks)
+        today_tasks = compute_daily_tasks(tasks, TODAY, daily_limit, cached_tasks)
+    
+    today_tasks += [ t for t in completed_tasks if t.id not in today_tasks ]
+    today_tasks += [ t for t in rescheduled_tasks if t.id not in today_tasks ]
+    return today_tasks
         
 
 def init_session_state(force_regeneration=False) -> None:
@@ -47,8 +55,9 @@ def init_session_state(force_regeneration=False) -> None:
     print("Initialize session state")
     tasks = _init_general_task_list()
     daily_limit = load_cached_daily_limit()
-    include_completed = load_include_completed()
-    today_tasks = load_today_tasks(tasks, daily_limit, include_completed, force_regeneration)
+    show_completed = load_show_completed()
+    show_rescheduled = load_show_rescheduled()
+    today_tasks = load_today_tasks(tasks, daily_limit, show_completed, show_rescheduled, force_regeneration)
 
     st.session_state.update(
         tasks=tasks,
@@ -60,15 +69,17 @@ def init_session_state(force_regeneration=False) -> None:
         timer_start_time=None,
         elapsed_accum=0.0,
         selected_rows=[],
-        include_completed=include_completed
+        show_completed=show_completed
     )
-    cache_today_tasks()
+    # cache_today_tasks()
+    persist_tasks()
 
 def cache_today_tasks():
     cache_tasks(st.session_state.today_tasks)
     
 
 def persist_tasks() -> None:
+    print("Save tasks")
     save_tasks(st.session_state.tasks)
 
 

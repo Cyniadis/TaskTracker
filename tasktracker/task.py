@@ -112,6 +112,7 @@ class Task:
 
 
     def __post_init__(self) -> None:
+        print("__post_init__")
         for field_name in ["due_date", "done_date"]:
             setattr(self, field_name, normalize_date(getattr(self, field_name)))
         self.orig_name = self.name

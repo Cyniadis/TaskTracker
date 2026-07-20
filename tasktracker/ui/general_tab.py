@@ -28,7 +28,7 @@ def _column_config() -> dict:
             key="schedule_today_button",
             alignment="center",
         ),
-        "edited": st.column_config.ButtonColumn(
+        "changes": st.column_config.ButtonColumn(
             "",
             on_click=_on_show_changes_click,
             key="show_changes_button",
