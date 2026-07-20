@@ -6,7 +6,11 @@ import pandas as pd
 
 from . import ui_state
 from .grid_utils import find_task_by_id, tasks_to_today_dataframe, get_theme_color
-from ..json_utils import cache_daily_limit, cache_show_completed, load_show_completed, cache_show_rescheduled, load_show_rescheduled
+from ..json_utils import (
+    cache_daily_limit, cache_show_completed, load_show_completed,
+    cache_show_rescheduled, load_show_rescheduled,
+    cache_allow_future_tasks, load_allow_future_tasks,
+)
 from ..consts import TODAY
 
 
@@ -15,7 +19,7 @@ def edit_due_date(row: int):
     row_date = st.session_state.today_df.iloc[row]["due_date"]  
     current = row_date if  row_date is not None else TODAY
     task = find_task_by_id(st.session_state.tasks, st.session_state.today_df.at[row, 'id'])
-    print(task)
+    
     with st.container(horizontal=True, vertical_alignment="bottom"):
         new_date = st.date_input(
             f"**{st.session_state.today_df.iloc[row]['name']}**",
@@ -62,10 +66,11 @@ def _render_today_header() -> None:
         st.button("🔄 Regenerate", on_click=ui_state.regenerate_today_tasks)
         st.checkbox("Show completed tasks", load_show_completed(), on_change=lambda: cache_show_completed(st.session_state.show_completed_checkbox), key="show_completed_checkbox") 
         st.checkbox("Show rescheduled tasks", load_show_rescheduled(), on_change=lambda: cache_show_rescheduled(st.session_state.show_rescheduled_checkbox), key="show_rescheduled_checkbox")
-        
+        st.checkbox("Allow future tasks", load_allow_future_tasks(), on_change=lambda: cache_allow_future_tasks(st.session_state.allow_future_tasks_checkbox), key="allow_future_tasks_checkbox")        
+   
     st.write(
-        f"**Active duration:** {sum(t.duration for t in st.session_state.today_tasks)} min - "
-        f"**Number of tasks:** {len(st.session_state.today_tasks)}"
+        f"**Active duration:** {st.session_state.active_duration} min - "
+        f"**Number of tasks:** {st.session_state.nb_today_task}"
     )
 
 

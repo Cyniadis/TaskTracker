@@ -132,6 +132,14 @@ def load_show_rescheduled():
 def cache_show_rescheduled(show_rescheduled: bool): 
     return set_cached_value("show_rescheduled", show_rescheduled)
 
+
+def load_allow_future_tasks():
+    return get_cached_value("allow_future_tasks", False)
+
+def cache_allow_future_tasks(allow_future_tasks: bool):
+    return set_cached_value("allow_future_tasks", allow_future_tasks)
+
+
 def validate_and_parse_tasks(raw_data: Any) -> list[Task]:
     """Parse+validate raw JSON data (already `json.loads`-ed) into a list of Task objects.
 

@@ -73,19 +73,53 @@ def update_tasks_priority_and_due_date(tasks: list[Task]) -> None:
             else:
                 task.due_date = task.compute_next_due_date(TODAY)
 
+
+def _fill_with_future_tasks(
+    tasks: list[Task],
+    selected: list[Task],
+    current_date: date,
+    daily_time_limit: int,
+) -> list[Task]:
+    """Top up `selected` with tasks whose due date is in the future, closest due
+    date first, as long as there's leftover room in the daily budget."""
+    remaining_time = daily_time_limit - sum(t.duration for t in selected)
+    if remaining_time <= 0:
+        return selected
+
+    selected_ids = {t.id for t in selected}
+    future_candidates = [
+        t for t in tasks
+        if t.id not in selected_ids
+        and t.due_date is not None
+        and t.due_date > current_date
+        and t.done_date != current_date
+    ]
+    future_candidates.sort(key=lambda t: (t.due_date, -t.priority))
+
+    extra: list[Task] = []
+    for task in future_candidates:
+        if task.duration <= remaining_time:
+            extra.append(task)
+            remaining_time -= task.duration
+
+    schedule_task_list(extra, current_date)
+    return selected + extra
+
+
 def compute_daily_tasks(
     tasks: list[Task],
     current_date: date,
     daily_time_limit: int,
     pre_selected_tasks: list[Task] = [],
+    allow_future_tasks: bool = False,
 ) -> list[Task]:
     """Return the subset of `tasks` scheduled for `current_date`.
 
-    Tasks already completed today are optionally always kept (and their
-    time reserved first) when `show_completed_today` is set.
+    If `allow_future_tasks` is set and the normally-eligible tasks don't
+    fill the daily budget, future-dated tasks are pulled forward to fill
+    the remaining time.
     """
     eligible = [t for t in tasks if _eligibility(t, current_date) is not Eligibility.NOT_ELIGIBLE]
-    # completed_today = [t for t in eligible if t.is_completed_on(current_date)]
     pre_selected_tasks = [t for t in pre_selected_tasks if _eligibility(t, current_date) is not Eligibility.NOT_ELIGIBLE ]
 
     if len(pre_selected_tasks) > 0:
@@ -93,7 +127,6 @@ def compute_daily_tasks(
 
         remaining_time = daily_time_limit - sum(t.duration for t in pre_selected_tasks)
         if remaining_time <= 0:
-            schedule_task_list(pre_selected_tasks, current_date)
             return pre_selected_tasks
 
         pre_selected_ids = {t.id for t in pre_selected_tasks}
@@ -101,7 +134,10 @@ def compute_daily_tasks(
 
         if sum(t.duration for t in candidates) <= remaining_time:
             schedule_task_list(candidates, current_date)
-            return pre_selected_tasks + candidates
+            result = pre_selected_tasks + candidates
+            if allow_future_tasks:
+                result = _fill_with_future_tasks(tasks, result, current_date, daily_time_limit)
+            return result
 
         extra = _select_by_priority(candidates, remaining_time)
         schedule_task_list(extra, current_date)
@@ -109,7 +145,10 @@ def compute_daily_tasks(
 
     if sum(t.duration for t in eligible) <= daily_time_limit:
         schedule_task_list(eligible, current_date)
-        return eligible
+        result = eligible
+        if allow_future_tasks:
+            result = _fill_with_future_tasks(tasks, result, current_date, daily_time_limit)
+        return result
 
     selected = _select_by_priority(eligible, daily_time_limit)
     schedule_task_list(selected, current_date)
