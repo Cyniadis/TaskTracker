@@ -2,31 +2,31 @@
   {
     "id": 0,
     "name": "🍴 Mettre la vaisselle au lave-vaisselle",
-    "frequency": "2xsemaine",
-    "priority": 7.5,
-    "initial_priority": 5.0,
+    "frequency": "1xjour",
+    "priority": 4,
+    "initial_priority": 4,
     "duration": 5,
-    "due_date": "2026-07-19",
+    "due_date": "2026-07-24",
     "done_date": "2026-07-19"
   },
   {
     "id": 1,
     "name": "🍴 Nettoyer la vaisselle sale à la main",
-    "frequency": "1xjour",
-    "priority": 6.5,
+    "frequency": "3xsemaine",
+    "priority": 4,
     "initial_priority": 4.0,
     "duration": 10,
-    "due_date": "2026-07-19",
+    "due_date": "2026-07-22",
     "done_date": "2026-07-19"
   },
   {
     "id": 2,
     "name": "🍴 Ranger la vaisselle propre de l'égouttoir ",
     "frequency": "1xjour",
-    "priority": 6.5,
+    "priority": 4,
     "initial_priority": 4.0,
     "duration": 5,
-    "due_date": "2026-07-19",
+    "due_date": "2026-07-22",
     "done_date": "2026-07-19"
   },
   {
@@ -36,8 +36,8 @@
     "priority": 4.0,
     "initial_priority": 4.0,
     "duration": 5,
-    "due_date": "2026-07-20",
-    "done_date": null
+    "due_date": "2026-07-21",
+    "done_date": "2026-07-19"
   },
   {
     "id": 6,
@@ -53,21 +53,21 @@
     "id": 7,
     "name": "🍴 Nettoyer la plaque de cuisson",
     "frequency": "1xsemaine",
-    "priority": 2.5,
+    "priority": 2,
     "initial_priority": 2.0,
-    "duration": 20,
-    "due_date": "2026-07-19",
+    "duration": 10,
+    "due_date": "2026-07-28",
     "done_date": "2026-07-19"
   },
   {
     "id": 8,
-    "name": "🍴 Nettoyer la machine à café",
+    "name": "🍴 Nettoyer l'infuseur de la machine à café",
     "frequency": "1xsemaine",
     "priority": 2.0,
     "initial_priority": 3.0,
     "duration": 10,
     "due_date": "2026-07-26",
-    "done_date": null
+    "done_date": "2026-07-19"
   },
   {
     "id": 9,
@@ -76,7 +76,7 @@
     "priority": 2.5,
     "initial_priority": 2.0,
     "duration": 10,
-    "due_date": "2026-07-19",
+    "due_date": "2026-08-05",
     "done_date": "2026-07-19"
   },
   {
@@ -86,7 +86,7 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 10,
-    "due_date": "2026-07-19",
+    "due_date": "2026-08-20",
     "done_date": null
   },
   {
@@ -96,7 +96,7 @@
     "priority": 7,
     "initial_priority": 7,
     "duration": 5,
-    "due_date": "2026-07-19",
+    "due_date": "2026-07-21",
     "done_date": null
   },
   {
@@ -126,7 +126,7 @@
     "priority": 5.5,
     "initial_priority": 3.0,
     "duration": 25,
-    "due_date": "2026-07-19",
+    "due_date": "2026-08-05",
     "done_date": "2026-07-19"
   },
   {
@@ -146,7 +146,7 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 20,
-    "due_date": null,
+    "due_date": "2026-07-21",
     "done_date": null
   },
   {
@@ -166,7 +166,7 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 5,
-    "due_date": null,
+    "due_date": "2026-07-21",
     "done_date": null
   },
   {
@@ -176,7 +176,7 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 15,
-    "due_date": null,
+    "due_date": "2026-07-21",
     "done_date": null
   },
   {
@@ -185,7 +185,7 @@
     "frequency": "1xmois",
     "priority": 2.0,
     "initial_priority": 2.0,
-    "duration": 30,
+    "duration": 5,
     "due_date": null,
     "done_date": null
   },
@@ -195,8 +195,8 @@
     "frequency": "1xsemaine",
     "priority": 3.0,
     "initial_priority": 3.0,
-    "duration": 30,
-    "due_date": "2026-07-19",
+    "duration": 5,
+    "due_date": "2026-07-21",
     "done_date": null
   },
   {
@@ -205,9 +205,9 @@
     "frequency": "2xmois",
     "priority": 2.0,
     "initial_priority": 2.0,
-    "duration": 30,
-    "due_date": "2026-07-19",
-    "done_date": null
+    "duration": 5,
+    "due_date": "2026-08-05",
+    "done_date": "2026-07-19"
   },
   {
     "id": 25,
@@ -215,7 +215,7 @@
     "frequency": "1xmois",
     "priority": 1.0,
     "initial_priority": 1.0,
-    "duration": 30,
+    "duration": 5,
     "due_date": null,
     "done_date": null
   },
@@ -226,7 +226,7 @@
     "priority": 3.0,
     "initial_priority": 3.0,
     "duration": 15,
-    "due_date": "2026-07-19",
+    "due_date": "2026-07-21",
     "done_date": null
   },
   {
@@ -245,8 +245,8 @@
     "frequency": "2xmois",
     "priority": 4.0,
     "initial_priority": 4.0,
-    "duration": 20,
-    "due_date": "2026-07-19",
+    "duration": 10,
+    "due_date": "2026-07-21",
     "done_date": null
   },
   {
@@ -265,7 +265,7 @@
     "frequency": "1xmois",
     "priority": 2.0,
     "initial_priority": 2.0,
-    "duration": 60,
+    "duration": 30,
     "due_date": null,
     "done_date": null
   },
@@ -296,7 +296,7 @@
     "priority": 4.0,
     "initial_priority": 2,
     "duration": 5,
-    "due_date": "2026-07-19",
+    "due_date": "2026-07-22",
     "done_date": "2026-07-19"
   },
   {
@@ -306,18 +306,18 @@
     "priority": 3.5,
     "initial_priority": 2,
     "duration": 10,
-    "due_date": "2026-07-19",
+    "due_date": "2026-07-21",
     "done_date": "2026-07-19"
   },
   {
     "id": 35,
     "name": "📞 Appeler les parents",
-    "frequency": "1xsemaine",
+    "frequency": "2xmois",
     "priority": 3,
     "initial_priority": 3,
     "duration": 30,
-    "due_date": "2026-07-19",
-    "done_date": null
+    "due_date": "2026-07-31",
+    "done_date": "2026-07-20"
   },
   {
     "id": 36,
@@ -327,6 +327,16 @@
     "initial_priority": 2,
     "duration": 15,
     "due_date": null,
+    "done_date": null
+  },
+  {
+    "id": 37,
+    "name": "🚘Réviser code de la route",
+    "frequency": "1xjour",
+    "priority": 5,
+    "initial_priority": 5,
+    "duration": 30,
+    "due_date": "2026-07-21",
     "done_date": null
   }
 ]
