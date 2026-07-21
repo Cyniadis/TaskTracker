@@ -22,12 +22,11 @@ from ..json_utils import (
     load_tasks,
     save_tasks,
 )
-from ..selector import compute_daily_tasks, update_tasks_priority_and_due_date
+from ..selector import compute_daily_tasks
 from ..task import Task, normalize_date
 from ..task_list_ops import next_task_id as _next_task_id
-from ..task_list_ops import remove_tasks_by_id
+from ..task_list_ops import remove_tasks_by_id, update_tasks_priority_and_due_date
 from ..task_list_ops import restore_tasks as _restore_tasks
-
 
 @st.cache_resource(show_spinner=False)
 def _init_general_task_list() -> list[Task]:
