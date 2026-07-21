@@ -8,7 +8,7 @@ Streamlit session state and widgets).
 from __future__ import annotations
 
 from .task import Task
-
+from .consts import today
 
 def find_task_by_id(tasks: list[Task], task_id: int) -> Task:
     """Return the task with `id == task_id`, or raise KeyError if not found."""
