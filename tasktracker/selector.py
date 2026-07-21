@@ -72,24 +72,6 @@ def _select_by_priority(tasks: list[Task], time_budget: int) -> list[Task]:
             capacity -= task.duration
     return selected
 
-
-def update_tasks_priority_and_due_date(tasks: list[Task]) -> None:
-    """Housekeeping pass, meant to be called once before `compute_daily_tasks`.
-
-    For every task with both a due date and a done date:
-    - if it was *not* completed on its due date, bump its priority (so it
-      surfaces sooner next time);
-    - if it *was* completed on time, roll its due date forward to the next
-      occurrence.
-    """
-    for task in tasks:
-        if task.done_date and task.due_date:
-            if not task.is_completed_on(task.due_date):
-                task.increment_priority()
-            else:
-                task.due_date = task.compute_next_due_date(today())
-
-
 def _fill_with_future_tasks(
     tasks: list[Task],
     selected: list[Task],
