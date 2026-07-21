@@ -8,7 +8,7 @@ Streamlit session state and widgets).
 from __future__ import annotations
 
 from .task import Task
-
+from .consts import today
 
 def find_task_by_id(tasks: list[Task], task_id: int) -> Task:
     """Return the task with `id == task_id`, or raise KeyError if not found."""
@@ -33,3 +33,25 @@ def restore_tasks(tasks: list[Task]) -> None:
     """Revert every task in `tasks` to its last-persisted (orig_*) state, in place."""
     for task in tasks:
         task.restore()
+
+def update_tasks_priority_and_due_date(tasks: list[Task]) -> None:
+    """Housekeeping pass, meant to be called once before `compute_daily_tasks`.
+
+    For every task whose due date has already passed:
+    - if it was *not* completed on that due date (including tasks that have
+      never been completed at all — `done_date` may be `None`), bump its
+      priority so it surfaces sooner next time;
+    - if it *was* completed on time, roll its due date forward to the next
+      occurrence.
+
+    Tasks with no due date, or a due date that's today or in the future,
+    are left untouched — they haven't missed their window yet.
+    """
+    current_date = today()
+    for task in tasks:
+        if not task.due_date or task.due_date >= current_date:
+            continue
+        if task.is_completed_on(task.due_date):
+            task.due_date = task.compute_next_due_date(task.due_date)
+        else:
+            task.increment_priority()
