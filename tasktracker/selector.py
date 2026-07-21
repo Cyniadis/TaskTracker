@@ -12,35 +12,43 @@ from __future__ import annotations
 from datetime import date
 from enum import Enum, auto
 
+from .consts import today
 from .task import Task, schedule_task_list
-from .consts import TODAY
+
 
 class Eligibility(Enum):
-    NOT_ELIGIBLE = auto()
-    MAYBE_ELIGIBLE = auto()
-    ELIGIBLE = auto()
+    """Whether a task can be picked for a given day."""
+    NOT_ELIGIBLE = auto()    # already done today, or not due yet and never done
+    MAYBE_ELIGIBLE = auto()  # never scheduled/done before — can be used as a filler
+    ELIGIBLE = auto()        # due today, overdue, or its recurrence window has elapsed
 
 
 def _eligibility(task: Task, current_date: date) -> Eligibility:
+    """Classify whether `task` can be scheduled on `current_date`."""
     if task.done_date == current_date:
         return Eligibility.NOT_ELIGIBLE
 
     if task.due_date == current_date:
         return Eligibility.ELIGIBLE
-    
+
     if not task.due_date or task.due_date < current_date:
         if task.done_date:
             days_since_done = (current_date - task.done_date).days
             if days_since_done >= task.frequency_obj.days:
                 return Eligibility.NOT_ELIGIBLE
-            else: 
-                return Eligibility.ELIGIBLE
+            return Eligibility.ELIGIBLE
         return Eligibility.MAYBE_ELIGIBLE
+
     return Eligibility.NOT_ELIGIBLE
 
 
 def _select_by_priority(tasks: list[Task], time_budget: int) -> list[Task]:
-    """0/1 knapsack over `tasks`, maximizing time used while favouring higher priority."""
+    """0/1 knapsack over `tasks`, maximizing time used while favouring higher priority.
+
+    Tasks are pre-sorted by priority (descending) before the knapsack DP so that,
+    among equally-good-duration combinations, ties are naturally broken in favour
+    of higher-priority tasks during backtracking.
+    """
     ordered = sorted(tasks, key=lambda t: (-t.priority, t.due_date or date.max))
     n = len(ordered)
 
@@ -54,6 +62,7 @@ def _select_by_priority(tasks: list[Task], time_budget: int) -> list[Task]:
             else:
                 dp[i][capacity] = dp[i - 1][capacity]
 
+    # Backtrack through the DP table to recover which tasks were chosen.
     selected: list[Task] = []
     capacity = time_budget
     for i in range(n, 0, -1):
@@ -64,14 +73,21 @@ def _select_by_priority(tasks: list[Task], time_budget: int) -> list[Task]:
     return selected
 
 
-# to be called before compute_daily_tasks()
 def update_tasks_priority_and_due_date(tasks: list[Task]) -> None:
-    for task in tasks: 
-        if task.done_date and task.due_date: 
-            if not task.is_completed_on(task.due_date):  # task not has been completed
+    """Housekeeping pass, meant to be called once before `compute_daily_tasks`.
+
+    For every task with both a due date and a done date:
+    - if it was *not* completed on its due date, bump its priority (so it
+      surfaces sooner next time);
+    - if it *was* completed on time, roll its due date forward to the next
+      occurrence.
+    """
+    for task in tasks:
+        if task.done_date and task.due_date:
+            if not task.is_completed_on(task.due_date):
                 task.increment_priority()
             else:
-                task.due_date = task.compute_next_due_date(TODAY)
+                task.due_date = task.compute_next_due_date(today())
 
 
 def _fill_with_future_tasks(
@@ -110,19 +126,25 @@ def compute_daily_tasks(
     tasks: list[Task],
     current_date: date,
     daily_time_limit: int,
-    pre_selected_tasks: list[Task] = [],
+    pre_selected_tasks: list[Task] | None = None,
     allow_future_tasks: bool = False,
 ) -> list[Task]:
     """Return the subset of `tasks` scheduled for `current_date`.
+
+    If `pre_selected_tasks` is given (e.g. tasks already picked in a previous
+    render, or manually added), they're kept as-is and the remaining budget is
+    filled around them. Otherwise the full eligible pool is considered.
 
     If `allow_future_tasks` is set and the normally-eligible tasks don't
     fill the daily budget, future-dated tasks are pulled forward to fill
     the remaining time.
     """
-    eligible = [t for t in tasks if _eligibility(t, current_date) is not Eligibility.NOT_ELIGIBLE]
-    pre_selected_tasks = [t for t in pre_selected_tasks if _eligibility(t, current_date) is not Eligibility.NOT_ELIGIBLE ]
+    pre_selected_tasks = pre_selected_tasks or []
 
-    if len(pre_selected_tasks) > 0:
+    eligible = [t for t in tasks if _eligibility(t, current_date) is not Eligibility.NOT_ELIGIBLE]
+    pre_selected_tasks = [t for t in pre_selected_tasks if _eligibility(t, current_date) is not Eligibility.NOT_ELIGIBLE]
+
+    if pre_selected_tasks:
         schedule_task_list(pre_selected_tasks, current_date)
 
         remaining_time = daily_time_limit - sum(t.duration for t in pre_selected_tasks)
