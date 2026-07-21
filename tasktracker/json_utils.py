@@ -10,10 +10,14 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .consts import DEFAULT_DAILY_LIMIT_MINUTES, CACHE_FILE, TASKS_FILE, PROJECT_ROOT,DATE_FORMAT, TODAY
-from .task import Task, normalize_date, Frequency
+from .consts import CACHE_FILE, DATE_FORMAT, DEFAULT_DAILY_LIMIT_MINUTES, TASKS_FILE, today
+from .task import Frequency, Task, normalize_date
+
+
+# -- low-level JSON read/write ---------------------------------------------
 
 def _read_json(path: Path) -> Any:
+    """Read and parse a JSON file, or return None if it doesn't exist."""
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
@@ -23,21 +27,31 @@ def _read_json(path: Path) -> Any:
 
 
 def _write_json(path: Path, payload: Any) -> None:
+    """Serialize `payload` as pretty JSON and write it to `path`."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def json_to_task_list(json_data: dict) -> list[Task]:
+# -- tasks.json --------------------------------------------------------------
+
+def json_to_task_list(json_data: list[dict]) -> list[Task]:
+    """Convert a list of raw JSON dicts into `Task` objects."""
     return [Task.from_dict(item) for item in json_data]
 
-def task_list_to_json(tasks: list[Task]) -> dict: 
+
+def task_list_to_json(tasks: list[Task]) -> list[dict]:
+    """Convert `Task` objects back into JSON-serializable dicts."""
     return [task.to_dict() for task in tasks]
 
+
 def load_tasks(path: Path = TASKS_FILE) -> list[Task]:
+    """Load all tasks from `path` (empty list if the file is missing)."""
     raw_tasks = _read_json(path) or []
     return json_to_task_list(raw_tasks)
 
+
 def save_tasks(tasks: list[Task], path: Path = TASKS_FILE) -> None:
+    """Write all tasks to `path`, overwriting its previous contents."""
     _write_json(path, task_list_to_json(tasks))
 
 
@@ -102,43 +116,54 @@ def delete_cached_value(key: str) -> None:
 # don't need to know the raw key names / defaults.
 
 def load_cached_daily_limit() -> int:
+    """Load the saved daily time budget (minutes), or the app default."""
     return get_cached_value("daily_limit", DEFAULT_DAILY_LIMIT_MINUTES)
+
 
 def cache_daily_limit(daily_limit: int) -> None:
     set_cached_value("daily_limit", daily_limit)
 
 
-def load_cached_task_ids() -> None: 
+def load_cached_task_ids() -> tuple[str | None, list[int] | None]:
+    """Return (cache_date, cached_task_ids) — the date+ids of the last computed 'today' list."""
     cache_date = get_cached_value("cache_date")
     cached_tasks_ids = get_cached_value("cached_tasks_ids")
     return cache_date, cached_tasks_ids
 
+
 def cache_tasks(tasks: list[Task]) -> None:
+    """Remember which tasks were selected for "today", so a page reload today doesn't recompute them."""
     set_cached_values(
-        cache_date=TODAY.strftime(DATE_FORMAT),
+        cache_date=today().strftime(DATE_FORMAT),
         cached_tasks_ids=[task.id for task in tasks],
     )
 
-def load_show_completed(): 
+
+def load_show_completed() -> bool:
     return get_cached_value("show_completed", True)
 
-def cache_show_completed(show_completed: bool): 
-    return set_cached_value("show_completed", show_completed)
+
+def cache_show_completed(show_completed: bool) -> None:
+    set_cached_value("show_completed", show_completed)
 
 
-def load_show_rescheduled(): 
+def load_show_rescheduled() -> bool:
     return get_cached_value("show_rescheduled", True)
 
-def cache_show_rescheduled(show_rescheduled: bool): 
-    return set_cached_value("show_rescheduled", show_rescheduled)
+
+def cache_show_rescheduled(show_rescheduled: bool) -> None:
+    set_cached_value("show_rescheduled", show_rescheduled)
 
 
-def load_allow_future_tasks():
+def load_allow_future_tasks() -> bool:
     return get_cached_value("allow_future_tasks", False)
 
-def cache_allow_future_tasks(allow_future_tasks: bool):
-    return set_cached_value("allow_future_tasks", allow_future_tasks)
 
+def cache_allow_future_tasks(allow_future_tasks: bool) -> None:
+    set_cached_value("allow_future_tasks", allow_future_tasks)
+
+
+# -- import validation ------------------------------------------------------
 
 def validate_and_parse_tasks(raw_data: Any) -> list[Task]:
     """Parse+validate raw JSON data (already `json.loads`-ed) into a list of Task objects.
@@ -178,6 +203,11 @@ def validate_and_parse_tasks(raw_data: Any) -> list[Task]:
                 raise ValueError(
                     f"{label} ('{item['name']}'): invalid 'frequency' value '{item['frequency']}' "
                     "(expected format like '2xsemaine')."
+                )
+            if parsed_freq.count < 1:
+                raise ValueError(
+                    f"{label} ('{item['name']}'): invalid 'frequency' value '{item['frequency']}' "
+                    "— the count must be at least 1."
                 )
 
         for field_name in ("priority", "initial_priority"):

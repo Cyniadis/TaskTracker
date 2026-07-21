@@ -112,7 +112,6 @@ class Task:
 
 
     def __post_init__(self) -> None:
-        print("__post_init__")
         for field_name in ["due_date", "done_date"]:
             setattr(self, field_name, normalize_date(getattr(self, field_name)))
         self.orig_name = self.name
@@ -122,6 +121,13 @@ class Task:
         self.orig_duration = self.duration
         self.orig_due_date = self.due_date
         self.orig_done_date = self.done_date
+
+        # Stashed pre-completion state, used by uncomplete() to undo the most
+        # recent complete() call exactly (as opposed to orig_* above, which
+        # tracks the state since app/session start for the "discard changes"
+        # feature). None means "no completion has happened yet this session".
+        self._pre_complete_priority: float | None = None
+        self._pre_complete_done_date: date | None = None
 
     # -- (de)serialization -------------------------------------------------
     @classmethod
@@ -151,19 +157,38 @@ class Task:
 
     # -- lifecycle -----------------------------------------------------------
     def complete(self, completion_date: date) -> None:
+        """Mark the task done on `completion_date`, remembering the prior
+        priority/done_date so `uncomplete()` can undo this exact change."""
+        self._pre_complete_priority = self.priority
+        self._pre_complete_done_date = self.done_date
         self.done_date = completion_date
         self.priority = self.initial_priority
 
     def uncomplete(self) -> None:
-        self.done_date = self.orig_done_date if self.orig_done_date != self.done_date else None
-        self.priority = self.orig_priority
-        pass
+        """Undo the most recent complete() call, restoring priority and
+        done_date to what they were right before it."""
+        self.done_date = self._pre_complete_done_date
+        # Fallback to orig_priority only if uncomplete() is somehow called
+        # without a prior complete() in this session (e.g. done_date was
+        # already set when the task was loaded from disk).
+        self.priority = (
+            self._pre_complete_priority
+            if self._pre_complete_priority is not None
+            else self.orig_priority
+        )
+        self._pre_complete_priority = None
+        self._pre_complete_done_date = None
 
     def is_completed_on(self, current_date: date) -> bool:
         return self.done_date is not None and self.done_date == current_date
 
     def schedule_for(self, current_date: date) -> None:
-        """Mark this task as picked for `current_date` and roll its next occurrence forward."""
+        """Mark this task as picked for `current_date` by setting its due date.
+
+        Note: this does not advance the task to its *next* occurrence — that
+        happens separately, in `update_tasks_priority_and_due_date`, once the
+        task has actually been completed on its due date.
+        """
         self.due_date = current_date
 
     def set_field(self, field_name: str, value: Any) -> None:
