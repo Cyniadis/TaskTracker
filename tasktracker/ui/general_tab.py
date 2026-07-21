@@ -59,7 +59,7 @@ def _column_config() -> dict:
         "initial_priority": st.column_config.NumberColumn("Initial Priority", step=0.5, format="%.1f", required=True),
         "duration": st.column_config.NumberColumn("Duration (min)", min_value=1, step=5, required=True),
         "due_date": st.column_config.DateColumn("Due date", format="DD/MM/YYYY"),
-        "done_date": st.column_config.DateColumn("Done date", format="DD/MM/YYYY", disabled=True),
+        "done_date": st.column_config.DateColumn("Done date", format="DD/MM/YYYY"),
         "schedule_today": st.column_config.ButtonColumn(
             "", on_click=_on_schedule_today_click, key="schedule_today_button", alignment="center",
         ),
