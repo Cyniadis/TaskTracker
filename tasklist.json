@@ -21,12 +21,12 @@
   },
   {
     "id": 2,
-    "name": "🍴 Ranger la vaisselle propre de l'égouttoir ",
+    "name": "🍴 Ranger la vaisselle propre ",
     "frequency": "1xjour",
     "priority": 4,
     "initial_priority": 4.0,
     "duration": 5,
-    "due_date": "2026-07-22",
+    "due_date": null,
     "done_date": "2026-07-19"
   },
   {
@@ -96,7 +96,7 @@
     "priority": 7,
     "initial_priority": 7,
     "duration": 5,
-    "due_date": "2026-07-21",
+    "due_date": "2026-07-22",
     "done_date": null
   },
   {
@@ -146,7 +146,7 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 20,
-    "due_date": "2026-07-21",
+    "due_date": "2026-07-22",
     "done_date": null
   },
   {
@@ -166,7 +166,7 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 5,
-    "due_date": "2026-07-21",
+    "due_date": "2026-07-22",
     "done_date": null
   },
   {
@@ -176,7 +176,7 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 15,
-    "due_date": "2026-07-21",
+    "due_date": "2026-07-22",
     "done_date": null
   },
   {
@@ -196,7 +196,7 @@
     "priority": 3.0,
     "initial_priority": 3.0,
     "duration": 5,
-    "due_date": "2026-07-21",
+    "due_date": "2026-07-22",
     "done_date": null
   },
   {
@@ -226,8 +226,8 @@
     "priority": 3.0,
     "initial_priority": 3.0,
     "duration": 15,
-    "due_date": "2026-07-21",
-    "done_date": null
+    "due_date": "2026-07-22",
+    "done_date": "2026-07-21"
   },
   {
     "id": 27,
@@ -236,7 +236,7 @@
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 60,
-    "due_date": null,
+    "due_date": "2026-07-22",
     "done_date": null
   },
   {
@@ -246,7 +246,7 @@
     "priority": 4.0,
     "initial_priority": 4.0,
     "duration": 10,
-    "due_date": "2026-07-21",
+    "due_date": "2026-07-22",
     "done_date": null
   },
   {
@@ -303,11 +303,11 @@
     "id": 34,
     "name": "🛏 Ranger les vêtements de l'étendoir",
     "frequency": "1xsemaine",
-    "priority": 3.5,
+    "priority": 2,
     "initial_priority": 2,
     "duration": 10,
-    "due_date": "2026-07-21",
-    "done_date": "2026-07-19"
+    "due_date": "2026-07-22",
+    "done_date": "2026-07-21"
   },
   {
     "id": 35,
@@ -336,7 +336,37 @@
     "priority": 5,
     "initial_priority": 5,
     "duration": 30,
-    "due_date": "2026-07-21",
+    "due_date": "2026-07-22",
+    "done_date": null
+  },
+  {
+    "id": 38,
+    "name": "🍴 Lancer le lave-vaisselle",
+    "frequency": "1xsemaine",
+    "priority": 4,
+    "initial_priority": 4,
+    "duration": 5,
+    "due_date": "2026-07-22",
+    "done_date": null
+  },
+  {
+    "id": 39,
+    "name": "🪟 Nettoyer les vitres",
+    "frequency": "1xmois",
+    "priority": 2,
+    "initial_priority": 2,
+    "duration": 45,
+    "due_date": null,
+    "done_date": null
+  },
+  {
+    "id": 40,
+    "name": "😺 Enlever crottes et pipi de la litière",
+    "frequency": "1xjour",
+    "priority": 4,
+    "initial_priority": 4,
+    "duration": 2,
+    "due_date": "2026-07-22",
     "done_date": null
   }
 ]
