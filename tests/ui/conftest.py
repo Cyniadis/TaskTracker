@@ -92,3 +92,8 @@ def general_app():
 @pytest.fixture
 def general_grid_logic_app():
     return _app("general_grid_logic_app.py")
+
+
+@pytest.fixture
+def full_app():
+    return _app("full_app.py")
