@@ -173,7 +173,17 @@ def _color_by_due_date(row: pd.Series) -> list[str]:
 
 
 def render() -> None:
-    """Render the 'Today' tab: header controls + the today-tasks grid."""
+    """Render the 'Today' tab: either the not-yet-generated prompt, or the
+    header controls + today-tasks grid."""
+    if not st.session_state.get("today_generated", False):
+        st.info("Today's task list hasn't been generated yet.")
+        st.button(
+            "▶️ Generate today's list",
+            on_click=ui_state.regenerate_today_tasks,
+            type="primary",
+        )
+        return
+
     _render_today_header()
 
     df = _tasks_to_today_dataframe(st.session_state.today_tasks)
