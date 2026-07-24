@@ -8,6 +8,7 @@ import streamlit as st
 from tasktracker.ui import today_tab
 
 st.session_state.setdefault("today_tasks", [])
+st.session_state.setdefault("today_generated", False)
 st.session_state.setdefault("daily_limit", 60)
 st.session_state.setdefault("active_duration", 0)
 st.session_state.setdefault("nb_today_task", 0)
