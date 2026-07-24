@@ -21,6 +21,7 @@ from ..json_utils import (
     load_show_rescheduled,
     load_tasks,
     save_tasks,
+    load_timer_start_time
 )
 from ..selector import compute_daily_tasks
 from ..task import Task, normalize_date
@@ -155,6 +156,7 @@ def init_session_state() -> None:
     st.session_state.setdefault("timer_running", False)
     st.session_state.setdefault("timer_start_time", None)
     st.session_state.setdefault("elapsed_accum", 0.0)
+
 
     persist_tasks()
 

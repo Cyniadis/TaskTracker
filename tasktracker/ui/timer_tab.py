@@ -6,9 +6,11 @@ from datetime import datetime
 
 import streamlit as st
 
+from ..json_utils import load_timer_start_time, cache_timer_start_time
+
 _TICK_SECONDS = 0.25  # how often the fragment reruns itself while the timer is running
 
-
+@st.fragment
 def _toggle_play_pause() -> None:
     """Start the timer if it's stopped, or bank the elapsed time if it's running."""
     if st.session_state.timer_running:
@@ -19,6 +21,7 @@ def _toggle_play_pause() -> None:
     else:
         st.session_state.timer_start_time = datetime.now()
         st.session_state.timer_running = True
+    cache_timer_start_time(st.session_state.timer_start_time, st.session_state.timer_running)
 
 
 def _reset() -> None:
@@ -26,7 +29,7 @@ def _reset() -> None:
     st.session_state.timer_running = False
     st.session_state.timer_start_time = None
     st.session_state.elapsed_accum = 0.0
-
+    cache_timer_start_time(st.session_state.timer_start_time, st.session_state.timer_running)
 
 def _current_elapsed_seconds() -> int:
     """Total elapsed seconds so far: banked time plus the current running segment, if any."""
@@ -36,10 +39,7 @@ def _current_elapsed_seconds() -> int:
     return int(accum)
 
 
-@st.fragment
-def render() -> None:
-    """Render the stopwatch. Runs as its own fragment so the 0.25s tick only
-    reruns this widget, not the whole page."""
+def _render():
     total_seconds = _current_elapsed_seconds()
     hours, remainder = divmod(total_seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
@@ -59,4 +59,18 @@ def render() -> None:
 
     if st.session_state.timer_running:
         time.sleep(_TICK_SECONDS)
+
+
+@st.fragment
+def _render_fragment():
+    _render()
+    # st.rerun(scope="fragment") is ONLY here, safely inside the fragment
+    if st.session_state.timer_running:
+        time.sleep(_TICK_SECONDS)
         st.rerun(scope="fragment")
+        
+def render():
+    if "timer_initialized" not in st.session_state:
+        st.session_state.timer_start_time, st.session_state.timer_running = load_timer_start_time()
+        st.session_state.timer_initialized = True
+    _render_fragment()

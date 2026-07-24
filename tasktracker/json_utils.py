@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
+from datetime import datetime
 
 from .consts import CACHE_FILE, DATE_FORMAT, DEFAULT_DAILY_LIMIT_MINUTES, TASKS_FILE, today
 from .task import Frequency, Task, normalize_date
@@ -161,6 +162,20 @@ def load_allow_future_tasks() -> bool:
 
 def cache_allow_future_tasks(allow_future_tasks: bool) -> None:
     set_cached_value("allow_future_tasks", allow_future_tasks)
+
+
+def load_timer_start_time() -> tuple[datetime, bool] :
+    cached_time = get_cached_value("timer_start_time", None)
+    start_time = datetime.strptime(cached_time, "%Y-%m-%d %H:%M:%S") if cached_time is not None else None
+    timer_running = get_cached_value("timer_running")
+    return start_time, timer_running
+
+def cache_timer_start_time(start_time: datetime, timer_running: bool) -> None:
+    if start_time == None: 
+        set_cached_value("timer_start_time", None)
+    else:
+        set_cached_value("timer_start_time", start_time.strftime("%Y-%m-%d %H:%M:%S"))
+    set_cached_value("timer_running", timer_running)
 
 
 # -- import validation ------------------------------------------------------
