@@ -363,10 +363,20 @@
     "id": 40,
     "name": "😺 Enlever crottes et pipi de la litière",
     "frequency": "1xjour",
+    "priority": 14.5,
+    "initial_priority": 4,
+    "duration": 5,
+    "due_date": "2026-07-25",
+    "done_date": null
+  },
+  {
+    "id": 41,
+    "name": "😺 Commander litère/croquettes/pâtées",
+    "frequency": "1xmois",
     "priority": 4,
     "initial_priority": 4,
-    "duration": 2,
-    "due_date": "2026-07-22",
+    "duration": 15,
+    "due_date": "2026-07-25",
     "done_date": null
   }
 ]
