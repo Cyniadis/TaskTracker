@@ -13,7 +13,8 @@ from datetime import date
 from enum import Enum, auto
 
 from .consts import today
-from .task import Task, schedule_task_list
+from .task import Task
+from .task_list_ops import schedule_task_list
 
 
 class Eligibility(Enum):

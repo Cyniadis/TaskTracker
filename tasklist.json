@@ -365,8 +365,8 @@
     "frequency": "1xjour",
     "priority": 4.5,
     "initial_priority": 4,
-    "duration": 2,
-    "due_date": "2026-07-22",
+    "duration": 15,
+    "due_date": "2026-07-25",
     "done_date": null
   },
   {
