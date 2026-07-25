@@ -8,6 +8,6 @@ from tasktracker.ui import timer_tab
 
 st.session_state.setdefault("timer_running", False)
 st.session_state.setdefault("timer_start_time", None)
-st.session_state.setdefault("elapsed_accum", 0.0)
+st.session_state.setdefault("timer_elapsed_accum", 0.0)
 
 timer_tab.render()

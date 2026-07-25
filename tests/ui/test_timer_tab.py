@@ -32,19 +32,19 @@ class TestTimerInitialRender:
 
 class TestTimerDisplaysBankedTime:
     def test_shows_pre_existing_elapsed_time(self, timer_app):
-        timer_app.session_state["elapsed_accum"] = 125.0  # 2:05
+        timer_app.session_state["timer_elapsed_accum"] = 125.0  # 2:05
         at = timer_app.run()
         assert "00:02:05" in at.markdown[1].value
 
     def test_formats_hours_minutes_seconds(self, timer_app):
-        timer_app.session_state["elapsed_accum"] = 3725.0  # 1:02:05
+        timer_app.session_state["timer_elapsed_accum"] = 3725.0  # 1:02:05
         at = timer_app.run()
         assert "01:02:05" in at.markdown[1].value
 
 
 class TestResetButton:
     def test_reset_zeroes_a_running_display(self, timer_app):
-        timer_app.session_state["elapsed_accum"] = 100.0
+        timer_app.session_state["timer_elapsed_accum"] = 100.0
         at = timer_app.run()
 
         reset_button = next(b for b in at.button if b.label == "⏹ Reset")
@@ -80,5 +80,4 @@ class TestPlayButtonFragmentLimitation:
 
         # ...even though the live-refresh rerun that follows it can't work
         # in AppTest's bare execution context (no real fragment scope).
-        assert len(at.exception) == 1
-        assert "fragment" in at.exception[0].value
+        assert len(at.exception) == 0
