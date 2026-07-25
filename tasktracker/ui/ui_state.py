@@ -20,7 +20,7 @@ from ..json_utils import (
     load_show_completed,
     load_show_rescheduled,
     load_tasks,
-    save_tasks,
+    save_tasks
 )
 from ..selector import compute_daily_tasks
 from ..task import Task, normalize_date
@@ -154,7 +154,7 @@ def init_session_state() -> None:
     st.session_state.setdefault("general_grid_key", "GeneralGrid1")
     st.session_state.setdefault("timer_running", False)
     st.session_state.setdefault("timer_start_time", None)
-    st.session_state.setdefault("elapsed_accum", 0.0)
+    st.session_state.setdefault("timer_elapsed_accum", 0.0)
 
     persist_tasks()
 
