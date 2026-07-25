@@ -61,7 +61,7 @@ class TestEmptyState:
     def test_shows_info_message_when_no_tasks_today(self, today_app):
         at = today_app.run()
         assert len(at.dataframe) == 0
-        assert any("No tasks were selected for today" in i.value for i in at.info)
+        assert any("Today's task list hasn't been generated yet" in i.value for i in at.info)
 
 
 class TestTaskTable:
@@ -69,6 +69,7 @@ class TestTaskTable:
         t1 = Task(id=1, name="Task A", duration=10, priority=2.0, initial_priority=2.0, due_date=FROZEN_TODAY)
         t2 = Task(id=2, name="Task B", duration=5, priority=1.0, initial_priority=1.0, due_date=FROZEN_TODAY)
         today_app.session_state["today_tasks"] = [t1, t2]
+        today_app.session_state["today_generated"] = True
         at = today_app.run()
 
         df = at.dataframe[0].value
@@ -79,6 +80,7 @@ class TestTaskTable:
         done = Task(id=1, name="Done", duration=5, due_date=FROZEN_TODAY, done_date=FROZEN_TODAY)
         pending = Task(id=2, name="Pending", duration=5, due_date=FROZEN_TODAY, done_date=None)
         today_app.session_state["today_tasks"] = [done, pending]
+        today_app.session_state["today_generated"] = True
         at = today_app.run()
 
         df = at.dataframe[0].value
@@ -89,6 +91,7 @@ class TestTaskTable:
     def test_renders_without_error_when_populated(self, today_app):
         t1 = Task(id=1, name="Task A", duration=10, due_date=FROZEN_TODAY)
         today_app.session_state["today_tasks"] = [t1]
+        today_app.session_state["today_generated"] = True
         at = today_app.run()
         assert len(at.exception) == 0
 
@@ -97,6 +100,7 @@ class TestRegenerateButton:
     def test_click_does_not_error(self, today_app):
         today_app.session_state["tasks"] = []
         today_app.session_state["today_tasks"] = []
+        today_app.session_state["today_generated"] = True
         at = today_app.run()
 
         regenerate = next(b for b in at.button if "Regenerate" in b.label)
@@ -108,6 +112,7 @@ class TestRegenerateButton:
         due_today = Task(id=1, name="Due today", duration=10, due_date=FROZEN_TODAY)
         today_app.session_state["tasks"] = [due_today]
         today_app.session_state["today_tasks"] = []
+        today_app.session_state["today_generated"] = True
         at = today_app.run()
 
         regenerate = next(b for b in at.button if "Regenerate" in b.label)

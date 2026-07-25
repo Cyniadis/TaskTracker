@@ -11,6 +11,7 @@ from tasktracker.ui import today_tab as tt
 
 st.session_state.setdefault("tasks", [])
 st.session_state.setdefault("today_tasks", [])
+st.session_state.setdefault("today_generated", False)
 
 if st.button("toggle_row"):
     tt._on_row_selected()
