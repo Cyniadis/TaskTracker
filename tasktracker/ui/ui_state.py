@@ -156,7 +156,6 @@ def init_session_state() -> None:
     st.session_state.setdefault("timer_start_time", None)
     st.session_state.setdefault("timer_elapsed_accum", 0.0)
 
-
     persist_tasks()
 
 

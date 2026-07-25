@@ -61,7 +61,7 @@ class TestEmptyState:
     def test_shows_info_message_when_no_tasks_today(self, today_app):
         at = today_app.run()
         assert len(at.dataframe) == 0
-        assert any("No tasks were selected for today" in i.value for i in at.info)
+        assert any("Today's task list hasn't been generated yet" in i.value for i in at.info)
 
 
 class TestTaskTable:
