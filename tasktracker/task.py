@@ -86,9 +86,6 @@ def normalize_date(value: Any) -> date | None:
     raise TypeError(f"Unsupported date value: {value!r}")
 
 
-def schedule_task_list(tasks: list[Task], date: datetime.date):
-    for task in tasks:
-        task.schedule_for(date)
 @dataclass
 class Task:
     """A recurring chore, with everything needed to schedule and track it."""
@@ -190,6 +187,7 @@ class Task:
         task has actually been completed on its due date.
         """
         self.due_date = current_date
+        self.orig_due_date = self.due_date
 
     def set_field(self, field_name: str, value: Any) -> None:
         """Generic setter used by grid-edit callbacks (keeps date fields normalized)."""
