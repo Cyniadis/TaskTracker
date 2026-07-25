@@ -5,7 +5,8 @@ from datetime import date, datetime
 
 import pytest
 
-from tasktracker.task import Frequency, Period, Task, normalize_date, schedule_task_list
+from tasktracker.task import Frequency, Period, Task, normalize_date
+from tasktracker.task_list_ops import schedule_task_list
 
 
 # ---------------------------------------------------------------------------
