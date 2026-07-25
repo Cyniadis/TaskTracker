@@ -72,10 +72,13 @@ def render() -> None:
     """Render the stopwatch: static chrome here, the ticking clock in its own fragment."""
     st.markdown("### Timer", anchors=False)
     
-    st.session_state.timer_start_time, \
-    st.session_state.timer_elapsed_accum, \
-    st.session_state.time_running = load_timer_state()
-    
+    if "timer_start_time" not in st.session_state and \
+        "timer_elapsed_accum" not in st.session_state and \
+        "timer_running" not in st.session_state:
+        st.session_state.timer_start_time, \
+        st.session_state.timer_elapsed_accum, \
+        st.session_state.timer_running = load_timer_state()
+        
     with st.container(horizontal_alignment="center", border=True, width="content"):
         if not st.session_state.timer_running:
             _timer_ui()

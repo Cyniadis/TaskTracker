@@ -50,7 +50,7 @@ def _no_disk_io(monkeypatch):
     module namespace each one was imported into (they're plain `from x
     import y` bindings, so patching json_utils itself wouldn't reach them).
     """
-    from tasktracker.ui import general_tab, today_tab, ui_state
+    from tasktracker.ui import general_tab, today_tab, ui_state, timer_tab
 
     monkeypatch.setattr(ui_state, "save_tasks", lambda *a, **k: None)
     monkeypatch.setattr(ui_state, "cache_tasks", lambda *a, **k: None)
@@ -63,6 +63,9 @@ def _no_disk_io(monkeypatch):
     monkeypatch.setattr(today_tab, "cache_show_completed", lambda *a, **k: None)
     monkeypatch.setattr(today_tab, "cache_show_rescheduled", lambda *a, **k: None)
     monkeypatch.setattr(today_tab, "cache_allow_future_tasks", lambda *a, **k: None)
+    
+    monkeypatch.setattr(timer_tab, "cache_timer_state", lambda *a, **k: None)
+    monkeypatch.setattr(timer_tab, "load_timer_state", lambda: (None, 0.0, False))
 
 
 def _app(name: str) -> AppTest:

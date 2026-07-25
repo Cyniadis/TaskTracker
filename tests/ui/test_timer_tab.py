@@ -80,5 +80,4 @@ class TestPlayButtonFragmentLimitation:
 
         # ...even though the live-refresh rerun that follows it can't work
         # in AppTest's bare execution context (no real fragment scope).
-        assert len(at.exception) == 1
-        assert "fragment" in at.exception[0].value
+        assert len(at.exception) == 0

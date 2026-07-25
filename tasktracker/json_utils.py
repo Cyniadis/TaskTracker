@@ -169,7 +169,6 @@ def load_timer_state() -> tuple[datetime, float, bool] :
     start_time = datetime.strptime(cached_time, "%Y-%m-%d %H:%M:%S") if cached_time is not None else None
     timer_elapsed_accum = get_cached_value("timer_elapsed_accum")
     timer_running = get_cached_value("timer_running")
-    print(f"load_timer_state() {timer_elapsed_accum}")
     return start_time, timer_elapsed_accum, timer_running
 
 def cache_timer_state(**kwargs) -> None:
