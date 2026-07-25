@@ -27,7 +27,8 @@ class TestOnRowSelected:
         task = Task(id=1, name="Task A", priority=5.0, initial_priority=2.0, done_date=None)
         today_tab_logic_app.session_state["tasks"] = [task]
         today_tab_logic_app.session_state["today_tasks"] = [task]
-
+        today_tab_logic_app.session_state["today_generated"] = True
+        
         at = _click_toggle(today_tab_logic_app, TODAY_ROW)
 
         assert len(at.exception) == 0
@@ -39,7 +40,8 @@ class TestOnRowSelected:
         task.complete(date(2026, 7, 21))
         today_tab_logic_app.session_state["tasks"] = [task]
         today_tab_logic_app.session_state["today_tasks"] = [task]
-
+        today_tab_logic_app.session_state["today_generated"] = True
+        
         at = _click_toggle(today_tab_logic_app, DONE_ROW)
 
         assert len(at.exception) == 0
@@ -49,7 +51,8 @@ class TestOnRowSelected:
         task = Task(id=1, name="Task A", priority=3.0, initial_priority=1.0, done_date=None)
         today_tab_logic_app.session_state["tasks"] = [task]
         today_tab_logic_app.session_state["today_tasks"] = [task]
-
+        today_tab_logic_app.session_state["today_generated"] = True
+        
         at = _click_toggle(today_tab_logic_app, TODAY_ROW)
         assert task.done_date is not None
 
