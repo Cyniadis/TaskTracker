@@ -24,7 +24,7 @@ st.session_state.setdefault("general_grid_key", "GeneralGrid1")
 st.session_state.setdefault("ascending", True)
 st.session_state.setdefault("timer_running", False)
 st.session_state.setdefault("timer_start_time", None)
-st.session_state.setdefault("elapsed_accum", 0.0)
+st.session_state.setdefault("timer_elapsed_accum", 0.0)
 
 today_tab_ui, general_tab_ui, timer_tab_ui = st.tabs(["📝 Today", "⚙️ General", "⏱️ Timer"])
 

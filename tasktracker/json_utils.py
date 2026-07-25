@@ -164,20 +164,23 @@ def cache_allow_future_tasks(allow_future_tasks: bool) -> None:
     set_cached_value("allow_future_tasks", allow_future_tasks)
 
 
-def load_timer_start_time() -> tuple[datetime, bool] :
+def load_timer_state() -> tuple[datetime, float, bool] :
     cached_time = get_cached_value("timer_start_time", None)
     start_time = datetime.strptime(cached_time, "%Y-%m-%d %H:%M:%S") if cached_time is not None else None
+    timer_elapsed_accum = get_cached_value("timer_elapsed_accum")
     timer_running = get_cached_value("timer_running")
-    return start_time, timer_running
+    print(f"load_timer_state() {timer_elapsed_accum}")
+    return start_time, timer_elapsed_accum, timer_running
 
-def cache_timer_start_time(start_time: datetime, timer_running: bool) -> None:
-    if start_time == None: 
-        set_cached_value("timer_start_time", None)
-    else:
-        set_cached_value("timer_start_time", start_time.strftime("%Y-%m-%d %H:%M:%S"))
-    set_cached_value("timer_running", timer_running)
-
-
+def cache_timer_state(**kwargs) -> None:
+    if "timer_start_time" in kwargs:
+        timer_start_time = None if kwargs["timer_start_time"] is None else kwargs["timer_start_time"].strftime("%Y-%m-%d %H:%M:%S")
+        set_cached_value("timer_start_time", timer_start_time)
+    if "timer_elapsed_accum" in kwargs:
+        set_cached_value("timer_elapsed_accum", kwargs["timer_elapsed_accum"])
+    if "timer_running" in kwargs:
+        set_cached_value("timer_running", kwargs["timer_running"])
+        
 # -- import validation ------------------------------------------------------
 
 def validate_and_parse_tasks(raw_data: Any) -> list[Task]:
