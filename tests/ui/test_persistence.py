@@ -138,7 +138,7 @@ class TestCrossTabPersistence:
         assert any(b.label == "▼ Descending" for b in at.button)
 
     def test_running_timer_elapsed_time_survives_a_rerun_triggered_from_the_today_tab(self, full_app):
-        full_app.session_state["elapsed_accum"] = 305.0  # 5:05
+        full_app.session_state["timer_elapsed_accum"] = 305.0  # 5:05
         full_app.session_state["today_generated"] = True
         at = full_app.run()
 
@@ -193,7 +193,7 @@ class TestSameTabMultiRerunStability:
         assert len(at.exception) == 0
 
     def test_timer_tab_elapsed_time_is_stable_across_repeated_reruns_when_stopped(self, timer_app):
-        timer_app.session_state["elapsed_accum"] = 42.0
+        timer_app.session_state["timer_elapsed_accum"] = 42.0
         at = timer_app.run()
 
         for _ in range(3):
