@@ -3,7 +3,7 @@
     "id": 0,
     "name": "🍴 Mettre la vaisselle au lave-vaisselle",
     "frequency": "1xjour",
-    "priority": 4.5,
+    "priority": 5.0,
     "initial_priority": 4,
     "duration": 5,
     "due_date": "2026-07-24",
@@ -13,7 +13,7 @@
     "id": 1,
     "name": "🍴 Nettoyer la vaisselle sale à la main",
     "frequency": "3xsemaine",
-    "priority": 4.5,
+    "priority": 5.0,
     "initial_priority": 4.0,
     "duration": 10,
     "due_date": "2026-07-22",
@@ -33,7 +33,7 @@
     "id": 5,
     "name": "🍴 Nettoyer le plan de travail",
     "frequency": "1xjour",
-    "priority": 4.5,
+    "priority": 5.0,
     "initial_priority": 4.0,
     "duration": 5,
     "due_date": "2026-07-21",
@@ -63,7 +63,7 @@
     "id": 8,
     "name": "🍴 Nettoyer l'infuseur de la machine à café",
     "frequency": "1xsemaine",
-    "priority": 2.5,
+    "priority": 3.0,
     "initial_priority": 3.0,
     "duration": 10,
     "due_date": "2026-07-26",
@@ -93,11 +93,11 @@
     "id": 11,
     "name": "😺 Changer l'eau et donner de la pâtée",
     "frequency": "1xjour",
-    "priority": 7.5,
+    "priority": 7,
     "initial_priority": 7,
     "duration": 5,
     "due_date": "2026-07-27",
-    "done_date": null
+    "done_date": "2026-07-27"
   },
   {
     "id": 12,
@@ -106,7 +106,7 @@
     "priority": 3.5,
     "initial_priority": 3.0,
     "duration": 10,
-    "due_date": "2026-07-27",
+    "due_date": "2026-08-03",
     "done_date": null
   },
   {
@@ -116,8 +116,8 @@
     "priority": 3.5,
     "initial_priority": 3.0,
     "duration": 25,
-    "due_date": "2026-07-27",
-    "done_date": null
+    "due_date": "2026-07-25",
+    "done_date": "2026-07-25"
   },
   {
     "id": 15,
@@ -143,10 +143,10 @@
     "id": 18,
     "name": "🛋️ Enlever les toiles d'araignée",
     "frequency": "2xmois",
-    "priority": 2.5,
+    "priority": 3.0,
     "initial_priority": 2.0,
     "duration": 20,
-    "due_date": "2026-07-25",
+    "due_date": "2026-07-27",
     "done_date": null
   },
   {
@@ -163,7 +163,7 @@
     "id": 20,
     "name": "🛋️ Nettoyer la table basse",
     "frequency": "1xmois",
-    "priority": 2.5,
+    "priority": 3.0,
     "initial_priority": 2.0,
     "duration": 5,
     "due_date": "2026-07-22",
@@ -173,7 +173,7 @@
     "id": 21,
     "name": "🛋️ Nettoyer le bureau",
     "frequency": "1xsemaine",
-    "priority": 2.5,
+    "priority": 3.0,
     "initial_priority": 2.0,
     "duration": 15,
     "due_date": "2026-07-25",
@@ -223,7 +223,7 @@
     "id": 26,
     "name": "🛏 Ranger les vêtements qui trainent",
     "frequency": "1xjour",
-    "priority": 3.5,
+    "priority": 4.0,
     "initial_priority": 3.0,
     "duration": 15,
     "due_date": "2026-07-22",
@@ -246,7 +246,7 @@
     "priority": 4.5,
     "initial_priority": 4.0,
     "duration": 10,
-    "due_date": "2026-07-23",
+    "due_date": "2026-08-07",
     "done_date": "2026-07-23"
   },
   {
@@ -293,7 +293,7 @@
     "id": 33,
     "name": "🍴 Ranger la vaisselle propre du lave-vaisselle",
     "frequency": "1xjour",
-    "priority": 4.5,
+    "priority": 5.0,
     "initial_priority": 2,
     "duration": 5,
     "due_date": "2026-07-22",
@@ -376,7 +376,7 @@
     "priority": 4,
     "initial_priority": 4,
     "duration": 15,
-    "due_date": "2026-07-27",
-    "done_date": null
+    "due_date": "2026-07-25",
+    "done_date": "2026-07-25"
   }
 ]
