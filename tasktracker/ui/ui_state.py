@@ -202,6 +202,15 @@ def schedule_task_for_today(task: Task) -> None:
     cache_today_tasks()
     persist_tasks()
     reload_today_grid()
+    
+
+def update_dates(task: Task, date: datetime.date) -> None:
+    """Manually add a task to today's list, ignoring the daily time budget."""
+    task.done_date = date
+    task.due_date = task.compute_next_due_date(date)
+    cache_today_tasks()
+    persist_tasks()
+
 
 
 def remove_tasks(task_ids: list[int]) -> None:
