@@ -4,6 +4,9 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
+from datetime import datetime
+from datetime import date
+
 from . import ui_state
 from .common import get_theme_color
 from ..consts import today
@@ -68,8 +71,8 @@ def _edit_due_date(row: int) -> None:
             st.rerun()
 
     with st.container(horizontal=True, vertical_alignment="bottom"):
-        if st.button("Cancel task"):
-            task.due_date = None
+        if st.button("To undefined due date"):
+            task.due_date = date.max
             ui_state.persist_tasks()
             st.rerun()
         if st.button("To next due date"):
@@ -167,6 +170,8 @@ def _color_by_due_date(row: pd.Series) -> list[str]:
     color = get_theme_color("textColor")
     if current_date == row["done_date"]:
         color = get_theme_color("doneTextColor")
+    elif row["due_date"]  == date.max:
+        color = get_theme_color("cancelledTextColor")
     elif row["due_date"] != current_date:
         color = get_theme_color("hiddenTextColor")
     return [f"color: {color}"] * len(row)
