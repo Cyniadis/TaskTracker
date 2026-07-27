@@ -20,7 +20,7 @@ from ..json_utils import (
     load_show_completed,
     load_show_rescheduled,
     load_tasks,
-    save_tasks,
+    save_tasks
 )
 from ..selector import compute_daily_tasks
 from ..task import Task, normalize_date
@@ -62,65 +62,26 @@ def _sync_today_tasks(
 
     cached_ids = set(cached_task_ids or [])
     today_tasks = [t for t in tasks if t.id in cached_ids]
-
-    completed_tasks = [t for t in tasks if t.is_completed_on(current_date)] if show_completed else []
-    rescheduled_tasks = (
-        [t for t in tasks if any(diff[0] == "Due date" for diff in t.get_changes())]
-        if show_rescheduled else []
-    )
-
-    existing_ids = {t.id for t in today_tasks}
-    today_tasks += [t for t in completed_tasks if t.id not in existing_ids]
-
-    existing_ids = {t.id for t in today_tasks}
-    today_tasks += [t for t in rescheduled_tasks if t.id not in existing_ids]
-
+    today_tasks = filter_today_tasks(tasks, today_tasks, show_completed, show_rescheduled)
+    
     return today_tasks, True
 
 
-def load_today_tasks(
-    tasks: list[Task],
-    daily_limit: int,
-    show_completed: bool = False,
-    show_rescheduled: bool = False,
-    allow_future_tasks: bool = False,
-) -> list[Task]:
-    """Actually *compute* today's task list by running the selector.
-
-    This is the only function allowed to call `compute_daily_tasks`. It's
-    used exclusively by `regenerate_today_tasks` — never at plain session
-    init, which instead uses `_sync_today_tasks` to re-derive from
-    cache.json without recomputing anything.
-
-    Reuses whatever is currently cached as `today` as the "pre-selected"
-    set (if any) so the picks stay stable around already-chosen tasks
-    instead of being recomputed from scratch, then also appends
-    already-completed and/or rescheduled tasks so they remain visible
-    even if they'd no longer be picked by the selector.
-    """
-    current_date = today()
-    _, cached_task_ids = load_cached_task_ids()
-    cached_task_ids = cached_task_ids or []
-
-    pre_selected = [t for t in tasks if t.id in cached_task_ids]
-    today_tasks = compute_daily_tasks(
-        tasks, current_date, daily_limit, pre_selected, allow_future_tasks=allow_future_tasks,
-    )
-
-    completed_tasks = [t for t in tasks if t.is_completed_on(current_date)] if show_completed else []
-    rescheduled_tasks = (
-        [t for t in tasks if any(diff[0] == "Due date" for diff in t.get_changes())]
-        if show_rescheduled else []
-    )
-
-    existing_ids = {t.id for t in today_tasks}
-    today_tasks += [t for t in completed_tasks if t.id not in existing_ids]
-
-    existing_ids = {t.id for t in today_tasks}
-    today_tasks += [t for t in rescheduled_tasks if t.id not in existing_ids]
-
-    return today_tasks
-
+def filter_today_tasks(tasks: list[Task], today_tasks: list[Task], show_completed: bool = False, show_rescheduled: bool = False):
+    completed_tasks = [t for t in tasks if t.is_completed_on(today())] 
+    rescheduled_tasks = [t for t in tasks if any(diff[0] == "Due date" for diff in t.get_changes())]
+    
+    filtered_today_tasks = [ t for t in today_tasks if t not in completed_tasks and t not in rescheduled_tasks ]
+    
+    st.session_state.active_duration = sum([t.duration for t in filtered_today_tasks])
+    st.session_state.nb_today_task = len(filtered_today_tasks)
+    
+    if show_completed: 
+        filtered_today_tasks += completed_tasks
+    if show_rescheduled:
+        filtered_today_tasks += rescheduled_tasks
+    return filtered_today_tasks
+    
 
 def init_session_state() -> None:
     """Set up (or refresh) all Streamlit session state the app depends on.
@@ -136,13 +97,15 @@ def init_session_state() -> None:
     show_rescheduled = load_show_rescheduled()
     allow_future_tasks = load_allow_future_tasks()
 
+    st.session_state.active_duration = 0
+    st.session_state.nb_today_task = 0
+    
     today_tasks, today_generated = _sync_today_tasks(tasks, show_completed, show_rescheduled)
 
     st.session_state.tasks = tasks
     st.session_state.today_tasks = today_tasks
     st.session_state.today_generated = today_generated
-    st.session_state.active_duration = sum(t.duration for t in today_tasks)
-    st.session_state.nb_today_task = len(today_tasks)
+    
     st.session_state.daily_limit = daily_limit
     st.session_state.show_completed = show_completed
     st.session_state.allow_future_tasks = allow_future_tasks
@@ -154,7 +117,7 @@ def init_session_state() -> None:
     st.session_state.setdefault("general_grid_key", "GeneralGrid1")
     st.session_state.setdefault("timer_running", False)
     st.session_state.setdefault("timer_start_time", None)
-    st.session_state.setdefault("elapsed_accum", 0.0)
+    st.session_state.setdefault("timer_elapsed_accum", 0.0)
 
     persist_tasks()
 
@@ -185,16 +148,14 @@ def regenerate_today_tasks() -> None:
     show_completed = load_show_completed()
     show_rescheduled = load_show_rescheduled()
     allow_future_tasks = load_allow_future_tasks()
+    current_date = today()
 
-    today_tasks = load_today_tasks(
-        tasks, daily_limit, show_completed, show_rescheduled,
-        allow_future_tasks=allow_future_tasks,
+    today_tasks = compute_daily_tasks(
+        tasks, current_date, daily_limit, allow_future_tasks=allow_future_tasks,
     )
 
     st.session_state.today_tasks = today_tasks
     st.session_state.today_generated = True
-    st.session_state.active_duration = sum(t.duration for t in today_tasks)
-    st.session_state.nb_today_task = len(today_tasks)
 
     cache_today_tasks()
     persist_tasks()

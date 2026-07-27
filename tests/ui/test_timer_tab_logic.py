@@ -33,7 +33,7 @@ class _FakeClock:
 def state(monkeypatch):
     """A plain namespace standing in for st.session_state, wired into timer_tab.st."""
     fake_state = types.SimpleNamespace(
-        timer_running=False, timer_start_time=None, elapsed_accum=0.0,
+        timer_running=False, timer_start_time=None, timer_elapsed_accum=0.0,
     )
     fake_st = types.SimpleNamespace(session_state=fake_state)
     monkeypatch.setattr(timer_tab, "st", fake_st)
@@ -64,7 +64,7 @@ class TestTogglePlayPause:
 
         assert state.timer_running is False
         assert state.timer_start_time is None
-        assert state.elapsed_accum == pytest.approx(5.0)
+        assert state.timer_elapsed_accum == pytest.approx(5.0)
 
     def test_multiple_start_stop_cycles_accumulate(self, state, monkeypatch):
         t0 = datetime(2026, 7, 21, 12, 0, 0)
@@ -81,43 +81,43 @@ class TestTogglePlayPause:
         _freeze(monkeypatch, t0 + timedelta(seconds=17))
         timer_tab._toggle_play_pause()  # stop: +7s
 
-        assert state.elapsed_accum == pytest.approx(10.0)
+        assert state.timer_elapsed_accum == pytest.approx(10.0)
 
     def test_starting_does_not_touch_elapsed_accum(self, state, monkeypatch):
-        state.elapsed_accum = 42.0
+        state.timer_elapsed_accum = 42.0
         _freeze(monkeypatch, datetime(2026, 7, 21, 12, 0, 0))
         timer_tab._toggle_play_pause()
-        assert state.elapsed_accum == 42.0
+        assert state.timer_elapsed_accum == 42.0
 
 
 class TestReset:
     def test_resets_running_flag_start_time_and_accum(self, state):
         state.timer_running = True
         state.timer_start_time = datetime(2026, 7, 21, 12, 0, 0)
-        state.elapsed_accum = 99.0
+        state.timer_elapsed_accum = 99.0
 
         timer_tab._reset()
 
         assert state.timer_running is False
         assert state.timer_start_time is None
-        assert state.elapsed_accum == 0.0
+        assert state.timer_elapsed_accum == 0.0
 
     def test_reset_on_an_already_stopped_timer_is_a_no_op_error_wise(self, state):
         timer_tab._reset()  # should not raise
-        assert state.elapsed_accum == 0.0
+        assert state.timer_elapsed_accum == 0.0
 
 
 class TestCurrentElapsedSeconds:
     def test_stopped_timer_returns_banked_time_only(self, state):
         state.timer_running = False
-        state.elapsed_accum = 42.7
+        state.timer_elapsed_accum = 42.7
         assert timer_tab._current_elapsed_seconds() == 42
 
     def test_running_timer_adds_time_since_start(self, state, monkeypatch):
         start = datetime(2026, 7, 21, 12, 0, 0)
         state.timer_running = True
         state.timer_start_time = start
-        state.elapsed_accum = 10.0
+        state.timer_elapsed_accum = 10.0
 
         _freeze(monkeypatch, start + timedelta(seconds=7))
 
@@ -125,5 +125,5 @@ class TestCurrentElapsedSeconds:
 
     def test_truncates_to_whole_seconds(self, state):
         state.timer_running = False
-        state.elapsed_accum = 5.9
+        state.timer_elapsed_accum = 5.9
         assert timer_tab._current_elapsed_seconds() == 5

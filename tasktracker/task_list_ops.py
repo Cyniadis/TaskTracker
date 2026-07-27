@@ -10,6 +10,8 @@ from __future__ import annotations
 from .task import Task
 from .consts import today
 
+from datetime import datetime
+
 def find_task_by_id(tasks: list[Task], task_id: int) -> Task:
     """Return the task with `id == task_id`, or raise KeyError if not found."""
     for task in tasks:
@@ -53,5 +55,10 @@ def update_tasks_priority_and_due_date(tasks: list[Task]) -> None:
             continue
         if task.is_completed_on(task.due_date):
             task.due_date = task.compute_next_due_date(task.due_date)
+            task.orig_due_date = task.due_date
         else:
             task.increment_priority()
+
+def schedule_task_list(tasks: list[Task], date: datetime.date):
+    for task in tasks:
+        task.schedule_for(date)

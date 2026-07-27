@@ -22,7 +22,6 @@ except locale.Error:
 
 
 def main() -> None:
-    print()
     print("Starting Streamlit App")
 
     st.set_page_config(page_title="TaskTracker", layout="wide")

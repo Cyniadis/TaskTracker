@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
+from datetime import datetime
 
 from .consts import CACHE_FILE, DATE_FORMAT, DEFAULT_DAILY_LIMIT_MINUTES, TASKS_FILE, today
 from .task import Frequency, Task, normalize_date
@@ -163,6 +164,22 @@ def cache_allow_future_tasks(allow_future_tasks: bool) -> None:
     set_cached_value("allow_future_tasks", allow_future_tasks)
 
 
+def load_timer_state() -> tuple[datetime, float, bool] :
+    cached_time = get_cached_value("timer_start_time", None)
+    start_time = datetime.strptime(cached_time, "%Y-%m-%d %H:%M:%S") if cached_time is not None else None
+    timer_elapsed_accum = get_cached_value("timer_elapsed_accum")
+    timer_running = get_cached_value("timer_running")
+    return start_time, timer_elapsed_accum, timer_running
+
+def cache_timer_state(**kwargs) -> None:
+    if "timer_start_time" in kwargs:
+        timer_start_time = None if kwargs["timer_start_time"] is None else kwargs["timer_start_time"].strftime("%Y-%m-%d %H:%M:%S")
+        set_cached_value("timer_start_time", timer_start_time)
+    if "timer_elapsed_accum" in kwargs:
+        set_cached_value("timer_elapsed_accum", kwargs["timer_elapsed_accum"])
+    if "timer_running" in kwargs:
+        set_cached_value("timer_running", kwargs["timer_running"])
+        
 # -- import validation ------------------------------------------------------
 
 def validate_and_parse_tasks(raw_data: Any) -> list[Task]:
