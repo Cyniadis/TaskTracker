@@ -12,6 +12,34 @@ from ..json_utils import import_tasks_from_json_bytes, save_tasks, task_list_to_
 from ..task import Task
 from ..task_list_ops import find_task_by_id
 
+from ..consts import today
+
+def _on_update_dates_click():
+    click = st.session_state.update_dates_button
+    _update_dates(click["row"])
+    
+
+@st.dialog("Completed on")
+def _update_dates(row: int) -> None:
+    """Dialog to change, cancel, or advance a task's due date."""
+    
+    st.markdown(f"**{st.session_state.general_df.iloc[row]['name']}**")
+    task = find_task_by_id(st.session_state.tasks, st.session_state.general_df.at[row, "id"])
+    init_date = task.due_date if task.due_date is not None else today()
+
+    with st.container(horizontal=True, vertical_alignment="bottom"):
+        new_date = st.date_input(
+            "Choose a new done date to recompute next due date",
+            value=pd.to_datetime(init_date).date(),
+            width="stretch",
+        )
+        if st.button("Save"):
+            ui_state.update_dates(task, new_date)
+            st.rerun()
+            
+    if st.button("Schedule for today"):
+        ui_state.schedule_task_for_today(task)
+        st.rerun()
 
 def _tasks_to_general_dataframe(tasks: list[Task]) -> pd.DataFrame | None:
     """Build the dataframe shown in the 'General' (edit-all-tasks) tab.
@@ -38,7 +66,7 @@ def _tasks_to_general_dataframe(tasks: list[Task]) -> pd.DataFrame | None:
             "duration": task.duration,
             "due_date": task.due_date,
             "done_date": task.done_date,
-            "schedule_today": ":material/playlist_add: Add to today",
+            "update_dates": ":material/edit_note: Update dates",
             "changes": ":material/edit_note: Changes" if task.get_changes() else None,
         })
     return pd.DataFrame.from_records(records)
@@ -60,12 +88,8 @@ def _column_config() -> dict:
         "duration": st.column_config.NumberColumn("Duration (min)", min_value=1, step=5, required=True),
         "due_date": st.column_config.DateColumn("Due date", format="DD/MM/YYYY"),
         "done_date": st.column_config.DateColumn("Done date", format="DD/MM/YYYY"),
-        "schedule_today": st.column_config.ButtonColumn(
-            "", on_click=_on_schedule_today_click, key="schedule_today_button", alignment="center",
-        ),
-        "changes": st.column_config.ButtonColumn(
-            "", on_click=_on_show_changes_click, key="show_changes_button", alignment="center", width="small",
-        ),
+        "update_dates": st.column_config.ButtonColumn("", on_click=_on_update_dates_click, key="update_dates_button", alignment="center"),
+        "changes": st.column_config.ButtonColumn("", on_click=_on_show_changes_click, key="show_changes_button", alignment="center"),
     }
 
 
@@ -127,15 +151,6 @@ def _export_json_bytes() -> bytes:
     """Serialize the full task list as JSON bytes, for the download button."""
     payload = task_list_to_json(st.session_state.tasks)
     return json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
-
-
-def _on_schedule_today_click() -> None:
-    """Callback for the 'schedule_today' button column."""
-    click = st.session_state.schedule_today_button
-    row = click["row"]
-    task_id = int(st.session_state.general_df.iloc[row]["id"])
-    task = find_task_by_id(st.session_state.tasks, task_id)
-    ui_state.schedule_task_for_today(task)
 
 
 @st.dialog("Changes")
