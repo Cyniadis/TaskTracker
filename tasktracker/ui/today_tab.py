@@ -6,6 +6,7 @@ import streamlit as st
 
 from datetime import datetime
 from datetime import date
+from datetime import timedelta
 
 from . import ui_state
 from .common import get_theme_color
@@ -78,6 +79,10 @@ def _edit_due_date(row: int) -> None:
         if st.button("To next due date"):
             task.due_date = task.compute_next_due_date(task.due_date)
             ui_state.persist_tasks()
+            st.rerun()
+        if st.button("To this weekend"):
+            days_until_saturday = (5 - today().weekday()) % 7
+            task.due_date = today() + timedelta(days=days_until_saturday)
             st.rerun()
 
 
