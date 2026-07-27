@@ -37,6 +37,7 @@ _THEME_COLORS = {
         "grayTextColor": "#31333f",
         "hiddenTextColor": "#31333f36",
         "doneTextColor": "#15823755",
+        "cancelledTextColor": "#82151554",
     },
     "dark": {
         "primaryColor": "#ff4b4b",
@@ -60,6 +61,7 @@ _THEME_COLORS = {
         "grayTextColor": "#d5dae5",
         "hiddenTextColor": "#fafafa36",
         "doneTextColor": "#09ab3c55",
+        "cancelledTextColor": "#ab090954",
     },
 }
 

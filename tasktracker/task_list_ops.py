@@ -11,6 +11,7 @@ from .task import Task
 from .consts import today
 
 from datetime import datetime
+from datetime import date
 
 def find_task_by_id(tasks: list[Task], task_id: int) -> Task:
     """Return the task with `id == task_id`, or raise KeyError if not found."""
@@ -51,6 +52,8 @@ def update_tasks_priority_and_due_date(tasks: list[Task]) -> None:
     """
     current_date = today()
     for task in tasks:
+        if task.due_date == date.max: 
+            task.due_date = None
         if not task.due_date or task.due_date >= current_date:
             continue
         if task.is_completed_on(task.due_date):
