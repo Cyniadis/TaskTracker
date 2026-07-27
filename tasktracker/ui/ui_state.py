@@ -215,8 +215,11 @@ def update_dates(task: Task, date: datetime.date) -> None:
 
 def remove_tasks(task_ids: list[int]) -> None:
     """Remove tasks by id from both the full list and today's list, then persist."""
-    st.session_state.tasks = remove_tasks_by_id(st.session_state.tasks, task_ids)
-    st.session_state.today_tasks = remove_tasks_by_id(st.session_state.today_tasks, task_ids)
+    if len(task_ids) == 0:
+        return
+    # Mutate inplace to bypass the cache from _init_general_task_list()
+    st.session_state.tasks[:] = [t for t in st.session_state.tasks if t.id not in task_ids]
+    st.session_state.today_tasks[:] = [t for t in st.session_state.today_tasks if t.id not in task_ids]
     cache_today_tasks()
     persist_tasks()
     reload_today_grid()
