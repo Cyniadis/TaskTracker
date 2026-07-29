@@ -8,6 +8,7 @@ import locale
 
 import streamlit as st
 
+from tasktracker.groceries import grocery_tab
 from tasktracker.ui import ui_state
 from tasktracker.ui import general_tab, timer_tab, today_tab
 
@@ -28,14 +29,20 @@ def main() -> None:
     st.title("TaskTracker", anchor=False)
 
     ui_state.init_session_state()
+    grocery_tab.init_session_state()
 
-    today_tab_ui, general_tab_ui, timer_tab_ui = st.tabs(["📝 Today", "⚙️ General", "⏱️ Timer"])
+    today_tab_ui, general_tab_ui, groceries_tab_ui, timer_tab_ui = st.tabs(
+        ["📝 Today", "⚙️ General", "🛒 Groceries", "⏱️ Timer"]
+    )
 
     with today_tab_ui:
         today_tab.render()
 
     with general_tab_ui:
         general_tab.render()
+
+    with groceries_tab_ui:
+        grocery_tab.render()
 
     with timer_tab_ui:
         timer_tab.render()
