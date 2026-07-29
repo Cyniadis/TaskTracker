@@ -3,7 +3,7 @@
 Mirrors tasktracker/json_utils.py's tasklist.json handling exactly, just
 pointed at groceries.json and GroceryItem instead of Task — kept in its own
 module so the groceries feature never needs to touch the main json_utils.py
-file. Reuses the generic _read_json/_write_json helpers from there rather
+file. Reuses the generic read_json/write_json helpers from there rather
 than duplicating them.
 """
 from __future__ import annotations
@@ -12,9 +12,9 @@ import json
 from pathlib import Path
 from typing import Any
 
-from ..consts import GROCERIES_FILE
-from ..json_utils import _read_json, _write_json
-from ..task import normalize_date
+from common.consts import GROCERIES_FILE
+from common.json_utils import read_json, write_json
+from common.ui_common import normalize_date
 from .grocery import GroceryItem, GroceryState
 
 
@@ -30,13 +30,13 @@ def grocery_list_to_json(items: list[GroceryItem]) -> list[dict]:
 
 def load_groceries(path: Path = GROCERIES_FILE) -> list[GroceryItem]:
     """Load all grocery items from `path` (empty list if the file is missing)."""
-    raw_items = _read_json(path) or []
+    raw_items = read_json(path) or []
     return json_to_grocery_list(raw_items)
 
 
 def save_groceries(items: list[GroceryItem], path: Path = GROCERIES_FILE) -> None:
     """Write all grocery items to `path`, overwriting its previous contents."""
-    _write_json(path, grocery_list_to_json(items))
+    write_json(path, grocery_list_to_json(items))
 
 
 def next_grocery_id(items: list[GroceryItem]) -> int:

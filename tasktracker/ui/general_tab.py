@@ -7,12 +7,11 @@ import pandas as pd
 import streamlit as st
 
 from . import ui_state
-from .common import PERIOD_OPTIONS
 from ..json_utils import import_tasks_from_json_bytes, save_tasks, task_list_to_json
-from ..task import Task
+from ..task import Task, Period
 from ..task_list_ops import find_task_by_id
 
-from ..consts import today
+from common.consts import today
 
 def _on_update_dates_click():
     click = st.session_state.update_dates_button
@@ -81,7 +80,7 @@ def _column_config() -> dict:
             "Every", min_value=1, step=1, format="%d", width="small", required=True,
         ),
         "frequency_period": st.column_config.SelectboxColumn(
-            "Period", options=PERIOD_OPTIONS, width="small", required=True,
+            "Period", options=[p.value for p in Period], width="small", required=True,
         ),
         "priority": st.column_config.NumberColumn("Priority", step=0.5, format="%.1f"),
         "initial_priority": st.column_config.NumberColumn("Initial Priority", step=0.5, format="%.1f", required=True),

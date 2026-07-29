@@ -9,8 +9,8 @@ from datetime import date
 from datetime import timedelta
 
 from . import ui_state
-from .common import get_theme_color
-from ..consts import today
+from common.ui_common import get_theme_color
+from common.consts import today
 from ..json_utils import (
     cache_allow_future_tasks,
     cache_daily_limit,

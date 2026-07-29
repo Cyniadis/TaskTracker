@@ -12,8 +12,9 @@ import json
 import pandas as pd
 import streamlit as st
 
-from ..consts import today
-from .grocery import STATE_LABELS, GroceryItem, GroceryState
+from common.consts import today
+from tasktracker.ui.ui_state import persist_tasks
+from .grocery import LABEL_TO_STATE, STATE_TO_LABEL, GroceryItem, GroceryState
 from .json_utils import (
     grocery_list_to_json,
     import_groceries_from_json_bytes,
@@ -21,7 +22,11 @@ from .json_utils import (
     next_grocery_id,
     save_groceries,
 )
+from common.ui_common import get_theme_color
 
+
+def persist_groceries():
+    save_groceries(st.session_state.groceries)
 
 @st.cache_resource(show_spinner=False)
 def _init_grocery_list() -> list[GroceryItem]:
@@ -62,6 +67,7 @@ def _to_dataframe(items: list[GroceryItem]) -> pd.DataFrame | None:
     records = [
         {
             "id": item.id,
+            "completed": "🗹" if item.state == GroceryState.BOUGHT else "☐",
             "name": item.name,
             "state": item.state_label,
             "last_bought_date": item.last_bought_date,
@@ -71,16 +77,27 @@ def _to_dataframe(items: list[GroceryItem]) -> pd.DataFrame | None:
     return pd.DataFrame.from_records(records)
 
 
+def _on_bought_button_click() -> None:
+    clicked_row = st.session_state.bought_button["row"]
+    row_id = st.session_state.groceries_df.at[clicked_row, "id"]
+    item = _find_by_id(row_id)
+    
+    was_uncompleted = st.session_state.groceries_df.at[clicked_row, "completed"] != "☐"
+    if was_uncompleted:
+        item.state = GroceryState.TO_BUY
+    else:
+        item.state = GroceryState.BOUGHT
+    print(item)
+    persist_groceries()
+
+
 def _column_config() -> dict:
     return {
         "id": None,
-        "name": st.column_config.TextColumn("Article", width="large", required=True),
-        "state": st.column_config.SelectboxColumn(
-            "État", options=list(STATE_LABELS.values()), width="small", required=True,
-        ),
-        "last_bought_date": st.column_config.DateColumn(
-            "Dernier achat", format="localized", disabled=True,
-        ),
+        "completed": None,
+        "name": st.column_config.TextColumn("Article", width="medium", required=True),
+        "state": st.column_config.SelectboxColumn("État", options=list(STATE_TO_LABEL.values()), width=125, required=True),
+        "last_bought_date": st.column_config.DateColumn("Dernier achat", format="localized", disabled=True),
     }
 
 
@@ -164,32 +181,62 @@ def _import_groceries_dialog() -> None:
         st.rerun()
 
 
+def _color_by_state(row: pd.Series) -> list[str]:
+    """Row-styling: highlight tasks done today, dim tasks not due today."""
+    state = LABEL_TO_STATE[row["state"]]
+    color = get_theme_color("textColor")
+    if state == GroceryState.BOUGHT:
+        color = get_theme_color("doneTextColor")
+    elif state == GroceryState.NOT_TO_BUY:
+        color = get_theme_color("cancelledTextColor")
+    # elif state == GroceryState.TO_BUY:
+    #     color = get_theme_color("hiddenTextColor")
+    return [f"color: {color}"] * len(row)
+
+
+def _toggle_grocery_mode(df: pd.DataFrame):
+    df = df[df["state"] != STATE_TO_LABEL[GroceryState.NOT_TO_BUY]].reset_index(drop=True)
+    column_config = _column_config()
+    column_config["completed"] = st.column_config.ButtonColumn("", width="30", key="bought_button", on_click=_on_bought_button_click, type="tertiary")
+    column_config["last_bought_date"] = None 
+    column_config["name"]["disabled"] = True
+    return df, column_config
+
 def render() -> None:
     """Render the 'Groceries' tab: toolbar (export/import) + the shopping-list grid."""
     st.markdown("### Liste de courses", anchors=False)
 
-    toolbar = st.container(horizontal=True, width="content", vertical_alignment="bottom")
+    toolbar = st.container(horizontal=True, width="content", vertical_alignment="center")
     toolbar.download_button(
         "⭳ Export list", data=_export_json_bytes(), file_name="groceries.json", mime="application/json",
     )
     if toolbar.button("⭱ Import list"):
         _import_groceries_dialog()
 
+        
+    column_config = _column_config()
     df = _to_dataframe(st.session_state.groceries)
+    if toolbar.toggle("🛒 Grocery mode"): 
+        df, column_config = _toggle_grocery_mode(df)
+
+
     if df is None:
         st.info("No grocery items yet — use \u201cAdd item\u201d to create your first one.")
         return
+    
 
     st.session_state.groceries_df = df
 
+    styled_df = df.style.apply(_color_by_state, axis=1)
+
     key = st.session_state.groceries_grid_key
     st.data_editor(
-        df,
-        column_config=_column_config(),
+        styled_df,
+        column_config=column_config,
         hide_index=True,
         width="content",
         height="content",
         key=key,
-        num_rows="dynamic",
+        num_rows="fixed",
         on_change=_on_data_change,
     )

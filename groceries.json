@@ -1,1 +1,164 @@
-[]
+[
+  {
+    "id": 1,
+    "name": "🥦 Gaspacho",
+    "state": "not_to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 2,
+    "name": "🥛 Crème",
+    "state": "bought",
+    "last_bought_date": "2026-07-29"
+  },
+  {
+    "id": 3,
+    "name": "🥦 Pommes de terre",
+    "state": "not_to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 4,
+    "name": "🥦 Champignons bruns",
+    "state": "not_to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 5,
+    "name": "🍺 Bière blonde",
+    "state": "bought",
+    "last_bought_date": "2026-07-29"
+  },
+  {
+    "id": 6,
+    "name": "🧼 Papier toilette",
+    "state": "bought",
+    "last_bought_date": null
+  },
+  {
+    "id": 7,
+    "name": "🥩 Quenelles",
+    "state": "not_to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 8,
+    "name": "🥦 Courgettes",
+    "state": "bought",
+    "last_bought_date": null
+  },
+  {
+    "id": 9,
+    "name": "🥩 Saucisses fumées",
+    "state": "bought",
+    "last_bought_date": null
+  },
+  {
+    "id": 10,
+    "name": "🍎 Nectarines jaunes",
+    "state": "bought",
+    "last_bought_date": null
+  },
+  {
+    "id": 11,
+    "name": "🥟 Pâtes",
+    "state": "bought",
+    "last_bought_date": null
+  },
+  {
+    "id": 12,
+    "name": "🍎 Bananes",
+    "state": "bought",
+    "last_bought_date": null
+  },
+  {
+    "id": 13,
+    "name": "🥚 Œufs",
+    "state": "bought",
+    "last_bought_date": null
+  },
+  {
+    "id": 14,
+    "name": "🥦 Tomates",
+    "state": "to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 15,
+    "name": "🧀 Fromage",
+    "state": "to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 16,
+    "name": "🥤 Sirop de grenadine",
+    "state": "to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 17,
+    "name": "🥟 Riz",
+    "state": "to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 18,
+    "name": "🥛 Skyr nature",
+    "state": "to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 19,
+    "name": "🥛 Beurre doux",
+    "state": "to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 20,
+    "name": "🥩 Lardons fumés",
+    "state": "to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 21,
+    "name": "🍎 Compotes à boire",
+    "state": "to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 22,
+    "name": "🧼 Gel douche",
+    "state": "to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 23,
+    "name": "☕ Café",
+    "state": "to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 24,
+    "name": "🥟 Huile d'olive",
+    "state": "to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 25,
+    "name": "🥟 Sucre",
+    "state": "to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 26,
+    "name": "☕ Céréales",
+    "state": "to_buy",
+    "last_bought_date": null
+  },
+  {
+    "id": 27,
+    "name": "🥟 Sauce tomate",
+    "state": "to_buy",
+    "last_bought_date": null
+  }
+]

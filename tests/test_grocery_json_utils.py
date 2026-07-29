@@ -1,4 +1,4 @@
-"""Persistence + import-validation tests for tasktracker.groceries.json_utils.
+"""Persistence + import-validation tests for groceries.json_utils.
 
 Mirrors tests/test_json_utils.py's TestTaskListRoundTrip conventions —
 every round-trip test uses a tmp_path so the real groceries.json is never
@@ -11,8 +11,8 @@ from datetime import date
 
 import pytest
 
-from tasktracker.groceries import json_utils as grocery_json_utils
-from tasktracker.groceries.grocery import GroceryItem, GroceryState
+from groceries import json_utils as grocery_json_utils
+from groceries.grocery import GroceryItem, GroceryState
 
 
 @pytest.fixture

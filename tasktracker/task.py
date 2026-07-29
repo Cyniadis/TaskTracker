@@ -6,10 +6,11 @@ mechanism — it only knows about the shape and behaviour of a `Task`.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, fields
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from enum import Enum
 from typing import Any
-from .consts import DATE_FORMAT, PRIORITY_INCREMENT
+from common.consts import PRIORITY_INCREMENT
+from common.ui_common import normalize_date
 
 _DATE_FIELDS = ("due_date", "done_date")
 
@@ -58,32 +59,6 @@ class Frequency:
         return f"{self.count}x{self.period.value}"
 
 
-def normalize_date(value: Any) -> date | None:
-    """Coerce assorted date-like inputs (str, datetime, pandas NaT...) into a plain `date`."""
-    if value is None or value == "":
-        return None
-
-    try:
-        if value != value:  # NaN / NaT are the only values that aren't equal to themselves
-            return None
-    except Exception:
-        pass
-
-    if isinstance(value, datetime):
-        return value.date()
-    if isinstance(value, date):
-        return value
-    if isinstance(value, str):
-        value = value.strip()
-        if not value or value.lower() == "nan":
-            return None
-        if "/" in value:
-            return datetime.strptime(value, DATE_FORMAT).date()
-        return datetime.fromisoformat(value).date()
-    if hasattr(value, "item"):  # numpy / pandas scalar
-        return normalize_date(value.item())
-
-    raise TypeError(f"Unsupported date value: {value!r}")
 
 
 @dataclass

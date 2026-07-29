@@ -8,7 +8,7 @@ Streamlit session state and widgets).
 from __future__ import annotations
 
 from .task import Task
-from .consts import today
+from common.consts import today
 
 from datetime import datetime
 from datetime import date

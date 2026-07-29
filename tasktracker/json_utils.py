@@ -11,26 +11,10 @@ from pathlib import Path
 from typing import Any
 from datetime import datetime
 
-from .consts import CACHE_FILE, DATE_FORMAT, DEFAULT_DAILY_LIMIT_MINUTES, TASKS_FILE, today
-from .task import Frequency, Task, normalize_date
-
-
-# -- low-level JSON read/write ---------------------------------------------
-
-def _read_json(path: Path) -> Any:
-    """Read and parse a JSON file, or return None if it doesn't exist."""
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except FileNotFoundError:
-        return None
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"Malformed JSON in {path}: {exc}") from exc
-
-
-def _write_json(path: Path, payload: Any) -> None:
-    """Serialize `payload` as pretty JSON and write it to `path`."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+from common.consts import CACHE_FILE, DATE_FORMAT, DEFAULT_DAILY_LIMIT_MINUTES, TASKS_FILE, today
+from common.ui_common import normalize_date
+from common.json_utils import save_cache, load_cache, read_json, write_json, get_cached_value, set_cached_value
+from .task import Frequency, Task
 
 
 # -- tasks.json --------------------------------------------------------------
@@ -47,68 +31,14 @@ def task_list_to_json(tasks: list[Task]) -> list[dict]:
 
 def load_tasks(path: Path = TASKS_FILE) -> list[Task]:
     """Load all tasks from `path` (empty list if the file is missing)."""
-    raw_tasks = _read_json(path) or []
+    raw_tasks = read_json(path) or []
     return json_to_task_list(raw_tasks)
 
 
 def save_tasks(tasks: list[Task], path: Path = TASKS_FILE) -> None:
     """Write all tasks to `path`, overwriting its previous contents."""
-    _write_json(path, task_list_to_json(tasks))
+    write_json(path, task_list_to_json(tasks))
 
-
-# -- generic cache.json key/value store -----------------------------------
-#
-# cache.json is just a flat dict of arbitrary values (daily_limit, cache_date,
-# cached_tasks_ids, ...). These helpers let any part of the app read/write a
-# single cached value without knowing about the rest of the file, so adding
-# a new cached value is just "call get_cached_value / set_cached_value with
-# a new key" instead of hand-rolling another _read_json/_write_json pair.
-#
-# Example — adding a brand new cached value elsewhere in the app:
-#
-#     from .json_utils import get_cached_value, set_cached_value
-#
-#     def load_last_selected_tab() -> str:
-#         return get_cached_value("last_tab", "today")
-#
-#     def save_last_selected_tab(tab: str) -> None:
-#         set_cached_value("last_tab", tab)
-#
-# No new file, no new read/write plumbing needed.
-
-def _load_cache() -> dict:
-    return _read_json(CACHE_FILE) or {}
-
-
-def _save_cache(cache: dict) -> None:
-    _write_json(CACHE_FILE, cache)
-
-
-def get_cached_value(key: str, default: Any = None) -> Any:
-    """Read a single value from cache.json, or `default` if missing/absent."""
-    return _load_cache().get(key, default)
-
-
-def set_cached_value(key: str, value: Any) -> None:
-    """Write a single value into cache.json, preserving the other keys."""
-    cache = _load_cache()
-    cache[key] = value
-    _save_cache(cache)
-
-
-def set_cached_values(**values: Any) -> None:
-    """Write several values into cache.json at once (one read + one write)."""
-    cache = _load_cache()
-    cache.update(values)
-    _save_cache(cache)
-
-
-def delete_cached_value(key: str) -> None:
-    """Remove a key from cache.json, if present."""
-    cache = _load_cache()
-    if key in cache:
-        del cache[key]
-        _save_cache(cache)
 
 
 # -- app-specific cached values --------------------------------------------

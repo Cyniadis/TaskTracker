@@ -13,15 +13,15 @@ from datetime import date
 from enum import Enum
 from typing import Any
 
-from ..task import normalize_date
+from common.ui_common import normalize_date
 
 
 class GroceryState(str, Enum):
     """Whether a grocery item is something to buy, already bought, or paused."""
 
-    TO_BUY = "a_acheter"
-    BOUGHT = "achete"
-    NOT_TO_BUY = "ne_pas_acheter"
+    TO_BUY = "to_buy"
+    BOUGHT = "bought"
+    NOT_TO_BUY = "not_to_buy"
 
 
 # Display labels used in the 'État' dropdown. The emoji circle doubles as
@@ -29,12 +29,12 @@ class GroceryState(str, Enum):
 # editable st.data_editor columns (see the General tab), so an actual
 # colored row isn't an option here; the emoji in the dropdown value itself
 # is the workaround.
-STATE_LABELS: dict[GroceryState, str] = {
+STATE_TO_LABEL: dict[GroceryState, str] = {
     GroceryState.TO_BUY: "⚪ À acheter",
     GroceryState.BOUGHT: "🟢 Acheté",
     GroceryState.NOT_TO_BUY: "⚫ Ne pas acheter",
 }
-LABEL_TO_STATE: dict[str, GroceryState] = {label: state for state, label in STATE_LABELS.items()}
+LABEL_TO_STATE: dict[str, GroceryState] = {label: state for state, label in STATE_TO_LABEL.items()}
 
 
 @dataclass
@@ -72,7 +72,7 @@ class GroceryItem:
     # -- state helpers ----------------------------------------------------------
     @property
     def state_label(self) -> str:
-        return STATE_LABELS[GroceryState(self.state)]
+        return STATE_TO_LABEL[GroceryState(self.state)]
 
     def set_state_from_label(self, label: str, today_date: date) -> None:
         """Apply a state change coming from the dropdown's display label.
@@ -110,8 +110,8 @@ class GroceryItem:
         if self.state != self.orig_state:
             diffs.append((
                 "État",
-                STATE_LABELS[GroceryState(self.orig_state)],
-                STATE_LABELS[GroceryState(self.state)],
+                STATE_TO_LABEL[GroceryState(self.orig_state)],
+                STATE_TO_LABEL[GroceryState(self.state)],
             ))
         if self.last_bought_date != self.orig_last_bought_date:
             diffs.append((

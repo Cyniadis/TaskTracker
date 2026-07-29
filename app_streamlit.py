@@ -8,7 +8,7 @@ import locale
 
 import streamlit as st
 
-from tasktracker.groceries import grocery_tab
+from groceries import grocery_tab
 from tasktracker.ui import ui_state
 from tasktracker.ui import general_tab, timer_tab, today_tab
 
