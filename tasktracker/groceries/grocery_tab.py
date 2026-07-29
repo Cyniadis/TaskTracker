@@ -7,13 +7,20 @@ the full list with an editable state per row.
 from __future__ import annotations
 
 import datetime as _dt
+import json
 
 import pandas as pd
 import streamlit as st
 
 from ..consts import today
 from .grocery import STATE_LABELS, GroceryItem, GroceryState
-from .json_utils import load_groceries, next_grocery_id, save_groceries
+from .json_utils import (
+    grocery_list_to_json,
+    import_groceries_from_json_bytes,
+    load_groceries,
+    next_grocery_id,
+    save_groceries,
+)
 
 
 @st.cache_resource(show_spinner=False)
@@ -119,9 +126,54 @@ def _on_data_change() -> None:
     _persist()
 
 
+def _export_json_bytes() -> bytes:
+    """Serialize the full grocery list as JSON bytes, for the download button."""
+    payload = grocery_list_to_json(st.session_state.groceries)
+    return json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
+
+
+@st.dialog("Import groceries")
+def _import_groceries_dialog() -> None:
+    """Dialog to upload a JSON file and, after validation, replace the entire grocery list."""
+    st.warning(
+        "⚠️ Importing a file will **replace your entire grocery list** "
+        "(states, last-bought dates — everything) and cannot be undone."
+    )
+
+    uploaded_file = st.file_uploader("Choose a JSON file", type=["json"], key="import_groceries_file_uploader")
+    if uploaded_file is None:
+        return
+
+    try:
+        new_items = import_groceries_from_json_bytes(uploaded_file.getvalue())
+    except ValueError as exc:
+        st.error(f"Could not import this file:\n\n{exc}")
+        return
+
+    st.success(f"File looks valid — {len(new_items)} items found.")
+    st.caption("Click confirm below to replace your current grocery list.")
+
+    if st.button("✅ Replace all items and reload", type="primary"):
+        save_groceries(new_items)
+        # Only the groceries resource cache needs clearing here — tasks,
+        # cache.json settings, etc. are untouched, so there's no need for
+        # the app-wide reset_app() that the General tab's task import uses.
+        _init_grocery_list.clear()
+        st.session_state.groceries = new_items
+        _reload_grid()
+        st.rerun()
+
+
 def render() -> None:
-    """Render the 'Groceries' tab: the shopping-list grid."""
+    """Render the 'Groceries' tab: toolbar (export/import) + the shopping-list grid."""
     st.markdown("### Liste de courses", anchors=False)
+
+    toolbar = st.container(horizontal=True, width="content", vertical_alignment="bottom")
+    toolbar.download_button(
+        "⭳ Export list", data=_export_json_bytes(), file_name="groceries.json", mime="application/json",
+    )
+    if toolbar.button("⭱ Import list"):
+        _import_groceries_dialog()
 
     df = _to_dataframe(st.session_state.groceries)
     if df is None:
