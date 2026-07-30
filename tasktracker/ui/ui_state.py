@@ -12,7 +12,7 @@ from datetime import datetime
 import streamlit as st
 
 from common.consts import today
-from ..json_utils import (
+from ..tt_json_utils import (
     cache_tasks,
     load_allow_future_tasks,
     load_cached_daily_limit,
@@ -23,7 +23,7 @@ from ..json_utils import (
     save_tasks
 )
 from ..selector import compute_daily_tasks
-from common.ui_common import normalize_date
+from common.common_utils import normalize_date
 from ..task import Task
 from ..task_list_ops import next_task_id as _next_task_id
 from ..task_list_ops import remove_tasks_by_id, update_tasks_priority_and_due_date

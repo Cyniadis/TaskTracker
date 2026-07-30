@@ -12,8 +12,8 @@ from typing import Any
 from datetime import datetime
 
 from common.consts import CACHE_FILE, DATE_FORMAT, DEFAULT_DAILY_LIMIT_MINUTES, TASKS_FILE, today
-from common.ui_common import normalize_date
-from common.json_utils import save_cache, load_cache, read_json, write_json, get_cached_value, set_cached_value
+from common.common_utils import normalize_date
+from common.common_json_utils import save_cache, load_cache, read_json, write_json, get_cached_value, set_cached_values, set_cached_value
 from .task import Frequency, Task
 
 

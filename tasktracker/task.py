@@ -10,7 +10,7 @@ from datetime import date, timedelta
 from enum import Enum
 from typing import Any
 from common.consts import PRIORITY_INCREMENT
-from common.ui_common import normalize_date
+from common.common_utils import normalize_date
 
 _DATE_FIELDS = ("due_date", "done_date")
 

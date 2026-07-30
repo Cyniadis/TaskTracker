@@ -11,7 +11,7 @@ from datetime import date
 
 import pytest
 
-from groceries import json_utils as grocery_json_utils
+from groceries import grocery_json_utils
 from groceries.grocery import GroceryItem, GroceryState
 
 
@@ -81,7 +81,7 @@ class TestNextGroceryId:
 
 class TestImportValidation:
     def test_valid_payload_is_parsed_into_grocery_items(self):
-        raw = [{"id": 1, "name": "Lait", "state": "achete", "last_bought_date": "2026-07-26"}]
+        raw = [{"id": 1, "name": "Lait", "state": "bought", "last_bought_date": "2026-07-26"}]
         items = grocery_json_utils.validate_and_parse_groceries(raw)
 
         assert len(items) == 1
@@ -125,7 +125,7 @@ class TestImportValidation:
             grocery_json_utils.validate_and_parse_groceries(raw)
 
     def test_import_from_bytes_round_trips_a_valid_file(self):
-        raw = [{"id": 1, "name": "Lait", "state": "a_acheter"}]
+        raw = [{"id": 1, "name": "Lait", "state": "to_buy"}]
         raw_bytes = json.dumps(raw).encode("utf-8")
 
         items = grocery_json_utils.import_groceries_from_json_bytes(raw_bytes)

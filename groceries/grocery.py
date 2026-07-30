@@ -13,7 +13,7 @@ from datetime import date
 from enum import Enum
 from typing import Any
 
-from common.ui_common import normalize_date
+from common.common_utils import normalize_date
 
 
 class GroceryState(str, Enum):

@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from . import ui_state
-from ..json_utils import import_tasks_from_json_bytes, save_tasks, task_list_to_json
+from ..tt_json_utils import import_tasks_from_json_bytes, save_tasks, task_list_to_json
 from ..task import Task, Period
 from ..task_list_ops import find_task_by_id
 
