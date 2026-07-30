@@ -160,5 +160,11 @@
     "name": "🥟 Sauce tomate",
     "state": "to_buy",
     "last_bought_date": null
+  },
+  {
+    "id": 28,
+    "name": "🧽 Produit toilettes",
+    "state": "to_buy",
+    "last_bought_date": null
   }
 ]
