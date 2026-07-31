@@ -12,7 +12,6 @@ from __future__ import annotations
 from datetime import date
 from enum import Enum, auto
 
-from .consts import today
 from .task import Task
 from .task_list_ops import schedule_task_list
 
