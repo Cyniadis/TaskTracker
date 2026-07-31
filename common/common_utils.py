@@ -3,10 +3,9 @@ from __future__ import annotations
 
 import streamlit as st
 
-from ..task import Period
-
-PERIOD_OPTIONS = [p.value for p in Period]
-
+from datetime import datetime
+from datetime import date
+from common.consts import DATE_FORMAT
 
 # -- theme colors ------------------------------------------------------------
 #
@@ -65,9 +64,37 @@ _THEME_COLORS = {
     },
 }
 
-
 def get_theme_color(name: str) -> str:
     """Look up a named color for whichever theme (light/dark) is active."""
     theme_type = st.context.theme.type  # "light" or "dark"
     colors = _THEME_COLORS.get(theme_type, _THEME_COLORS["dark"])
     return colors[name]
+
+
+
+def normalize_date(value: Any) -> datetime.date | None:
+    """Coerce assorted date-like inputs (str, datetime, pandas NaT...) into a plain `date`."""
+    if value is None or value == "":
+        return None
+
+    try:
+        if value != value:  # NaN / NaT are the only values that aren't equal to themselves
+            return None
+    except Exception:
+        pass
+
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    if isinstance(value, str):
+        value = value.strip()
+        if not value or value.lower() == "nan":
+            return None
+        if "/" in value:
+            return datetime.strptime(value, DATE_FORMAT).date()
+        return datetime.fromisoformat(value).date()
+    if hasattr(value, "item"):  # numpy / pandas scalar
+        return normalize_date(value.item())
+
+    raise TypeError(f"Unsupported date value: {value!r}")
