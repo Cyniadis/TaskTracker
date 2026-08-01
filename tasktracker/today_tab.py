@@ -47,7 +47,6 @@ def _tasks_to_today_dataframe(tasks: list[Task]) -> pd.DataFrame | None:
             "duration": task.duration,
             "due_date": task.due_date,
             "done_date": task.done_date,
-            "cancelled": task.cancelled,
             "reschedule": ":material/edit: Reschedule",
         }
         for task in tasks
@@ -70,26 +69,19 @@ def _edit_due_date(row: int) -> None:
             width=200,
         )
         if st.button("Save"):
-            task.set_due_date(new_date)
-            task.mark_rescheduled(current_date)
-            ui_state.persist_tasks()
+            ui_state.schedule_task_for(task, new_date)
             st.rerun()
 
     with st.container(horizontal=True, vertical_alignment="bottom"):
-        if st.button("To undefined due date"):
-            task.cancel()
-            ui_state.persist_tasks()
+        if st.button("Cancel task"):
+            ui_state.cancel_task(task)
             st.rerun()
         if st.button("To next due date"):
-            task.set_due_date(task.compute_next_due_date(task.due_date))
-            task.mark_rescheduled(current_date)
-            ui_state.persist_tasks()
+            ui_state.set_task_next_due_date(task, new_date)
             st.rerun()
         if st.button("To this weekend"):
             days_until_saturday = (5 - today().weekday()) % 7
-            task.set_due_date(today() + timedelta(days=days_until_saturday))
-            task.mark_rescheduled(current_date)
-            ui_state.persist_tasks()
+            ui_state.schedule_task_for(task, today() + timedelta(days=days_until_saturday))
             st.rerun()
 
 
@@ -166,7 +158,7 @@ def _on_row_selected() -> None:
     if was_uncompleted:
         task.complete(today())
     else:
-        task.uncomplete()
+        task.incomplete()
 
     ui_state.cache_today_tasks()
     ui_state.persist_tasks()
@@ -180,8 +172,8 @@ def _color_by_due_date(row: pd.Series) -> list[str]:
     color = get_theme_color("textColor")
     if current_date == row["done_date"]:
         color = get_theme_color("doneTextColor")
-    elif row["cancelled"]:
-        color = get_theme_color("cancelledTextColor")
+    # elif row["cancelled"]:
+        # color = get_theme_color("cancelledTextColor")
     elif row["due_date"] != current_date:
         color = get_theme_color("hiddenTextColor")
     return [f"color: {color}"] * len(row)

@@ -1,5 +1,6 @@
 """UI helpers shared by both the 'Today' and 'General' tabs."""
 from __future__ import annotations
+import uuid
 
 import streamlit as st
 
@@ -98,3 +99,8 @@ def normalize_date(value: Any) -> datetime.date | None:
         return normalize_date(value.item())
 
     raise TypeError(f"Unsupported date value: {value!r}")
+
+
+def generate_unique_id() -> str:
+    """Generate a short unique ID for a new task or grocery item."""
+    return str(uuid.uuid4())[:8]

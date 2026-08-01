@@ -20,11 +20,6 @@ def find_task_by_id(tasks: list[Task], task_id: int) -> Task:
     raise KeyError(f"No task with id={task_id}")
 
 
-def next_task_id(tasks: list[Task]) -> int:
-    """Return the next unused task id (max existing id + 1, or 0 if no tasks)."""
-    return max((t.id for t in tasks), default=-1) + 1
-
-
 def remove_tasks_by_id(tasks: list[Task], task_ids: list[int]) -> list[Task]:
     """Return a new list with every task whose id is in `task_ids` filtered out."""
     ids_to_remove = set(task_ids)
@@ -51,7 +46,7 @@ def update_tasks_priority_and_due_date(tasks: list[Task]) -> None:
         if not task.due_date or task.due_date >= current_date:
             continue
         if task.is_completed_on(task.due_date):
-            task.compute_next_due_date(task.due_date)
+            task.set_next_due_date()
         else:
             task.increment_priority()
 

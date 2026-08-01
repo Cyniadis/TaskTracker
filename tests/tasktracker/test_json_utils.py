@@ -34,7 +34,7 @@ def cache_file(tmp_path, monkeypatch):
 
 class TestTaskListRoundTrip:
     def test_a_completed_task_stays_completed_after_save_and_load(self, tasks_file):
-        task = Task(id=1, name="Task A", duration=10, priority=2.0, initial_priority=2.0)
+        task = Task(name="Task A", duration=10, priority=2.0, initial_priority=2.0)
         task.complete(date(2026, 7, 21))
 
         tt_json_utils.save_tasks([task], path=tasks_file)
@@ -45,7 +45,7 @@ class TestTaskListRoundTrip:
         assert reloaded[0].priority == 2.0
 
     def test_an_incomplete_task_stays_incomplete_after_save_and_load(self, tasks_file):
-        task = Task(id=1, name="Task A", duration=10, due_date=date(2026, 7, 22), done_date=None)
+        task = Task(name="Task A", duration=10, due_date=date(2026, 7, 22), done_date=None)
 
         tt_json_utils.save_tasks([task], path=tasks_file)
         reloaded = tt_json_utils.load_tasks(path=tasks_file)
@@ -54,9 +54,9 @@ class TestTaskListRoundTrip:
         assert reloaded[0].due_date == date(2026, 7, 22)
 
     def test_multiple_tasks_with_mixed_completion_states_all_survive(self, tasks_file):
-        done = Task(id=1, name="Done", done_date=date(2026, 7, 20))
-        pending = Task(id=2, name="Pending", done_date=None)
-        overdue = Task(id=3, name="Overdue", due_date=date(2026, 7, 1), done_date=None)
+        done = Task(name="Done", done_date=date(2026, 7, 20))
+        pending = Task(name="Pending", done_date=None)
+        overdue = Task(name="Overdue", due_date=date(2026, 7, 1), done_date=None)
 
         tt_json_utils.save_tasks([done, pending, overdue], path=tasks_file)
         reloaded = {t.id: t for t in tt_json_utils.load_tasks(path=tasks_file)}
@@ -66,7 +66,7 @@ class TestTaskListRoundTrip:
         assert reloaded[3].due_date == date(2026, 7, 1)
 
     def test_priority_and_frequency_survive_the_round_trip(self, tasks_file):
-        task = Task(id=1, name="Task A", frequency="3xsemaine", priority=4.5, initial_priority=1.5)
+        task = Task(name="Task A", frequency="3xsemaine", priority=4.5, initial_priority=1.5)
 
         tt_json_utils.save_tasks([task], path=tasks_file)
         reloaded = tt_json_utils.load_tasks(path=tasks_file)[0]
@@ -76,7 +76,7 @@ class TestTaskListRoundTrip:
         assert reloaded.initial_priority == 1.5
 
     def test_a_task_with_no_dates_at_all_survives(self, tasks_file):
-        task = Task(id=1, name="Never scheduled", due_date=None, done_date=None)
+        task = Task(name="Never scheduled", due_date=None, done_date=None)
 
         tt_json_utils.save_tasks([task], path=tasks_file)
         reloaded = tt_json_utils.load_tasks(path=tasks_file)[0]
@@ -89,7 +89,7 @@ class TestTaskListRoundTrip:
         # baseline — get_changes() should report no pending changes right
         # after a fresh load, even for a task that had in-memory edits
         # before it was saved.
-        task = Task(id=1, name="Task A", priority=1.0)
+        task = Task(name="Task A", priority=1.0)
         task.name = "Edited before save"
         task.priority = 9.0
 
@@ -99,8 +99,8 @@ class TestTaskListRoundTrip:
         assert reloaded.get_changes() == []
 
     def test_saving_overwrites_the_previous_contents_entirely(self, tasks_file):
-        tt_json_utils.save_tasks([Task(id=1, name="First"), Task(id=2, name="Second")], path=tasks_file)
-        tt_json_utils.save_tasks([Task(id=3, name="Only this one now")], path=tasks_file)
+        tt_json_utils.save_tasks([Task(name="First"), Task(name="Second")], path=tasks_file)
+        tt_json_utils.save_tasks([Task(name="Only this one now")], path=tasks_file)
 
         reloaded = tt_json_utils.load_tasks(path=tasks_file)
 
@@ -116,7 +116,7 @@ class TestTaskListRoundTrip:
         assert tt_json_utils.load_tasks(path=tasks_file) == []
 
     def test_unicode_task_names_survive_the_round_trip(self, tasks_file):
-        task = Task(id=1, name="🍴 Nettoyer la vaisselle à la main")
+        task = Task(name="🍴 Nettoyer la vaisselle à la main")
 
         tt_json_utils.save_tasks([task], path=tasks_file)
         reloaded = tt_json_utils.load_tasks(path=tasks_file)[0]
@@ -161,7 +161,7 @@ class TestCacheRoundTrip:
         assert tt_json_utils.load_show_rescheduled() is False
 
     def test_todays_selected_task_ids_survive_for_reuse_on_a_later_render(self, cache_file):
-        tasks = [Task(id=1, name="A"), Task(id=2, name="B")]
+        tasks = [Task(name="A"), Task(name="B")]
         tt_json_utils.cache_tasks(tasks)
 
         cache_date, cached_ids = tt_json_utils.load_cached_task_ids()

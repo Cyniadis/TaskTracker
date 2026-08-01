@@ -1,5 +1,5 @@
 """Tests for today_tab's `_on_row_selected` callback (the complete/
-uncomplete toggle behind the 'Today' tab's ButtonColumn), driven through
+incomplete toggle behind the 'Today' tab's ButtonColumn), driven through
 today_tab_logic_app.py since AppTest can't click a real ButtonColumn.
 See tests/ui/conftest.py for why.
 """

@@ -10,8 +10,8 @@ from common.change_tracking import ensure_baseline, get_baseline_entry, get_chan
 from .task import Task
 
 # Fields worth showing in the "Changes" diff / reverting on "Discard changes".
-# id is the lookup key (not a diffable field); manually_scheduled_on and
-# rescheduled_on are per-day action markers, not "edits" a user made and
+# id is the lookup key (not a diffable field); manually_rescheduled_on 
+# are per-day action markers, not "edits" a user made and
 # might want to discard — deliberately excluded, same as Task.apply_snapshot().
 _LABELS = {
     "name": "Name",
@@ -20,8 +20,7 @@ _LABELS = {
     "initial_priority": "Initial priority",
     "duration": "Duration",
     "due_date": "Due date",
-    "done_date": "Done date",
-    "cancelled": "Cancelled",
+    "done_date": "Done date"
 }
 
 

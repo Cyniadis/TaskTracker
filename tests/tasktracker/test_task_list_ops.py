@@ -8,7 +8,6 @@ import pytest
 from tasktracker import task_list_ops
 from tasktracker.task_list_ops import (
     find_task_by_id,
-    next_task_id,
     remove_tasks_by_id,
     # restore_tasks,
     update_tasks_priority_and_due_date,
@@ -32,21 +31,6 @@ class TestFindTaskById:
         with pytest.raises(KeyError):
             find_task_by_id([], 0)
 
-
-class TestNextTaskId:
-    def test_returns_max_plus_one(self, make_task):
-        tasks = [make_task(id=0), make_task(id=5), make_task(id=2)]
-        assert next_task_id(tasks) == 6
-
-    def test_returns_zero_for_empty_list(self):
-        assert next_task_id([]) == 0
-
-    def test_handles_single_task(self, make_task):
-        assert next_task_id([make_task(id=10)]) == 11
-
-    def test_ignores_gaps_in_ids(self, make_task):
-        tasks = [make_task(id=0), make_task(id=100)]
-        assert next_task_id(tasks) == 101
 
 
 class TestRemoveTasksById:
@@ -121,11 +105,11 @@ class TestUpdateTasksPriorityAndDueDate:
         due = TODAY - timedelta(days=1)
         task = make_task(frequency="1xsemaine", due_date=due, done_date=due, priority=2.0)
         update_tasks_priority_and_due_date([task])
-        assert task.due_date == task.compute_next_due_date(due)
+        assert task.due_date == task.get_next_due_date(due)
         assert task.priority == 2.0  # unchanged
 
     def test_due_date_rolls_forward_from_the_due_date_not_from_today(self, make_task):
-        # compute_next_due_date is based on the *due date*, not today() —
+        # get/set_next_due_date is based on the *due date*, not today() —
         # this pins that behavior since it's easy to accidentally flip.
         due = TODAY - timedelta(days=10)
         task = make_task(frequency="1xsemaine", due_date=due, done_date=due)
@@ -167,6 +151,6 @@ class TestUpdateTasksPriorityAndDueDate:
 
         assert missed.priority == 1.5
         assert on_time.priority == 1.0
-        assert on_time.due_date == on_time.compute_next_due_date(TODAY - timedelta(days=1))
+        assert on_time.due_date == on_time.get_next_due_date(TODAY - timedelta(days=1))
         assert untouched.priority == 1.0
         assert untouched.due_date == TODAY + timedelta(days=1)

@@ -7,13 +7,22 @@ from __future__ import annotations
 
 import pandas as pd
 import pytest
+import itertools
 
+from common import common_utils
 from tasktracker.task import Task
+from tasktracker import task
 
+@pytest.fixture(autouse=True)
+def _no_random_ids(monkeypatch):
+    print("Monkeypatching generate_unique_id to return sequential string ids")
+    ids = map(str, itertools.count())  # "0", "1", "2", ...
+    monkeypatch.setattr(task, "generate_unique_id", lambda: next(ids))
+    monkeypatch.setattr(common_utils, "generate_unique_id", lambda: next(ids))
 
 class TestApplyAddedRow:
-    def test_appends_a_new_task_with_a_fresh_id(self, general_grid_logic_app):
-        existing = Task(id=0, name="Existing", duration=5)
+    def test_appends_a_new_task_with_a_fresh_id(self, _no_random_ids, general_grid_logic_app):
+        existing = Task(name="Existing", duration=5)
         general_grid_logic_app.session_state["tasks"] = [existing]
         at = general_grid_logic_app.run()
 
@@ -31,7 +40,7 @@ class TestApplyAddedRow:
         tasks = at.session_state["tasks"]
         assert len(tasks) == 2
         new_task = tasks[-1]
-        assert new_task.id == 1  # next after id=0
+        assert new_task.id == "1"  # next after id=0
         assert new_task.name == "New Task"
         assert new_task.frequency == "2xsemaine"
         assert new_task.priority == 3.0  # priority starts equal to initial_priority

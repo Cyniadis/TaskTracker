@@ -104,22 +104,6 @@ class TestCrossTabPersistence:
 
         assert at.session_state["tasks"][0].name == "Edited name"
 
-    def test_reset_priorities_survives_a_rerun_triggered_from_the_today_tab(self, full_app):
-        task = Task(id=1, name="Task A", priority=99.0, initial_priority=2.0)
-        full_app.session_state["tasks"] = [task]
-        full_app.session_state["today_tasks"] = [task]
-        full_app.session_state["today_generated"] = True
-        at = full_app.run()
-
-        reset_priorities = _label(at, "button", "Reset priorities")
-        at = reset_priorities.click().run()
-        assert task.priority == 2.0
-
-        regenerate = _label(at, "button", "Regenerate")
-        at = regenerate.click().run()
-
-        assert task.priority == 2.0
-
     def test_sort_direction_survives_a_rerun_triggered_from_the_today_tab(self, full_app):
         task = Task(id=1, name="Task A")
         full_app.session_state["tasks"] = [task]

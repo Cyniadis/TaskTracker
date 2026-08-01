@@ -58,7 +58,7 @@ def get_changes(
 
     Only fields present in `labels` are compared — that's how callers
     exclude fields that shouldn't count as "edits" (e.g. id, or per-day
-    markers like manually_scheduled_on/rescheduled_on).
+    markers like manually_rescheduled_on).
 
     Returns [] if the item has no baseline entry (e.g. it was added after
     the last snapshot — nothing to diff against).

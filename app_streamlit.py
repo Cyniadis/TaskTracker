@@ -33,7 +33,7 @@ def main() -> None:
     grocery_tab.init_session_state()
 
     today_tab_ui, general_tab_ui, groceries_tab_ui, timer_tab_ui = st.tabs(
-        ["📝 Today", "⚙️ General", "🛒 Groceries", "⏱️ Timer"]
+        ["📝 Today", "⚙️ Tasks", "🛒 Groceries", "⏱️ Timer"]
     )
 
     with today_tab_ui:

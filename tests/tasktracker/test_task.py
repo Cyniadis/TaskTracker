@@ -195,14 +195,14 @@ class TestTaskFrequencyHelpers:
         task = make_task(frequency="3xmois")
         assert task.frequency_obj == Frequency(count=3, period=Period.MONTH)
 
-    def test_compute_next_due_date_adds_frequency_days(self, make_task):
+    def test_get_next_due_date_adds_frequency_days(self, make_task):
         task = make_task(frequency="1xsemaine")
-        next_due = task.compute_next_due_date(date(2026, 7, 21))
+        next_due = task.get_next_due_date(date(2026, 7, 21))
         assert next_due == date(2026, 7, 28)
 
-    def test_compute_next_due_date_for_daily_task(self, make_task):
+    def test_get_next_due_date_for_daily_task(self, make_task):
         task = make_task(frequency="1xjour")
-        assert task.compute_next_due_date(date(2026, 7, 21)) == date(2026, 7, 22)
+        assert task.get_next_due_date(date(2026, 7, 21)) == date(2026, 7, 22)
 
 
 # ---------------------------------------------------------------------------
@@ -223,7 +223,7 @@ class TestTaskPriority:
 
 
 # ---------------------------------------------------------------------------
-# Task: lifecycle (complete / uncomplete)
+# Task: lifecycle (complete / incomplete)
 # ---------------------------------------------------------------------------
 
 class TestTaskLifecycle:
@@ -236,21 +236,21 @@ class TestTaskLifecycle:
     def test_uncomplete_restores_priority_and_done_date_from_before_complete(self, make_task):
         task = make_task(priority=5.0, initial_priority=2.0, done_date=date(2026, 7, 1))
         task.complete(date(2026, 7, 21))
-        task.uncomplete()
+        task.incomplete()
         assert task.done_date == date(2026, 7, 1)
         assert task.priority == 5.0
 
     def test_uncomplete_without_prior_complete_falls_back_to_orig_priority(self, make_task):
         task = make_task(priority=3.0)
         task.priority = 9.0  # simulate an edit with no complete() call yet
-        task.uncomplete()
+        task.incomplete()
         assert task.priority == 3.0
         assert task.done_date is None
 
     def test_uncomplete_clears_the_stashed_pre_complete_state(self, make_task):
         task = make_task()
         task.complete(date(2026, 7, 21))
-        task.uncomplete()
+        task.incomplete()
         assert task._pre_complete_priority is None
         assert task._pre_complete_done_date is None
 
@@ -259,7 +259,7 @@ class TestTaskLifecycle:
         task.complete(date(2026, 7, 1))    # priority -> 1.0 (initial), done_date -> 7/1
         task.priority = 6.0                # simulate priority bumped by housekeeping
         task.complete(date(2026, 7, 21))   # priority -> 1.0 (initial), done_date -> 7/21
-        task.uncomplete()
+        task.incomplete()
         assert task.done_date == date(2026, 7, 1)
         assert task.priority == 6.0
 

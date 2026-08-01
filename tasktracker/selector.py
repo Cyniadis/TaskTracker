@@ -25,7 +25,7 @@ class Eligibility(Enum):
 
 def _eligibility(task: Task, current_date: date) -> Eligibility:
     """Classify whether `task` can be scheduled on `current_date`."""
-    if task.cancelled:
+    if task.is_cancelled():
         return Eligibility.NOT_ELIGIBLE
 
     if task.done_date == current_date:

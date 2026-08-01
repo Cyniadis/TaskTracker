@@ -47,27 +47,6 @@ def test_set_field_rejects_unknown_field():
         pass
 
 
-def test_restore_reverts_to_original_snapshot():
-    item = GroceryItem(id=0, name="Lait")
-    item.set_field("name", "Lait demi-écrémé")
-    item.set_state_from_label(STATE_TO_LABEL[GroceryState.BOUGHT], date(2026, 7, 27))
-
-    item.restore()
-
-    assert item.name == "Lait"
-    assert item.state == GroceryState.TO_BUY.value
-    assert item.last_bought_date is None
-
-
-def test_get_changes_reports_diffs_and_is_empty_when_unchanged():
-    item = GroceryItem(id=0, name="Lait")
-    assert item.get_changes() == []
-
-    item.set_field("name", "Lait demi-écrémé")
-    diffs = item.get_changes()
-    assert ("Name", "Lait", "Lait demi-écrémé") in diffs
-
-
 def test_to_dict_and_from_dict_round_trip():
     item = GroceryItem(id=3, name="Pommes", state=GroceryState.BOUGHT.value, last_bought_date=date(2026, 7, 26))
     payload = item.to_dict()

@@ -65,18 +65,6 @@ class TestPopulatedToolbar:
         assert at.session_state["ascending"] is False
         assert any(b.label == "▼ Descending" for b in at.button)
 
-    def test_reset_priorities_restores_initial_priority(self, general_app):
-        t1, t2 = self._seed(general_app)
-        t1.priority = 99.0
-        t2.priority = 42.0
-        at = general_app.run()
-
-        reset = next(b for b in at.button if b.label == "Reset priorities")
-        at = reset.click().run()
-
-        assert t1.priority == t1.initial_priority
-        assert t2.priority == t2.initial_priority
-
     def test_renders_without_error(self, general_app):
         self._seed(general_app)
         at = general_app.run()

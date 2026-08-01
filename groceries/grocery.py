@@ -6,12 +6,14 @@ Carries a tri-state `state` field for its shopping status, and a single
 """
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict, dataclass, field, fields
 from datetime import date
 from enum import Enum
+from operator import ge
 from typing import Any
+import uuid
 
-from common.common_utils import normalize_date
+from common.common_utils import normalize_date, generate_unique_id
 
 
 class GroceryState(str, Enum):
@@ -39,8 +41,8 @@ LABEL_TO_STATE: dict[str, GroceryState] = {label: state for state, label in STAT
 class GroceryItem:
     """A single item on the grocery list."""
 
-    id: int
-    name: str
+    id: str = field(default_factory=generate_unique_id)
+    name: str = ""
     state: str = GroceryState.TO_BUY.value
     last_bought_date: date | None = None
 

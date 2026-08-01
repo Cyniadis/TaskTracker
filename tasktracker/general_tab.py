@@ -3,10 +3,14 @@ from __future__ import annotations
 
 import dis
 from gc import disable
+from hmac import new
 import json
 
 import pandas as pd
 import streamlit as st
+from test.test_importlib.test_threaded_import import task
+from datetime import date, timedelta
+
 
 from . import ui_state
 from .tt_json_utils import import_tasks_from_json_bytes, save_tasks, task_list_to_json
@@ -21,27 +25,50 @@ def _on_update_dates_click():
     _update_dates(click["row"])
     
 
-@st.dialog("Completed on")
+@st.dialog("Completed on", width="medium")
 def _update_dates(row: int) -> None:
     """Dialog to change, cancel, or advance a task's due date."""
     
     st.markdown(f"**{st.session_state.general_df.iloc[row]['name']}**")
     task = find_task_by_id(st.session_state.tasks, st.session_state.general_df.at[row, "id"])
-    init_date = task.due_date if task.due_date is not None else today()
+    init_due_date = task.due_date if task.due_date is not None else today()
+    init_done_date = task.done_date if task.done_date is not None else today()
 
+    # UI to update the done date and compute next due date
     with st.container(horizontal=True, vertical_alignment="bottom"):
-        new_date = st.date_input(
-            "Choose a new done date to recompute next due date",
-            value=pd.to_datetime(init_date).date(),
+        new_done_date = st.date_input(
+            "Update done date and set next due date",
+            value=pd.to_datetime(init_done_date).date(),
             width="stretch",
         )
-        if st.button("Save"):
-            ui_state.update_dates(task, new_date)
+        if st.button("Save", key="save_done_date_button"):
+            ui_state.update_done_date(task, new_done_date)
+            st.rerun()
+    with st.container(horizontal=True, vertical_alignment="bottom"):
+        new_due_date = st.date_input(
+            "Update due date",
+            value=pd.to_datetime(init_due_date).date(),
+            width="stretch",
+        )
+        if st.button("Save", key="save_due_date_button"):
+            ui_state.schedule_task_for(task, new_due_date)
             st.rerun()
             
-    if st.button("Schedule for today"):
-        ui_state.schedule_task_for_today(task)
-        st.rerun()
+    with st.container(horizontal=True, vertical_alignment="bottom", width="stretch" ):
+        if st.button("Cancel task"):
+            ui_state.cancel_task(task)
+            st.rerun()
+        if st.button("To next due date"):
+            ui_state.schedule_task_for(task, task.get_next_due_date(task.due_date))
+            st.rerun()
+        if st.button("To this weekend"):
+            days_until_saturday = (5 - today().weekday()) % 7
+            ui_state.schedule_task_for(task, today() + timedelta(days=days_until_saturday))
+            st.rerun()
+        if st.button("To today"):
+            ui_state.schedule_task_for(task, today())
+            st.rerun()
+    
 
 def _tasks_to_general_dataframe(tasks: list[Task]) -> pd.DataFrame | None:
     """Build the dataframe shown in the 'General' (edit-all-tasks) tab.
@@ -68,6 +95,7 @@ def _tasks_to_general_dataframe(tasks: list[Task]) -> pd.DataFrame | None:
             "duration": task.duration,
             "due_date": task.due_date,
             "done_date": task.done_date,
+            "state": str(task.state),
             "update_dates": ":material/edit_note: Update dates",
             "changes": ":material/edit_note: Changes" if task_changes(task, st.session_state.task_baseline) else None,
         })
@@ -90,15 +118,15 @@ def _column_config() -> dict:
         "duration": st.column_config.NumberColumn("Duration (min)", min_value=1, step=5, required=True),
         "due_date": st.column_config.DateColumn("Due date", format="DD/MM/YYYY", disabled=True), 
         "done_date": st.column_config.DateColumn("Done date", format="DD/MM/YYYY", disabled=True),
+        "state": st.column_config.TextColumn("State", disabled=True),
         "update_dates": st.column_config.ButtonColumn("", on_click=_on_update_dates_click, key="update_dates_button", alignment="center"),
-        "changes": st.column_config.ButtonColumn("", on_click=_on_show_changes_click, key="show_changes_button", alignment="center"),
+        "changes": st.column_config.ButtonColumn("", on_click=_on_show_changes_click, key="show_changes_button", alignment="center", width='medium'),
     }
 
 
 def _apply_added_row(new_row: dict) -> None:
     """Turn a single new-row dict from the data editor into a persisted Task."""
     task = Task(
-        id=ui_state.next_task_id(),
         name=new_row["name"].strip(),
         frequency=f"{int(new_row['frequency_count'])}x{new_row['frequency_period']}",
         priority=new_row["initial_priority"],
@@ -222,13 +250,6 @@ def _toggle_sort() -> None:
     st.session_state.ascending = not st.session_state.ascending
 
 
-def _reset_priorities() -> None:
-    """Reset every task's priority back to its initial_priority."""
-    for task in st.session_state.tasks:
-        task.priority = task.initial_priority
-    ui_state.persist_tasks()
-
-
 def render() -> None:
     """Render the 'General' tab: toolbar (discard/export/import/sort/reset) + the full task grid."""
     st.markdown("### Edit tasks", anchors=False)
@@ -260,7 +281,6 @@ def render() -> None:
         label="▲ Ascending" if st.session_state.ascending else "▼ Descending",
         on_click=_toggle_sort, width="content", type="tertiary",
     )
-    toolbar.button(label="Reset priorities", on_click=_reset_priorities)
 
     sorted_df = df.sort_values(by=sort_column, ascending=st.session_state.ascending).reset_index(drop=True)
     st.session_state.general_df = sorted_df

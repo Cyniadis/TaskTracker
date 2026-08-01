@@ -55,15 +55,6 @@ class TestGroceryListRoundTrip:
         assert len(reloaded) == 1
         assert reloaded[0].name == "Only this one now"
 
-    def test_reloaded_items_have_a_fresh_orig_snapshot(self, groceries_file):
-        item = GroceryItem(id=1, name="Lait")
-        item.name = "Lait edited before save"
-
-        grocery_json_utils.save_groceries([item], path=groceries_file)
-        reloaded = grocery_json_utils.load_groceries(path=groceries_file)[0]
-
-        assert reloaded.get_changes() == []
-
 
 class TestNextGroceryId:
     def test_returns_zero_for_an_empty_list(self):

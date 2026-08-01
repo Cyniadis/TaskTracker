@@ -1,6 +1,6 @@
 """AppTest-based tests for tasktracker/ui/today_tab.py.
 
-Row-action buttons (complete/uncomplete, reschedule) live inside an
+Row-action buttons (complete/incomplete, reschedule) live inside an
 `st.dataframe` ButtonColumn, which AppTest can't click — see
 test_today_tab_grid_logic.py and tests/ui/conftest.py for how those are
 covered instead. The reschedule dialog itself isn't covered here either
