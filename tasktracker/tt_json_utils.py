@@ -85,15 +85,6 @@ def load_show_rescheduled() -> bool:
 def cache_show_rescheduled(show_rescheduled: bool) -> None:
     set_cached_value("show_rescheduled", show_rescheduled)
 
-
-def load_allow_future_tasks() -> bool:
-    return get_cached_value("allow_future_tasks", False)
-
-
-def cache_allow_future_tasks(allow_future_tasks: bool) -> None:
-    set_cached_value("allow_future_tasks", allow_future_tasks)
-
-
 def load_timer_state() -> tuple[datetime, float, bool] :
     cached_time = get_cached_value("timer_start_time", None)
     start_time = datetime.strptime(cached_time, "%Y-%m-%d %H:%M:%S") if cached_time is not None else None

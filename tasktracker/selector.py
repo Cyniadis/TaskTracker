@@ -75,43 +75,11 @@ def _select_by_priority(tasks: list[Task], time_budget: int) -> list[Task]:
             capacity -= task.duration
     return selected
 
-def _fill_with_future_tasks(
-    tasks: list[Task],
-    selected: list[Task],
-    current_date: date,
-    daily_time_limit: int,
-) -> list[Task]:
-    """Top up `selected` with tasks whose due date is in the future, closest due
-    date first, as long as there's leftover room in the daily budget."""
-    remaining_time = daily_time_limit - sum(t.duration for t in selected)
-    if remaining_time <= 0:
-        return selected
-
-    selected_ids = {t.id for t in selected}
-    future_candidates = [
-        t for t in tasks
-        if t.id not in selected_ids
-        and t.due_date is not None
-        and t.due_date > current_date
-        and t.done_date != current_date
-    ]
-    future_candidates.sort(key=lambda t: (t.due_date, -t.priority))
-
-    extra: list[Task] = []
-    for task in future_candidates:
-        if task.duration <= remaining_time:
-            extra.append(task)
-            remaining_time -= task.duration
-
-    schedule_task_list(extra, current_date)
-    return selected + extra
-
-
 def compute_daily_tasks(
     tasks: list[Task],
     current_date: date,
     daily_time_limit: int,
-    pre_selected_tasks: list[Task] | None = None,
+    pre_selected_tasks: list[Task] | None = None
 ) -> list[Task]:
     """Return the subset of `tasks` scheduled for `current_date`.
 

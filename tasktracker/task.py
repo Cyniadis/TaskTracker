@@ -248,8 +248,8 @@ class Task:
     def schedule_for(self, current_date: date) -> None:
         """Mark this task as picked for `current_date` by setting its due date.
 
-        Used by the selector for algorithmic picks (today_tab regeneration,
-        future-fill) — distinct from mark_manually_scheduled(), which also
+        Used by the selector for algorithmic picks (today_tab regeneration) —
+        distinct from mark_manually_scheduled(), which also
         flags the pick as user-forced and exempt from the daily budget.
         Note: this does not advance the task to its *next* occurrence —
         that's compute_next_due_date(), called separately once a task has actually

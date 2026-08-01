@@ -9,7 +9,6 @@ from tasktracker import selector
 from tasktracker.selector import (
     Eligibility,
     _eligibility,
-    _fill_with_future_tasks,
     _select_by_priority,
     compute_daily_tasks,
 )
@@ -106,50 +105,6 @@ class TestSelectByPriority:
         selected = _select_by_priority(tasks, time_budget=22)
         assert sum(t.duration for t in selected) <= 22
 
-
-# ---------------------------------------------------------------------------
-# _fill_with_future_tasks
-# ---------------------------------------------------------------------------
-
-class TestFillWithFutureTasks:
-    def test_fills_remaining_budget_with_future_tasks(self, make_task):
-        selected = [make_task(id=1, duration=10)]
-        future = make_task(id=2, duration=10, due_date=TODAY + timedelta(days=2))
-        result = _fill_with_future_tasks([selected[0], future], selected, TODAY, daily_time_limit=30)
-        assert future in result
-        assert future.due_date == TODAY  # pulled forward
-
-    def test_does_not_exceed_budget(self, make_task):
-        selected = [make_task(id=1, duration=25)]
-        future = make_task(id=2, duration=10, due_date=TODAY + timedelta(days=1))
-        result = _fill_with_future_tasks([selected[0], future], selected, TODAY, daily_time_limit=30)
-        assert future not in result
-
-    def test_no_remaining_budget_returns_selected_unchanged(self, make_task):
-        selected = [make_task(id=1, duration=30)]
-        future = make_task(id=2, duration=5, due_date=TODAY + timedelta(days=1))
-        result = _fill_with_future_tasks([selected[0], future], selected, TODAY, daily_time_limit=30)
-        assert result == selected
-
-    def test_ignores_tasks_already_selected(self, make_task):
-        task = make_task(id=1, duration=10, due_date=TODAY + timedelta(days=1))
-        result = _fill_with_future_tasks([task], [task], TODAY, daily_time_limit=30)
-        assert result == [task]
-
-    def test_ignores_tasks_without_a_due_date(self, make_task):
-        selected = []
-        no_due_date_task = make_task(id=2, duration=10, due_date=None)
-        result = _fill_with_future_tasks([no_due_date_task], selected, TODAY, daily_time_limit=30)
-        assert result == []
-
-    def test_prefers_earliest_due_date_first(self, make_task):
-        selected = []
-        far = make_task(id=1, duration=10, due_date=TODAY + timedelta(days=10), priority=100)
-        near = make_task(id=2, duration=10, due_date=TODAY + timedelta(days=1), priority=1)
-        result = _fill_with_future_tasks([far, near], selected, TODAY, daily_time_limit=10)
-        assert result == [near]
-
-
 # ---------------------------------------------------------------------------
 # compute_daily_tasks (integration of the above)
 # ---------------------------------------------------------------------------
@@ -195,20 +150,3 @@ class TestComputeDailyTasks:
         task = make_task(id=1, duration=10, due_date=None)  # MAYBE_ELIGIBLE
         result = compute_daily_tasks([task], TODAY, daily_time_limit=60)
         assert result[0].due_date == TODAY
-
-    def test_allow_future_tasks_pulls_in_future_tasks_to_fill_budget(self, make_task):
-        today_task = make_task(id=1, duration=10, due_date=TODAY)
-        future_task = make_task(id=2, duration=10, due_date=TODAY + timedelta(days=3))
-        result = compute_daily_tasks(
-            [today_task, future_task], TODAY, daily_time_limit=30, allow_future_tasks=True,
-        )
-        assert {t.id for t in result} == {1, 2}
-        assert future_task.due_date == TODAY
-
-    def test_future_tasks_not_pulled_in_when_flag_is_false(self, make_task):
-        today_task = make_task(id=1, duration=10, due_date=TODAY)
-        future_task = make_task(id=2, duration=10, due_date=TODAY + timedelta(days=3))
-        result = compute_daily_tasks(
-            [today_task, future_task], TODAY, daily_time_limit=30, allow_future_tasks=False,
-        )
-        assert {t.id for t in result} == {1}

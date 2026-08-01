@@ -14,7 +14,6 @@ import streamlit as st
 from common.consts import today
 from .tt_json_utils import (
     cache_tasks,
-    load_allow_future_tasks,
     load_cached_daily_limit,
     load_cached_task_ids,
     load_show_completed,
@@ -101,7 +100,6 @@ def init_session_state() -> None:
     daily_limit = load_cached_daily_limit()
     show_completed = load_show_completed()
     show_rescheduled = load_show_rescheduled()
-    allow_future_tasks = load_allow_future_tasks()
 
     st.session_state.active_duration = 0
     st.session_state.nb_today_task = 0
@@ -115,7 +113,6 @@ def init_session_state() -> None:
     
     st.session_state.daily_limit = daily_limit
     st.session_state.show_completed = show_completed
-    st.session_state.allow_future_tasks = allow_future_tasks
 
     # Pure session-local UI state — setdefault so mid-session values (timer
     # running, grid keys) survive reruns, but a genuinely fresh session
@@ -158,15 +155,13 @@ def regenerate_today_tasks() -> None:
     daily_limit = st.session_state.daily_limit
     show_completed = load_show_completed()
     show_rescheduled = load_show_rescheduled()
-    allow_future_tasks = load_allow_future_tasks()
     current_date = today()
 
     manually_scheduled = [t for t in tasks if t.manually_scheduled_on == current_date]
 
     today_tasks = compute_daily_tasks(
         tasks, current_date, daily_limit,
-        pre_selected_tasks=manually_scheduled,
-        allow_future_tasks=allow_future_tasks,
+        pre_selected_tasks=manually_scheduled
     )
 
     st.session_state.today_tasks = today_tasks

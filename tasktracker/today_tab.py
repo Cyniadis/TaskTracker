@@ -12,11 +12,9 @@ from . import ui_state
 from common.common_utils import get_theme_color
 from common.consts import today
 from .tt_json_utils import (
-    cache_allow_future_tasks,
     cache_daily_limit,
     cache_show_completed,
     cache_show_rescheduled,
-    load_allow_future_tasks,
     load_show_completed,
     load_show_rescheduled,
 )
@@ -129,12 +127,7 @@ def _render_today_header() -> None:
             on_change=lambda: cache_show_rescheduled(st.session_state.show_rescheduled_checkbox),
             key="show_rescheduled_checkbox",
         )
-        st.checkbox(
-            "Allow future tasks", load_allow_future_tasks(),
-            on_change=lambda: cache_allow_future_tasks(st.session_state.allow_future_tasks_checkbox),
-            key="allow_future_tasks_checkbox",
-        )
-
+       
     st.write(
         f"**Active duration:** {st.session_state.active_duration} min - "
         f"**Number of tasks:** {st.session_state.nb_today_task}"

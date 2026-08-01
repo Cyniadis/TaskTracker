@@ -39,10 +39,10 @@ class TestHeader:
         assert at.session_state["daily_limit"] == 90
         assert len(at.exception) == 0
 
-    def test_shows_the_three_toggle_checkboxes(self, today_app):
+    def test_shows_the_two_toggle_checkboxes(self, today_app):
         at = today_app.run()
         labels = {c.label for c in at.checkbox}
-        assert labels == {"Show completed tasks", "Show rescheduled tasks", "Allow future tasks"}
+        assert labels == {"Show completed tasks", "Show rescheduled tasks"}
 
     def test_shows_active_duration_and_task_count(self, today_app):
         today_app.session_state["active_duration"] = 25
