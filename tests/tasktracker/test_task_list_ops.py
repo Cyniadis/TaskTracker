@@ -10,7 +10,7 @@ from tasktracker.task_list_ops import (
     find_task_by_id,
     next_task_id,
     remove_tasks_by_id,
-    restore_tasks,
+    # restore_tasks,
     update_tasks_priority_and_due_date,
 )
 
@@ -77,20 +77,20 @@ class TestRemoveTasksById:
         assert len(result) == 2
 
 
-class TestRestoreTasks:
-    def test_restores_every_task_in_place(self, make_task):
-        t1 = make_task(id=1, name="Old1")
-        t2 = make_task(id=2, name="Old2")
-        t1.name = "New1"
-        t2.name = "New2"
+# class TestRestoreTasks:
+#     def test_restores_every_task_in_place(self, make_task):
+#         t1 = make_task(id=1, name="Old1")
+#         t2 = make_task(id=2, name="Old2")
+#         t1.name = "New1"
+#         t2.name = "New2"
 
-        restore_tasks([t1, t2])
+#         restore_tasks([t1, t2])
 
-        assert t1.name == "Old1"
-        assert t2.name == "Old2"
+#         assert t1.name == "Old1"
+#         assert t2.name == "Old2"
 
-    def test_empty_list_is_a_no_op(self):
-        restore_tasks([])  # should not raise
+#     def test_empty_list_is_a_no_op(self):
+#         restore_tasks([])  # should not raise
 
 
 # ---------------------------------------------------------------------------

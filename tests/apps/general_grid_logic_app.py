@@ -13,7 +13,7 @@ pytest function, which Streamlit explicitly warns doesn't reliably support
 """
 import streamlit as st
 
-from tasktracker.ui import general_tab as gt
+from tasktracker import general_tab as gt
 
 st.session_state.setdefault("tasks", [])
 

@@ -1,15 +1,18 @@
 """The 'General' tab: manage the full task library."""
 from __future__ import annotations
 
+import dis
+from gc import disable
 import json
 
 import pandas as pd
 import streamlit as st
 
 from . import ui_state
-from ..tt_json_utils import import_tasks_from_json_bytes, save_tasks, task_list_to_json
-from ..task import Task, Period
-from ..task_list_ops import find_task_by_id
+from .tt_json_utils import import_tasks_from_json_bytes, save_tasks, task_list_to_json
+from tasktracker.change_tracking_task import task_changes, discard_task_changes
+from .task import Task, Period
+from .task_list_ops import find_task_by_id
 
 from common.consts import today
 
@@ -66,7 +69,7 @@ def _tasks_to_general_dataframe(tasks: list[Task]) -> pd.DataFrame | None:
             "due_date": task.due_date,
             "done_date": task.done_date,
             "update_dates": ":material/edit_note: Update dates",
-            "changes": ":material/edit_note: Changes" if task.get_changes() else None,
+            "changes": ":material/edit_note: Changes" if task_changes(task, st.session_state.task_baseline) else None,
         })
     return pd.DataFrame.from_records(records)
 
@@ -85,8 +88,8 @@ def _column_config() -> dict:
         "priority": st.column_config.NumberColumn("Priority", step=0.5, format="%.1f"),
         "initial_priority": st.column_config.NumberColumn("Initial Priority", step=0.5, format="%.1f", required=True),
         "duration": st.column_config.NumberColumn("Duration (min)", min_value=1, step=5, required=True),
-        "due_date": st.column_config.DateColumn("Due date", format="DD/MM/YYYY"),
-        "done_date": st.column_config.DateColumn("Done date", format="DD/MM/YYYY"),
+        "due_date": st.column_config.DateColumn("Due date", format="DD/MM/YYYY", disabled=True), 
+        "done_date": st.column_config.DateColumn("Done date", format="DD/MM/YYYY", disabled=True),
         "update_dates": st.column_config.ButtonColumn("", on_click=_on_update_dates_click, key="update_dates_button", alignment="center"),
         "changes": st.column_config.ButtonColumn("", on_click=_on_show_changes_click, key="show_changes_button", alignment="center"),
     }
@@ -101,8 +104,6 @@ def _apply_added_row(new_row: dict) -> None:
         priority=new_row["initial_priority"],
         initial_priority=new_row["initial_priority"],
         duration=int(new_row["duration"]),
-        due_date=None,
-        done_date=None,
     )
     ui_state.add_task(task)
 
@@ -111,7 +112,10 @@ def _apply_edited_rows(edited_rows: dict, df: pd.DataFrame) -> None:
     """Apply each column change from the data editor onto the matching Task.
 
     `frequency_count`/`frequency_period` are recombined into the single
-    `frequency` field the Task model actually stores.
+    `frequency` field the Task model actually stores. `due_date`/`done_date`
+    are routed through their dedicated setter methods rather than
+    `set_field()`, since Task no longer allows those two fields to be set
+    generically (see Task.set_field's docstring).
     """
     for row_pos, changes in edited_rows.items():
         task = find_task_by_id(st.session_state.tasks, int(df.iloc[row_pos]["id"]))
@@ -121,6 +125,10 @@ def _apply_edited_rows(edited_rows: dict, df: pd.DataFrame) -> None:
                 count = changes.get("frequency_count", df.iloc[row_pos]["frequency_count"])
                 period = changes.get("frequency_period", df.iloc[row_pos]["frequency_period"])
                 task.set_field("frequency", f"{int(count)}x{period}")
+            elif column_name == "due_date":
+                task.set_due_date(changes["due_date"])
+            elif column_name == "done_date":
+                task.set_done_date(changes["done_date"])
             else:
                 task.set_field(column_name, changes[column_name])
 
@@ -154,14 +162,15 @@ def _export_json_bytes() -> bytes:
 
 @st.dialog("Changes")
 def _show_changes_dialog(row: int) -> None:
-    """Dialog listing pending (unpersisted) field changes for one task, with a discard option."""
+    """Dialog listing pending (unpersisted-since-baseline) field changes for
+    one task, with a discard option."""
     df = st.session_state.general_df
     task_id = int(df.iloc[row]["id"])
     task = find_task_by_id(st.session_state.tasks, task_id)
 
     st.markdown(f"**{task.name}**")
 
-    diffs = task.get_changes()
+    diffs = task_changes(task, st.session_state.task_baseline)
     if not diffs:
         st.info("No changes on this task.")
         return
@@ -170,7 +179,8 @@ def _show_changes_dialog(row: int) -> None:
         st.markdown(f"**{label}:** ~~{old}~~ → {new}")
 
     if st.button("Discard changes"):
-        task.restore()
+        discard_task_changes(task, st.session_state.task_baseline)
+        ui_state.persist_tasks()
         st.rerun()
 
 
@@ -228,7 +238,7 @@ def render() -> None:
 
     toolbar = st.container(horizontal=True, width="content", vertical_alignment="bottom")
     if toolbar.button("⭯ Discard all changes"):
-        ui_state.restore_tasks(st.session_state.tasks)
+        ui_state.discard_all_changes()
         ui_state.reload_today_grid()
         ui_state.reload_general_grid()
         st.rerun()

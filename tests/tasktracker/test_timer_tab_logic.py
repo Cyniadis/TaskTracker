@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from tasktracker.ui import timer_tab
+from timer import timer_tab
 
 
 class _FakeClock:

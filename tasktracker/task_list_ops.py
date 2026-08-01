@@ -11,7 +11,6 @@ from .task import Task
 from common.consts import today
 
 from datetime import datetime
-from datetime import date
 
 def find_task_by_id(tasks: list[Task], task_id: int) -> Task:
     """Return the task with `id == task_id`, or raise KeyError if not found."""
@@ -32,11 +31,6 @@ def remove_tasks_by_id(tasks: list[Task], task_ids: list[int]) -> list[Task]:
     return [t for t in tasks if t.id not in ids_to_remove]
 
 
-def restore_tasks(tasks: list[Task]) -> None:
-    """Revert every task in `tasks` to its last-persisted (orig_*) state, in place."""
-    for task in tasks:
-        task.restore()
-
 def update_tasks_priority_and_due_date(tasks: list[Task]) -> None:
     """Housekeeping pass, meant to be called once before `compute_daily_tasks`.
 
@@ -48,17 +42,16 @@ def update_tasks_priority_and_due_date(tasks: list[Task]) -> None:
       occurrence.
 
     Tasks with no due date, or a due date that's today or in the future,
-    are left untouched — they haven't missed their window yet.
+    are left untouched — they haven't missed their window yet. Cancelled
+    tasks always have `due_date is None` (see Task.cancel()), so they're
+    naturally skipped here too — no special-casing needed.
     """
     current_date = today()
     for task in tasks:
-        if task.due_date == date.max: 
-            task.due_date = None
         if not task.due_date or task.due_date >= current_date:
             continue
         if task.is_completed_on(task.due_date):
-            task.due_date = task.compute_next_due_date(task.due_date)
-            task.orig_due_date = task.due_date
+            task.compute_next_due_date(task.due_date)
         else:
             task.increment_priority()
 

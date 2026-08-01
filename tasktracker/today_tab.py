@@ -11,7 +11,7 @@ from datetime import timedelta
 from . import ui_state
 from common.common_utils import get_theme_color
 from common.consts import today
-from ..tt_json_utils import (
+from .tt_json_utils import (
     cache_allow_future_tasks,
     cache_daily_limit,
     cache_show_completed,
@@ -20,8 +20,8 @@ from ..tt_json_utils import (
     load_show_completed,
     load_show_rescheduled,
 )
-from ..task import Task
-from ..task_list_ops import find_task_by_id
+from .task import Task
+from .task_list_ops import find_task_by_id
 
 
 def _tasks_to_today_dataframe(tasks: list[Task]) -> pd.DataFrame | None:
@@ -29,7 +29,10 @@ def _tasks_to_today_dataframe(tasks: list[Task]) -> pd.DataFrame | None:
 
     Frequency stays as a single display string here (read-only column, no
     per-half editing needed) and an extra `completed` / `reschedule` column
-    pair drives the row action buttons. Returns None if `tasks` is empty.
+    pair drives the row action buttons. `cancelled` is carried along (hidden
+    via column_config) purely so `_color_by_due_date` can style cancelled
+    rows without re-deriving that from a date sentinel. Returns None if
+    `tasks` is empty.
     """
     if not tasks:
         return None
@@ -46,6 +49,7 @@ def _tasks_to_today_dataframe(tasks: list[Task]) -> pd.DataFrame | None:
             "duration": task.duration,
             "due_date": task.due_date,
             "done_date": task.done_date,
+            "cancelled": task.cancelled,
             "reschedule": ":material/edit: Reschedule",
         }
         for task in tasks
@@ -59,6 +63,7 @@ def _edit_due_date(row: int) -> None:
     row_date = st.session_state.today_df.iloc[row]["due_date"]
     current = row_date if row_date is not None else today()
     task = find_task_by_id(st.session_state.tasks, st.session_state.today_df.at[row, "id"])
+    current_date = today()
 
     with st.container(horizontal=True, vertical_alignment="bottom"):
         new_date = st.date_input(
@@ -67,22 +72,26 @@ def _edit_due_date(row: int) -> None:
             width=200,
         )
         if st.button("Save"):
-            task.due_date = new_date
+            task.set_due_date(new_date)
+            task.mark_rescheduled(current_date)
             ui_state.persist_tasks()
             st.rerun()
 
     with st.container(horizontal=True, vertical_alignment="bottom"):
         if st.button("To undefined due date"):
-            task.due_date = date.max
+            task.cancel()
             ui_state.persist_tasks()
             st.rerun()
         if st.button("To next due date"):
-            task.due_date = task.compute_next_due_date(task.due_date)
+            task.set_due_date(task.compute_next_due_date(task.due_date))
+            task.mark_rescheduled(current_date)
             ui_state.persist_tasks()
             st.rerun()
         if st.button("To this weekend"):
             days_until_saturday = (5 - today().weekday()) % 7
-            task.due_date = today() + timedelta(days=days_until_saturday)
+            task.set_due_date(today() + timedelta(days=days_until_saturday))
+            task.mark_rescheduled(current_date)
+            ui_state.persist_tasks()
             st.rerun()
 
 
@@ -139,6 +148,7 @@ def _column_config() -> dict:
         "frequency_count": None,
         "frequency_period": None,
         "initial_priority": None,
+        "cancelled": None,
         "completed": st.column_config.ButtonColumn(
             "", width=30, key="complete_button", on_click=_on_row_selected, type="tertiary",
         ),
@@ -170,12 +180,14 @@ def _on_row_selected() -> None:
 
 
 def _color_by_due_date(row: pd.Series) -> list[str]:
-    """Row-styling: highlight tasks done today, dim tasks not due today."""
+    """Row-styling: highlight tasks done today, dim tasks not due today, mark
+    cancelled tasks — reading the explicit `cancelled` flag instead of the
+    old date.max sentinel."""
     current_date = today()
     color = get_theme_color("textColor")
     if current_date == row["done_date"]:
         color = get_theme_color("doneTextColor")
-    elif row["due_date"]  == date.max:
+    elif row["cancelled"]:
         color = get_theme_color("cancelledTextColor")
     elif row["due_date"] != current_date:
         color = get_theme_color("hiddenTextColor")

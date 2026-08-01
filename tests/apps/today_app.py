@@ -5,7 +5,7 @@ normally set up before the real app renders this tab.
 """
 import streamlit as st
 
-from tasktracker.ui import today_tab
+from tasktracker import today_tab
 
 st.session_state.setdefault("today_tasks", [])
 st.session_state.setdefault("today_generated", False)

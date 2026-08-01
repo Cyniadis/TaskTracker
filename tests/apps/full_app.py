@@ -11,7 +11,8 @@ single-tab harnesses.
 """
 import streamlit as st
 
-from tasktracker.ui import general_tab, timer_tab, today_tab
+from tasktracker import general_tab, today_tab
+from timer import timer_tab
 
 st.session_state.setdefault("tasks", [])
 st.session_state.setdefault("today_tasks", [])

@@ -9,8 +9,9 @@ import locale
 import streamlit as st
 
 from groceries import grocery_tab
-from tasktracker.ui import ui_state
-from tasktracker.ui import general_tab, timer_tab, today_tab
+from tasktracker import general_tab, today_tab
+from tasktracker import ui_state
+from timer import timer_tab
 
 try:
     # Used for localized date formatting (e.g. "lundi 20 juillet 2026").

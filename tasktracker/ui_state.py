@@ -12,7 +12,7 @@ from datetime import datetime
 import streamlit as st
 
 from common.consts import today
-from ..tt_json_utils import (
+from .tt_json_utils import (
     cache_tasks,
     load_allow_future_tasks,
     load_cached_daily_limit,
@@ -22,12 +22,12 @@ from ..tt_json_utils import (
     load_tasks,
     save_tasks
 )
-from ..selector import compute_daily_tasks
+from tasktracker.change_tracking_task import snapshot_tasks, load_task_baseline, discard_task_changes
+from .selector import compute_daily_tasks
 from common.common_utils import normalize_date
-from ..task import Task
-from ..task_list_ops import next_task_id as _next_task_id
-from ..task_list_ops import remove_tasks_by_id, update_tasks_priority_and_due_date
-from ..task_list_ops import restore_tasks as _restore_tasks
+from .task import Task, TaskDueDateState
+from .task_list_ops import next_task_id as _next_task_id
+from .task_list_ops import remove_tasks_by_id, update_tasks_priority_and_due_date
 
 @st.cache_resource(show_spinner=False)
 def _init_general_task_list() -> list[Task]:
@@ -40,6 +40,11 @@ def _init_general_task_list() -> list[Task]:
     tasks = load_tasks()
     update_tasks_priority_and_due_date(tasks)
     save_tasks(tasks)
+    # Refresh the change-tracking baseline to match this fresh load — this is
+    # the "since the last full reload" reference point the old orig_* fields
+    # used to capture, now living in its own durable file instead of on the
+    # Task objects themselves. See tasktracker/change_tracking.py.
+    snapshot_tasks(tasks)
     return tasks
 
 
@@ -69,9 +74,9 @@ def _sync_today_tasks(
 
 
 def filter_today_tasks(tasks: list[Task], today_tasks: list[Task], show_completed: bool = False, show_rescheduled: bool = False):
-    completed_tasks = [t for t in tasks if t.is_completed_on(today())] 
-    rescheduled_tasks = [t for t in tasks if any(diff[0] == "Due date" for diff in t.get_changes())]
-    
+    completed_tasks = [t for t in tasks if t.status().completed]
+    rescheduled_tasks = [ t for t in tasks if t.status().due_date_state == TaskDueDateState.RESCHEDULED ]
+
     filtered_today_tasks = [ t for t in today_tasks if t not in completed_tasks and t not in rescheduled_tasks ]
     
     st.session_state.active_duration = sum([t.duration for t in filtered_today_tasks])
@@ -106,6 +111,7 @@ def init_session_state() -> None:
     st.session_state.tasks = tasks
     st.session_state.today_tasks = today_tasks
     st.session_state.today_generated = today_generated
+    st.session_state.task_baseline = load_task_baseline(tasks)
     
     st.session_state.daily_limit = daily_limit
     st.session_state.show_completed = show_completed
@@ -143,6 +149,10 @@ def regenerate_today_tasks() -> None:
     which is what lets every other session/tab pick up the change on
     their next rerun via `_sync_today_tasks` without recomputing anything
     themselves.
+
+    Tasks manually scheduled for today are always passed in as
+    `pre_selected_tasks`, so they survive regeneration regardless of the
+    daily time budget (see Task.mark_manually_scheduled).
     """
     tasks = st.session_state.tasks
     daily_limit = st.session_state.daily_limit
@@ -151,8 +161,12 @@ def regenerate_today_tasks() -> None:
     allow_future_tasks = load_allow_future_tasks()
     current_date = today()
 
+    manually_scheduled = [t for t in tasks if t.manually_scheduled_on == current_date]
+
     today_tasks = compute_daily_tasks(
-        tasks, current_date, daily_limit, allow_future_tasks=allow_future_tasks,
+        tasks, current_date, daily_limit,
+        pre_selected_tasks=manually_scheduled,
+        allow_future_tasks=allow_future_tasks,
     )
 
     st.session_state.today_tasks = today_tasks
@@ -162,9 +176,13 @@ def regenerate_today_tasks() -> None:
     persist_tasks()
 
 
-def restore_tasks(tasks: list[Task]) -> None:
-    """Revert every task in `tasks` to its last-persisted (orig_*) state."""
-    _restore_tasks(tasks)
+def discard_all_changes() -> None:
+    """Revert every task to its last change-tracking snapshot (see
+    tasktracker/change_tracking.py). Tasks added after the last snapshot are
+    left as-is — there's nothing to discard them back to."""
+    for task in st.session_state.tasks:
+        discard_task_changes(task, st.session_state.task_baseline)
+    persist_tasks()
 
 
 def reload_today_grid() -> None:
@@ -197,7 +215,7 @@ def add_task(task: Task) -> None:
 
 def schedule_task_for_today(task: Task) -> None:
     """Manually add a task to today's list, ignoring the daily time budget."""
-    task.schedule_for(today())
+    task.mark_manually_scheduled(today())
     if task not in st.session_state.today_tasks:
         st.session_state.today_tasks.append(task)
     cache_today_tasks()
@@ -207,8 +225,8 @@ def schedule_task_for_today(task: Task) -> None:
 
 def update_dates(task: Task, date: datetime.date) -> None:
     """Manually add a task to today's list, ignoring the daily time budget."""
-    task.done_date = date
-    task.due_date = task.compute_next_due_date(date)
+    task.set_done_date(date)
+    task.set_due_date(task.compute_next_due_date(date))
     cache_today_tasks()
     persist_tasks()
 

@@ -13,7 +13,6 @@ import pandas as pd
 import streamlit as st
 
 from common.consts import today
-from tasktracker.ui.ui_state import persist_tasks
 from .grocery import LABEL_TO_STATE, STATE_TO_LABEL, GroceryItem, GroceryState
 from .grocery_json_utils import (
     grocery_list_to_json,

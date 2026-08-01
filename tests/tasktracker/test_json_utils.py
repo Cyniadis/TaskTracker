@@ -134,7 +134,6 @@ class TestCacheRoundTrip:
         # cache_file fixture points at a path that hasn't been written to.
         assert tt_json_utils.load_show_completed() is True
         assert tt_json_utils.load_show_rescheduled() is True
-        assert tt_json_utils.load_allow_future_tasks() is False
         assert tt_json_utils.load_cached_daily_limit() == tt_json_utils.DEFAULT_DAILY_LIMIT_MINUTES
 
     def test_show_completed_checkbox_state_survives(self, cache_file):
@@ -147,10 +146,6 @@ class TestCacheRoundTrip:
     def test_show_rescheduled_checkbox_state_survives(self, cache_file):
         tt_json_utils.cache_show_rescheduled(False)
         assert tt_json_utils.load_show_rescheduled() is False
-
-    def test_allow_future_tasks_checkbox_state_survives(self, cache_file):
-        tt_json_utils.cache_allow_future_tasks(True)
-        assert tt_json_utils.load_allow_future_tasks() is True
 
     def test_daily_limit_survives(self, cache_file):
         tt_json_utils.cache_daily_limit(90)

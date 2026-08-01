@@ -13,7 +13,7 @@ from datetime import date, timedelta
 import pytest
 
 from tasktracker.task import Task
-from tasktracker.ui import today_tab as tt
+from tasktracker import today_tab as tt
 
 FROZEN_TODAY = date(2026, 7, 21)
 

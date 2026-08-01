@@ -7,7 +7,7 @@ would call, using session state a test sets up beforehand.
 """
 import streamlit as st
 
-from tasktracker.ui import today_tab as tt
+from tasktracker import today_tab as tt
 
 st.session_state.setdefault("tasks", [])
 st.session_state.setdefault("today_tasks", [])

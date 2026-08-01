@@ -18,13 +18,16 @@ from .task_list_ops import schedule_task_list
 
 class Eligibility(Enum):
     """Whether a task can be picked for a given day."""
-    NOT_ELIGIBLE = auto()    # already done today, or not due yet and never done
+    NOT_ELIGIBLE = auto()    # already done today, cancelled, or not due yet and never done
     MAYBE_ELIGIBLE = auto()  # never scheduled/done before — can be used as a filler
     ELIGIBLE = auto()        # due today, overdue, or its recurrence window has elapsed
 
 
 def _eligibility(task: Task, current_date: date) -> Eligibility:
     """Classify whether `task` can be scheduled on `current_date`."""
+    if task.cancelled:
+        return Eligibility.NOT_ELIGIBLE
+
     if task.done_date == current_date:
         return Eligibility.NOT_ELIGIBLE
 
@@ -109,17 +112,12 @@ def compute_daily_tasks(
     current_date: date,
     daily_time_limit: int,
     pre_selected_tasks: list[Task] | None = None,
-    allow_future_tasks: bool = False,
 ) -> list[Task]:
     """Return the subset of `tasks` scheduled for `current_date`.
 
     If `pre_selected_tasks` is given (e.g. tasks already picked in a previous
     render, or manually added), they're kept as-is and the remaining budget is
     filled around them. Otherwise the full eligible pool is considered.
-
-    If `allow_future_tasks` is set and the normally-eligible tasks don't
-    fill the daily budget, future-dated tasks are pulled forward to fill
-    the remaining time.
     """
     pre_selected_tasks = pre_selected_tasks or []
 
@@ -139,8 +137,6 @@ def compute_daily_tasks(
         if sum(t.duration for t in candidates) <= remaining_time:
             schedule_task_list(candidates, current_date)
             result = pre_selected_tasks + candidates
-            if allow_future_tasks:
-                result = _fill_with_future_tasks(tasks, result, current_date, daily_time_limit)
             return result
 
         extra = _select_by_priority(candidates, remaining_time)
@@ -150,8 +146,6 @@ def compute_daily_tasks(
     if sum(t.duration for t in eligible) <= daily_time_limit:
         schedule_task_list(eligible, current_date)
         result = eligible
-        if allow_future_tasks:
-            result = _fill_with_future_tasks(tasks, result, current_date, daily_time_limit)
         return result
 
     selected = _select_by_priority(eligible, daily_time_limit)
