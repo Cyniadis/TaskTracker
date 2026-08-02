@@ -11,6 +11,7 @@ from datetime import date
 import pytest
 
 from tasktracker import tt_json_utils
+from tasktracker import change_tracking_task
 from tasktracker.change_tracking_task import load_task_baseline
 from tasktracker.general_tab import task_changes
 from tasktracker.task import Task
@@ -32,9 +33,15 @@ def cache_file(tmp_path, monkeypatch):
 @pytest.fixture
 def task_baseline_file(tmp_path, monkeypatch):
     """Redirect the task_baseline.json helpers (which have no `path=` parameter,
-    unlike load/save_tasks) at a throwaway file for this test."""
+    unlike load/save_tasks) at a throwaway file for this test.
+
+    TASK_BASELINE_FILE is a plain module-level constant imported by name into
+    change_tracking_task.py (`from common.consts import TASK_BASELINE_FILE`),
+    so the binding that needs patching is the one on change_tracking_task,
+    not on common.consts or common_json_utils (which doesn't even define it).
+    """
     path = tmp_path / "task_baseline.json"
-    monkeypatch.setattr(common_json_utils, "TASK_BASELINE_FILE", path)
+    monkeypatch.setattr(change_tracking_task, "TASK_BASELINE_FILE", path)
     return path
 
 # ---------------------------------------------------------------------------

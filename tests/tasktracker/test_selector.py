@@ -42,6 +42,21 @@ class TestEligibility:
         task = make_task(due_date=TODAY + timedelta(days=1), done_date=None)
         assert _eligibility(task, TODAY) is Eligibility.NOT_ELIGIBLE
 
+    def test_cancelled_task_is_not_eligible_even_if_overdue(self, make_task):
+        task = make_task(due_date=TODAY - timedelta(days=5), done_date=None)
+        task.cancel()
+        assert _eligibility(task, TODAY) is Eligibility.NOT_ELIGIBLE
+
+    def test_cancelled_task_is_excluded_from_compute_daily_tasks(self, make_task):
+        cancelled = make_task(due_date=TODAY, done_date=None, duration=10)
+        cancelled.cancel()
+        kept = make_task(due_date=TODAY, done_date=None, duration=10)
+
+        result = compute_daily_tasks([cancelled, kept], TODAY, daily_time_limit=60)
+
+        assert cancelled not in result
+        assert kept in result
+
     def test_overdue_but_recently_done_within_recurrence_window_is_eligible(self, make_task):
         # 1xsemaine (7 days) task done 3 days ago and due date in the past -> still within window
         task = make_task(frequency="1xsemaine", due_date=TODAY - timedelta(days=1), done_date=TODAY - timedelta(days=3))

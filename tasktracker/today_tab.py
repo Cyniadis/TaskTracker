@@ -77,7 +77,7 @@ def _edit_due_date(row: int) -> None:
             ui_state.cancel_task(task)
             st.rerun()
         if st.button("To next due date"):
-            ui_state.set_task_next_due_date(task, new_date)
+            ui_state.schedule_task_for(task, task.get_next_due_date(task.due_date))
             st.rerun()
         if st.button("To this weekend"):
             days_until_saturday = (5 - today().weekday()) % 7

@@ -220,7 +220,7 @@ def update_done_date(task: Task, date: datetime.date) -> None:
     persist_tasks()
 
 
-def remove_tasks(task_ids: list[int]) -> None:
+def remove_tasks(task_ids: list[str]) -> None:
     """Remove tasks by id from both the full list and today's list, then persist."""
     if len(task_ids) == 0:
         return

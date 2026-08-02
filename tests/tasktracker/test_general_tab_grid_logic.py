@@ -147,3 +147,47 @@ class TestApplyEditedRows:
 
         assert t1.name == "First"
         assert t2.name == "Second, edited"
+
+
+class TestOnDataChangeDeletedRows:
+    """Regression coverage for _on_data_change's deleted_rows path: task ids
+    are uuid strings now (not the old auto-incrementing ints), and a stray
+    `int(df.iloc[row_pos]["id"])` cast used to raise ValueError here."""
+
+    def _grid_df_for(self, *tasks: Task) -> pd.DataFrame:
+        return pd.DataFrame.from_records([{"id": t.id, "name": t.name} for t in tasks])
+
+    def test_deleting_a_row_removes_the_matching_task(self, general_grid_logic_app):
+        t1 = Task(name="Keep")
+        t2 = Task(name="Delete me")
+        general_grid_logic_app.session_state["tasks"] = [t1, t2]
+        at = general_grid_logic_app.run()
+
+        at.session_state["edit_df"] = self._grid_df_for(t1, t2)
+        at.session_state["editor_state"] = {
+            "added_rows": [], "edited_rows": {}, "deleted_rows": [1],
+        }
+        button = next(b for b in at.button if b.label == "on_data_change")
+        at = button.click().run()
+
+        assert len(at.exception) == 0
+        remaining = at.session_state["tasks"]
+        assert [t.name for t in remaining] == ["Keep"]
+
+    def test_deleting_multiple_rows(self, general_grid_logic_app):
+        t1 = Task(name="A")
+        t2 = Task(name="B")
+        t3 = Task(name="C")
+        general_grid_logic_app.session_state["tasks"] = [t1, t2, t3]
+        at = general_grid_logic_app.run()
+
+        at.session_state["edit_df"] = self._grid_df_for(t1, t2, t3)
+        at.session_state["editor_state"] = {
+            "added_rows": [], "edited_rows": {}, "deleted_rows": [0, 2],
+        }
+        button = next(b for b in at.button if b.label == "on_data_change")
+        at = button.click().run()
+
+        assert len(at.exception) == 0
+        remaining_names = {t.name for t in at.session_state["tasks"]}
+        assert remaining_names == {"B"}

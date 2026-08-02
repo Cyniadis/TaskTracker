@@ -1,14 +1,10 @@
 """The 'General' tab: manage the full task library."""
 from __future__ import annotations
 
-import dis
-from gc import disable
-from hmac import new
 import json
 
 import pandas as pd
 import streamlit as st
-from test.test_importlib.test_threaded_import import task
 from datetime import date, timedelta
 
 
@@ -176,7 +172,7 @@ def _on_data_change() -> None:
         _apply_edited_rows(editor_state["edited_rows"], df)
 
     if editor_state["deleted_rows"]:
-        deleted_ids = [int(df.iloc[row_pos]["id"]) for row_pos in editor_state["deleted_rows"]]
+        deleted_ids = [df.iloc[row_pos]["id"] for row_pos in editor_state["deleted_rows"]]
         ui_state.remove_tasks(deleted_ids)
 
     ui_state.persist_tasks()

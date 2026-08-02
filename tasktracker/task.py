@@ -28,12 +28,9 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, fields, field
 from datetime import date, timedelta
 from enum import Enum
-from operator import ge
 from typing import Any
-import uuid
 from common.consts import PRIORITY_INCREMENT, today
 from common.common_utils import generate_unique_id, normalize_date
-from tasktracker import ui_state
 
 class Period(str, Enum):
     """The recurrence unit of a task, e.g. 'twice a WEEK'."""
@@ -217,10 +214,11 @@ class Task:
         Just a plain date change — clears cancellation (setting a real date
         is incompatible with being cancelled) but is NOT by itself a
         "reschedule"; callers doing an actual reschedule action should also
-        call mark_rescheduled() right after this.
+        call manually_reschedule() right after this.
         """
         self._due_date = normalize_date(new_date)
-        # self._state.due_date_state = TaskDueDateState.
+        if self._state.due_date_state == TaskDueDateState.CANCELLED:
+            self._state.due_date_state = TaskDueDateState.NORMAL
 
     def set_done_date(self, new_date: date | None) -> None:
         """Direct done-date edits (grid, 'Completed on' dialog save)."""
@@ -257,6 +255,7 @@ class Task:
         self._pre_complete_done_date = self._done_date
         self._done_date = completion_date
         self.priority = self.initial_priority
+        self._state.completed = True
 
     def uncomplete(self) -> None:
         """Undo the most recent complete() call, restoring priority and
@@ -266,6 +265,7 @@ class Task:
             self.priority = self._pre_complete_priority
         self._pre_complete_priority = None
         self._pre_complete_done_date = None
+        self._state.completed = False
 
     def is_completed_on(self, current_date: date) -> bool:
         return self._done_date is not None and self._done_date == current_date

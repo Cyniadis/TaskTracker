@@ -10,9 +10,13 @@ from common.change_tracking import ensure_baseline, get_baseline_entry, get_chan
 from .task import Task
 
 # Fields worth showing in the "Changes" diff / reverting on "Discard changes".
-# id is the lookup key (not a diffable field); manually_rescheduled_on 
-# are per-day action markers, not "edits" a user made and
-# might want to discard — deliberately excluded, same as Task.apply_snapshot().
+# `id` is the lookup key, not a diffable field. `state` (due_date_state /
+# completed) is deliberately excluded too — but note that cancel() and
+# manually_reschedule() both change `due_date` itself as a side effect, and
+# `due_date` *is* diffable, so those actions still show up here as a
+# "Due date" change (and get reverted by discard_task_changes(), via
+# Task.apply_snapshot() — see its docstring for what it does and doesn't
+# touch).
 _LABELS = {
     "name": "Name",
     "frequency": "Frequency",

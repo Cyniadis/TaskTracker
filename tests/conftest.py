@@ -56,6 +56,7 @@ def _no_disk_io(monkeypatch):
     import y` bindings, so patching json_utils itself wouldn't reach them).
     """
     from timer import timer_tab
+    from groceries import grocery_tab
 
     monkeypatch.setattr(ui_state, "save_tasks", lambda *a, **k: None)
     monkeypatch.setattr(ui_state, "cache_tasks", lambda *a, **k: None)
@@ -73,11 +74,24 @@ def _no_disk_io(monkeypatch):
     monkeypatch.setattr(timer_tab, "cache_timer_state", lambda *a, **k: None)
     monkeypatch.setattr(timer_tab, "load_timer_state", lambda: (None, 0.0, False))
 
+    monkeypatch.setattr(grocery_tab, "save_groceries", lambda *a, **k: None)
+
 @pytest.fixture(autouse=True)
 def _no_random_ids(monkeypatch):
-    """Monkeypatching generate_unique_id to return sequential string ids"""
-    ids = map(str, itertools.count())  # "0", "1", "2", ...
-    monkeypatch.setattr(task, "generate_unique_id", lambda: next(ids))
+    """Monkeypatching generate_unique_id to return sequential string ids.
+
+    Task and GroceryItem each imported generate_unique_id by name into
+    their own module namespace, so each needs its own patch target — and
+    its own counter, so ids in one list don't skip numbers because of
+    activity in the other.
+    """
+    from groceries import grocery
+
+    task_ids = map(str, itertools.count())  # "0", "1", "2", ...
+    monkeypatch.setattr(task, "generate_unique_id", lambda: next(task_ids))
+
+    grocery_ids = map(str, itertools.count())  # "0", "1", "2", ...
+    monkeypatch.setattr(grocery, "generate_unique_id", lambda: next(grocery_ids))
 
 
 def _app(name: str) -> AppTest:
@@ -107,6 +121,11 @@ def general_app():
 @pytest.fixture
 def general_grid_logic_app():
     return _app("general_grid_logic_app.py")
+
+
+@pytest.fixture
+def grocery_grid_logic_app():
+    return _app("grocery_grid_logic_app.py")
 
 
 @pytest.fixture
