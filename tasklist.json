@@ -1,382 +1,506 @@
 [
   {
-    "id": 0,
     "name": "🍴 Mettre la vaisselle au lave-vaisselle",
     "frequency": "1xjour",
-    "priority": 5.0,
+    "priority": 4,
     "initial_priority": 4,
     "duration": 5,
-    "due_date": "2026-07-24",
-    "done_date": "2026-07-19"
+    "id": 0,
+    "due_date": "2026-08-03",
+    "done_date": "2026-08-02",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 1,
     "name": "🍴 Nettoyer la vaisselle sale à la main",
     "frequency": "3xsemaine",
-    "priority": 5.0,
-    "initial_priority": 4.0,
-    "duration": 10,
-    "due_date": "2026-07-22",
-    "done_date": "2026-07-19"
-  },
-  {
-    "id": 2,
-    "name": "🍴 Ranger la vaisselle propre ",
-    "frequency": "1xjour",
     "priority": 4,
     "initial_priority": 4.0,
-    "duration": 5,
-    "due_date": null,
-    "done_date": "2026-07-19"
+    "duration": 10,
+    "id": 1,
+    "due_date": "2026-08-04",
+    "done_date": "2026-08-02",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 5,
+    "name": "🍴 Ranger la vaisselle propre ",
+    "frequency": "1xjour",
+    "priority": 4.0,
+    "initial_priority": 4.0,
+    "duration": 5,
+    "id": 2,
+    "due_date": "2026-08-02",
+    "done_date": "2026-08-02",
+    "state": {
+      "completed": true,
+      "due_date_state": "normal"
+    }
+  },
+  {
     "name": "🍴 Nettoyer le plan de travail",
     "frequency": "1xjour",
     "priority": 5.0,
     "initial_priority": 4.0,
     "duration": 5,
-    "due_date": "2026-07-21",
-    "done_date": "2026-07-19"
+    "id": 5,
+    "due_date": "2026-08-03",
+    "done_date": "2026-08-02",
+    "state": {
+      "completed": true,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 6,
     "name": "🍴 Sortir les poubelles",
     "frequency": "1xsemaine",
-    "priority": 3.5,
+    "priority": 4.0,
     "initial_priority": 3.0,
     "duration": 5,
-    "due_date": "2026-07-27",
-    "done_date": null
+    "id": 6,
+    "due_date": "2026-08-01",
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 7,
     "name": "🍴 Nettoyer la plaque de cuisson",
     "frequency": "1xsemaine",
+    "priority": 3.0,
+    "initial_priority": 2.0,
+    "duration": 10,
+    "id": 7,
+    "due_date": "2026-08-01",
+    "done_date": "2026-07-25",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🍴 Nettoyer l'infuseur de la machine à café",
+    "frequency": "1xsemaine",
+    "priority": 3,
+    "initial_priority": 3.0,
+    "duration": 10,
+    "id": 8,
+    "due_date": "2026-08-08",
+    "done_date": "2026-08-01",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🍴 Jeter les cartons",
+    "frequency": "2xmois",
     "priority": 2,
     "initial_priority": 2.0,
     "duration": 10,
-    "due_date": "2026-07-28",
-    "done_date": "2026-07-19"
-  },
-  {
-    "id": 8,
-    "name": "🍴 Nettoyer l'infuseur de la machine à café",
-    "frequency": "1xsemaine",
-    "priority": 3.0,
-    "initial_priority": 3.0,
-    "duration": 10,
-    "due_date": "2026-07-26",
-    "done_date": "2026-07-19"
-  },
-  {
     "id": 9,
-    "name": "🍴 Jeter les cartons",
-    "frequency": "2xmois",
-    "priority": 2.5,
-    "initial_priority": 2.0,
-    "duration": 10,
     "due_date": "2026-08-05",
-    "done_date": "2026-07-19"
+    "done_date": "2026-07-19",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 10,
     "name": "🍴 Jeter les verres",
     "frequency": "1xmois",
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 10,
+    "id": 10,
     "due_date": "2026-08-20",
-    "done_date": null
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 11,
     "name": "😺 Changer l'eau et donner de la pâtée",
     "frequency": "1xjour",
-    "priority": 7,
+    "priority": 8.0,
     "initial_priority": 7,
     "duration": 5,
-    "due_date": "2026-07-27",
-    "done_date": "2026-07-27"
+    "id": 11,
+    "due_date": "2026-08-02",
+    "done_date": "2026-08-01",
+    "state": {
+      "completed": false,
+      "due_date_state": "rescheduled"
+    }
   },
   {
-    "id": 12,
     "name": "😺 Changer la litière",
     "frequency": "1xsemaine",
-    "priority": 3.5,
+    "priority": 3,
     "initial_priority": 3.0,
     "duration": 10,
+    "id": 12,
     "due_date": "2026-08-03",
-    "done_date": null
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 14,
     "name": "🛋️ Passer l'aspirateur",
     "frequency": "1xsemaine",
-    "priority": 3.5,
+    "priority": 4.0,
     "initial_priority": 3.0,
     "duration": 25,
-    "due_date": "2026-07-25",
-    "done_date": "2026-07-25"
+    "id": 14,
+    "due_date": "2026-08-08",
+    "done_date": "2026-08-01",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 15,
     "name": "🛋️ Passer la serpillère",
     "frequency": "2xmois",
-    "priority": 5.5,
+    "priority": 3,
     "initial_priority": 3.0,
     "duration": 25,
-    "due_date": "2026-08-05",
-    "done_date": "2026-07-19"
+    "id": 15,
+    "due_date": "2026-08-16",
+    "done_date": "2026-08-01",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 16,
     "name": "🛋️ Nettoyer le fauteuil",
     "frequency": "1xmois",
     "priority": 1.0,
     "initial_priority": 1.0,
     "duration": 40,
+    "id": 16,
     "due_date": null,
-    "done_date": null
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 18,
     "name": "🛋️ Enlever les toiles d'araignée",
-    "frequency": "2xmois",
-    "priority": 3.0,
-    "initial_priority": 2.0,
-    "duration": 20,
-    "due_date": "2026-07-27",
-    "done_date": null
-  },
-  {
-    "id": 19,
-    "name": "🛋️ Dépoussiérer les étagères/vaisselier",
-    "frequency": "2xmois",
-    "priority": 1.0,
-    "initial_priority": 1.0,
-    "duration": 20,
-    "due_date": null,
-    "done_date": null
-  },
-  {
-    "id": 20,
-    "name": "🛋️ Nettoyer la table basse",
     "frequency": "1xmois",
     "priority": 3.0,
     "initial_priority": 2.0,
-    "duration": 5,
-    "due_date": "2026-07-22",
-    "done_date": null
+    "duration": 20,
+    "id": 18,
+    "due_date": "2026-08-31",
+    "done_date": "2026-08-01",
+    "state": {
+      "completed": true,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 21,
+    "name": "🛋️ Dépoussiérer les étagères/vaisselier",
+    "frequency": "1xmois",
+    "priority": 1.0,
+    "initial_priority": 1.0,
+    "duration": 20,
+    "id": 19,
+    "due_date": "2026-08-31",
+    "done_date": "2026-08-01",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
     "name": "🛋️ Nettoyer le bureau",
     "frequency": "1xsemaine",
-    "priority": 3.0,
+    "priority": 2,
     "initial_priority": 2.0,
-    "duration": 15,
-    "due_date": "2026-07-25",
-    "done_date": null
+    "duration": 5,
+    "id": 21,
+    "due_date": "2026-08-08",
+    "done_date": "2026-08-01",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 22,
     "name": "👕 Faire la lessive de serviettes/peignoires/serpillères",
     "frequency": "1xmois",
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 5,
-    "due_date": null,
-    "done_date": null
+    "id": 22,
+    "due_date": "2026-08-30",
+    "done_date": "2026-07-31",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 23,
     "name": "👕 Faire la lessive vêtements",
     "frequency": "1xsemaine",
-    "priority": 3.5,
+    "priority": 3,
     "initial_priority": 3.0,
     "duration": 5,
-    "due_date": "2026-07-27",
-    "done_date": "2026-07-24"
+    "id": 23,
+    "due_date": "2026-08-08",
+    "done_date": "2026-08-01",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 24,
     "name": "👕 Faire la lessive de draps",
     "frequency": "2xmois",
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 5,
+    "id": 24,
     "due_date": "2026-08-05",
-    "done_date": "2026-07-19"
+    "done_date": "2026-07-19",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 25,
     "name": "👕 Faire la lessive vêtements blanc",
     "frequency": "1xmois",
-    "priority": 1.0,
+    "priority": 1,
     "initial_priority": 1.0,
     "duration": 5,
-    "due_date": "2026-07-30",
-    "done_date": null
+    "id": 25,
+    "due_date": "2026-08-30",
+    "done_date": "2026-07-31",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 26,
     "name": "🛏 Ranger les vêtements qui trainent",
     "frequency": "1xjour",
     "priority": 4.0,
     "initial_priority": 3.0,
     "duration": 15,
-    "due_date": "2026-07-22",
-    "done_date": "2026-07-21"
+    "id": 26,
+    "due_date": "2026-08-02",
+    "done_date": "2026-08-01",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 27,
     "name": "🛏 Nettoyer le matelas",
     "frequency": "1xan",
-    "priority": 2.5,
+    "priority": 2,
     "initial_priority": 2.0,
     "duration": 60,
-    "due_date": "2026-07-27",
-    "done_date": null
+    "id": 27,
+    "due_date": "2026-08-15",
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "rescheduled"
+    }
   },
   {
-    "id": 28,
     "name": "🛏 Changer les draps",
     "frequency": "2xmois",
-    "priority": 4.5,
+    "priority": 4,
     "initial_priority": 4.0,
     "duration": 10,
+    "id": 28,
     "due_date": "2026-08-07",
-    "done_date": "2026-07-23"
+    "done_date": "2026-07-23",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 29,
     "name": "🌱 Nettoyer la terrasse",
     "frequency": "1xan",
     "priority": 1.0,
     "initial_priority": 1.0,
     "duration": 120,
+    "id": 29,
     "due_date": null,
-    "done_date": null
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "cancelled"
+    }
   },
   {
-    "id": 30,
     "name": "🌱 Passer la tondeuse",
     "frequency": "1xmois",
     "priority": 2.0,
     "initial_priority": 2.0,
     "duration": 30,
+    "id": 30,
     "due_date": null,
-    "done_date": null
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "cancelled"
+    }
   },
   {
-    "id": 31,
-    "name": "🌱 Laver housses de fauteuils",
-    "frequency": "3xan",
-    "priority": 2.0,
-    "initial_priority": 2.0,
-    "duration": 15,
-    "due_date": null,
-    "done_date": null
-  },
-  {
-    "id": 32,
     "name": "🚘 Nettoyer crottes garage",
     "frequency": "1xmois",
-    "priority": 2.0,
+    "priority": 2,
     "initial_priority": 2.0,
     "duration": 40,
-    "due_date": null,
-    "done_date": null
+    "id": 32,
+    "due_date": "2026-08-15",
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 33,
     "name": "🍴 Ranger la vaisselle propre du lave-vaisselle",
     "frequency": "1xjour",
-    "priority": 5.0,
+    "priority": 3.0,
     "initial_priority": 2,
     "duration": 5,
-    "due_date": "2026-07-22",
-    "done_date": "2026-07-19"
+    "id": 33,
+    "due_date": "2026-08-03",
+    "done_date": "2026-08-02",
+    "state": {
+      "completed": true,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 34,
     "name": "🛏 Ranger les vêtements de l'étendoir",
     "frequency": "1xsemaine",
-    "priority": 2.5,
+    "priority": 2,
     "initial_priority": 2,
     "duration": 10,
-    "due_date": "2026-07-27",
-    "done_date": "2026-07-21"
+    "id": 34,
+    "due_date": "2026-08-02",
+    "done_date": "2026-07-21",
+    "state": {
+      "completed": false,
+      "due_date_state": "rescheduled"
+    }
   },
   {
-    "id": 35,
     "name": "📞 Appeler les parents",
     "frequency": "2xmois",
     "priority": 3,
     "initial_priority": 3,
     "duration": 30,
-    "due_date": "2026-07-31",
-    "done_date": "2026-07-20"
+    "id": 35,
+    "due_date": "2026-08-02",
+    "done_date": "2026-07-20",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 36,
     "name": "⚔ Entrainement épée longue",
     "frequency": "1xjour",
     "priority": 2,
     "initial_priority": 2,
     "duration": 15,
-    "due_date": null,
-    "done_date": null
+    "id": 36,
+    "due_date": "2026-08-02",
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 37,
     "name": "🚘Réviser code de la route",
     "frequency": "1xjour",
-    "priority": 5.5,
+    "priority": 5,
     "initial_priority": 5,
     "duration": 30,
-    "due_date": "2026-07-27",
-    "done_date": null
+    "id": 37,
+    "due_date": "2026-08-02",
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 38,
     "name": "🍴 Lancer le lave-vaisselle",
     "frequency": "1xsemaine",
-    "priority": 4.5,
+    "priority": 4,
     "initial_priority": 4,
     "duration": 5,
-    "due_date": "2026-07-27",
-    "done_date": null
+    "id": 38,
+    "due_date": "2026-08-05",
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 39,
     "name": "🪟 Nettoyer les vitres",
     "frequency": "1xmois",
     "priority": 2,
     "initial_priority": 2,
     "duration": 45,
+    "id": 39,
     "due_date": null,
-    "done_date": null
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 40,
     "name": "😺 Enlever crottes et pipi de la litière",
     "frequency": "1xjour",
-    "priority": 4.5,
+    "priority": 4,
     "initial_priority": 4,
     "duration": 5,
-    "due_date": "2026-07-27",
-    "done_date": null
+    "id": 40,
+    "due_date": "2026-08-02",
+    "done_date": "2026-08-01",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   },
   {
-    "id": 41,
     "name": "😺 Commander litère/croquettes/pâtées",
     "frequency": "1xmois",
     "priority": 4,
     "initial_priority": 4,
     "duration": 15,
-    "due_date": "2026-07-25",
-    "done_date": "2026-07-25"
+    "id": 41,
+    "due_date": "2026-08-24",
+    "done_date": "2026-07-25",
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
   }
 ]
