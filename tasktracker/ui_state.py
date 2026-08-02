@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from datetime import date
+from json import load
 
 import streamlit as st
 
@@ -26,7 +27,7 @@ from tasktracker.change_tracking_task import snapshot_tasks, load_task_baseline,
 from .selector import compute_daily_tasks
 from common.common_utils import normalize_date
 from .task import Task, TaskDueDateState
-from .task_list_ops import remove_tasks_by_id, update_tasks_priority_and_due_date
+from .task_list_ops import remove_tasks_by_id, initialize_tasks
 
 @st.cache_resource(show_spinner=False)
 def _init_general_task_list() -> list[Task]:
@@ -37,7 +38,7 @@ def _init_general_task_list() -> list[Task]:
     only a fresh process (or an explicit `reset_app()`) does.
     """
     tasks = load_tasks()
-    update_tasks_priority_and_due_date(tasks)
+    initialize_tasks(tasks)
     save_tasks(tasks)
     # Refresh the change-tracking baseline to match this fresh load — this is
     # the "since the last full reload" reference point the old orig_* fields

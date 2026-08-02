@@ -83,6 +83,7 @@ class TaskDueDateState(str, Enum):
     NORMAL = "normal"
     CANCELLED = "cancelled"
     MANUALLY_RESCHEDULED = "rescheduled"
+    ELIGIBLE = "eligible"
 
 
 @dataclass
@@ -152,14 +153,6 @@ class Task:
     def state(self) -> TaskState:
         """Return the task's status as of today, including both completion and due date state."""
         return self._state
-        # if self.cancelled:
-        #     due_date_state = TaskDueDateState.CANCELLED
-        # elif self.manually_rescheduled_on == today():
-        #     due_date_state = TaskDueDateState.MANUALLY_RESCHEDULED
-        # else:
-        #     due_date_state = TaskDueDateState.NORMAL
-
-        # return TaskState(completed=self.is_completed_on(today()), due_date_state=due_date_state)
 
     # -- (de)serialization -------------------------------------------------
     @classmethod
@@ -223,6 +216,8 @@ class Task:
     def set_done_date(self, new_date: date | None) -> None:
         """Direct done-date edits (grid, 'Completed on' dialog save)."""
         self._done_date = normalize_date(new_date)
+        if self._done_date == today(): 
+            self._state.completed = True
 
     def cancel(self) -> None:
         """Mark this task as having no active due date, deliberately."""
@@ -302,6 +297,7 @@ class Task:
         self.duration = data["duration"]
         self._due_date = normalize_date(data.get("due_date"))
         self._done_date = normalize_date(data.get("done_date"))
+        self._state = TaskState.from_dict(data["state"])
 
 
     def is_completed(self) -> bool:

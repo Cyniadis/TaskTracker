@@ -170,11 +170,13 @@ def _color_by_due_date(row: pd.Series) -> list[str]:
     old date.max sentinel."""
     current_date = today()
     color = get_theme_color("textColor")
-    if current_date == row["done_date"]:
+    task = find_task_by_id(st.session_state.tasks, row["id"])
+    
+    if task.is_completed():
         color = get_theme_color("doneTextColor")
-    # elif row["cancelled"]:
-        # color = get_theme_color("cancelledTextColor")
-    elif row["due_date"] != current_date:
+    elif task.is_cancelled():
+        color = get_theme_color("cancelledTextColor")
+    elif task.is_manually_rescheduled():
         color = get_theme_color("hiddenTextColor")
     return [f"color: {color}"] * len(row)
 

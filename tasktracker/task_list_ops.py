@@ -7,7 +7,7 @@ Streamlit session state and widgets).
 """
 from __future__ import annotations
 
-from .task import Task
+from .task import Task, TaskDueDateState
 from common.consts import today
 
 from datetime import datetime
@@ -26,7 +26,7 @@ def remove_tasks_by_id(tasks: list[Task], task_ids: list[str]) -> list[Task]:
     return [t for t in tasks if t.id not in ids_to_remove]
 
 
-def update_tasks_priority_and_due_date(tasks: list[Task]) -> None:
+def initialize_tasks(tasks: list[Task]) -> None:
     """Housekeeping pass, meant to be called once before `compute_daily_tasks`.
 
     For every task whose due date has already passed:
@@ -43,6 +43,7 @@ def update_tasks_priority_and_due_date(tasks: list[Task]) -> None:
     """
     current_date = today()
     for task in tasks:
+        task.state.due_date_state = TaskDueDateState.NORMAL
         if not task.due_date or task.due_date >= current_date:
             continue
         if task.is_completed_on(task.due_date):

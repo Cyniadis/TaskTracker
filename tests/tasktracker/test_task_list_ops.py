@@ -9,7 +9,7 @@ from tasktracker import task_list_ops
 from tasktracker.task_list_ops import (
     find_task_by_id,
     remove_tasks_by_id,
-    update_tasks_priority_and_due_date,
+    initialize_tasks,
 )
 
 TODAY = date(2026, 7, 21)
@@ -61,7 +61,7 @@ class TestRemoveTasksById:
 
 
 # ---------------------------------------------------------------------------
-# update_tasks_priority_and_due_date
+# initialize_tasks
 # ---------------------------------------------------------------------------
 
 class TestUpdateTasksPriorityAndDueDate:
@@ -76,18 +76,18 @@ class TestUpdateTasksPriorityAndDueDate:
 
     def test_overdue_and_never_completed_gets_priority_bumped(self, make_task):
         task = make_task(due_date=TODAY - timedelta(days=1), done_date=None, priority=2.0)
-        update_tasks_priority_and_due_date([task])
+        initialize_tasks([task])
         assert task.priority == 2.5
 
     def test_overdue_and_completed_on_a_different_day_gets_priority_bumped(self, make_task):
         task = make_task(due_date=TODAY - timedelta(days=1), done_date=TODAY - timedelta(days=5), priority=2.0)
-        update_tasks_priority_and_due_date([task])
+        initialize_tasks([task])
         assert task.priority == 2.5
 
     def test_completed_exactly_on_its_due_date_rolls_due_date_forward(self, make_task):
         due = TODAY - timedelta(days=1)
         task = make_task(frequency="1xsemaine", due_date=due, done_date=due, priority=2.0)
-        update_tasks_priority_and_due_date([task])
+        initialize_tasks([task])
         assert task.due_date == task.get_next_due_date(due)
         assert task.priority == 2.0  # unchanged
 
@@ -96,41 +96,41 @@ class TestUpdateTasksPriorityAndDueDate:
         # this pins that behavior since it's easy to accidentally flip.
         due = TODAY - timedelta(days=10)
         task = make_task(frequency="1xsemaine", due_date=due, done_date=due)
-        update_tasks_priority_and_due_date([task])
+        initialize_tasks([task])
         assert task.due_date == due + timedelta(days=7)
 
     def test_task_due_today_is_left_untouched(self, make_task):
         task = make_task(due_date=TODAY, done_date=None, priority=3.0)
-        update_tasks_priority_and_due_date([task])
+        initialize_tasks([task])
         assert task.priority == 3.0
         assert task.due_date == TODAY
 
     def test_task_due_in_the_future_is_left_untouched(self, make_task):
         task = make_task(due_date=TODAY + timedelta(days=3), done_date=None, priority=3.0)
-        update_tasks_priority_and_due_date([task])
+        initialize_tasks([task])
         assert task.priority == 3.0
 
     def test_task_without_a_due_date_is_left_untouched(self, make_task):
         task = make_task(due_date=None, done_date=TODAY, priority=3.0)
-        update_tasks_priority_and_due_date([task])
+        initialize_tasks([task])
         assert task.priority == 3.0
         assert task.due_date is None
 
     def test_never_completed_overdue_task_is_treated_as_missed(self, make_task):
         # done_date is None entirely (not just "not on due date") — still counts as missed.
         task = make_task(due_date=TODAY - timedelta(days=30), done_date=None, priority=1.0)
-        update_tasks_priority_and_due_date([task])
+        initialize_tasks([task])
         assert task.priority == 1.5
 
     def test_empty_list_is_a_no_op(self):
-        update_tasks_priority_and_due_date([])  # should not raise
+        initialize_tasks([])  # should not raise
 
     def test_processes_multiple_tasks_independently(self, make_task):
         missed = make_task(due_date=TODAY - timedelta(days=1), done_date=None, priority=1.0)
         on_time = make_task(due_date=TODAY - timedelta(days=1), done_date=TODAY - timedelta(days=1), priority=1.0)
         untouched = make_task(due_date=TODAY + timedelta(days=1), done_date=None, priority=1.0)
 
-        update_tasks_priority_and_due_date([missed, on_time, untouched])
+        initialize_tasks([missed, on_time, untouched])
 
         assert missed.priority == 1.5
         assert on_time.priority == 1.0

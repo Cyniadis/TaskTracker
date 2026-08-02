@@ -13,7 +13,7 @@ from datetime import date
 from enum import Enum, auto
 
 from .task import Task
-from .task_list_ops import set_due_date_task_list
+from .task_list_ops import TaskDueDateState, set_due_date_task_list
 
 
 class Eligibility(Enum):
@@ -91,6 +91,9 @@ def compute_daily_tasks(
 
     eligible = [t for t in tasks if _eligibility(t, current_date) is not Eligibility.NOT_ELIGIBLE]
     pre_selected_tasks = [t for t in pre_selected_tasks if _eligibility(t, current_date) is not Eligibility.NOT_ELIGIBLE]
+
+    for t in eligible:
+        t.state.due_date_state = TaskDueDateState.ELIGIBLE
 
     if pre_selected_tasks:
         set_due_date_task_list(pre_selected_tasks, current_date)
