@@ -70,6 +70,7 @@ class TestTaskTable:
         t2 = make_task(name="Task B", duration=5, priority=1.0, initial_priority=1.0, due_date=FROZEN_TODAY)
         today_app.session_state["today_tasks"] = [t1, t2]
         today_app.session_state["today_generated"] = True
+        
         at = today_app.run()
 
         df = at.dataframe[0].value

@@ -20,6 +20,7 @@ from tasktracker.change_tracking_task import (
     snapshot_tasks,
     task_changes,
 )
+from tasktracker.selector import TaskDueDateState
 
 
 @pytest.fixture
@@ -127,13 +128,8 @@ class TestDiscardTaskChanges:
         assert discard_task_changes(task, {}) is False
         assert task.name == "Brand new"  # left untouched
 
-    def test_discard_after_cancel_restores_due_date_but_not_due_date_state(self, make_task, task_baseline_file):
-        """Known edge case, not a bug fix: Task.apply_snapshot() explicitly
-        documents that it doesn't touch due_date_state ('per-day markers,
-        not edits a user would want to discard'). That means discarding
-        after a cancel() can leave a task with due_date_state=CANCELLED but
-        a restored, non-null due_date — worth knowing about since
-        task_list_ops assumes cancelled tasks always have due_date is None."""
+    def test_discard_after_cancel_restores_state(self, make_task, task_baseline_file):
+        """Discarding changes after a task has been cancelled restores the task to its baseline state, including the due date and cancellation status."""
         task = make_task(due_date=date(2026, 7, 21))
         snapshot_tasks([task])
         baseline = load_task_baseline([task])
@@ -142,7 +138,8 @@ class TestDiscardTaskChanges:
         discard_task_changes(task, baseline)
 
         assert task.due_date == date(2026, 7, 21)  # restored
-        assert task.is_cancelled() is True  # ...but the flag survived the discard
+        assert task.is_cancelled() is False  
+        assert task.state.due_date_state == TaskDueDateState.NORMAL
 
 
 class TestSnapshotAndLoadBaseline:

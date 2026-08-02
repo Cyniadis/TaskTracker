@@ -170,7 +170,7 @@ def _color_by_due_date(row: pd.Series) -> list[str]:
     old date.max sentinel."""
     current_date = today()
     color = get_theme_color("textColor")
-    task = find_task_by_id(st.session_state.tasks, row["id"])
+    task = find_task_by_id(st.session_state.today_tasks, row["id"])
     
     if task.is_completed():
         color = get_theme_color("doneTextColor")
