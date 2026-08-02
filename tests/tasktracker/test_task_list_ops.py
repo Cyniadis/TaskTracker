@@ -18,53 +18,53 @@ TODAY = date(2026, 7, 21)
 
 class TestFindTaskById:
     def test_finds_existing_task(self, make_task):
-        tasks = [make_task(id=1), make_task(id=2), make_task(id=3)]
-        found = find_task_by_id(tasks, 2)
-        assert found.id == 2
+        tasks = [make_task(), make_task(), make_task()]
+        found = find_task_by_id(tasks, '1')
+        assert found.id == '1'
 
     def test_raises_key_error_when_not_found(self, make_task):
-        tasks = [make_task(id=1)]
+        tasks = [make_task()]
         with pytest.raises(KeyError):
-            find_task_by_id(tasks, 999)
+            find_task_by_id(tasks, '999')
 
     def test_raises_key_error_on_empty_list(self):
         with pytest.raises(KeyError):
-            find_task_by_id([], 0)
+            find_task_by_id([], '0')
 
 
 
 class TestRemoveTasksById:
     def test_removes_matching_ids(self, make_task):
-        tasks = [make_task(id=1), make_task(id=2), make_task(id=3)]
-        result = remove_tasks_by_id(tasks, [2])
-        assert [t.id for t in result] == [1, 3]
+        tasks = [make_task(), make_task(), make_task()]
+        result = remove_tasks_by_id(tasks, ['1'])
+        assert [t.id for t in result] == ['0', '2']
 
     def test_removes_multiple_ids(self, make_task):
-        tasks = [make_task(id=1), make_task(id=2), make_task(id=3)]
-        result = remove_tasks_by_id(tasks, [1, 3])
-        assert [t.id for t in result] == [2]
+        tasks = [make_task(), make_task(), make_task()]
+        result = remove_tasks_by_id(tasks, ['1', '3'])
+        assert [t.id for t in result] == ['0', '2']
 
     def test_no_matching_ids_returns_full_list_unchanged(self, make_task):
-        tasks = [make_task(id=1), make_task(id=2)]
-        result = remove_tasks_by_id(tasks, [999])
-        assert [t.id for t in result] == [1, 2]
+        tasks = [make_task(), make_task()]
+        result = remove_tasks_by_id(tasks, ['999'])
+        assert [t.id for t in result] == ['0', '1']
 
     def test_returns_new_list_does_not_mutate_original(self, make_task):
-        tasks = [make_task(id=1), make_task(id=2)]
-        result = remove_tasks_by_id(tasks, [1])
+        tasks = [make_task(), make_task()]
+        result = remove_tasks_by_id(tasks, ['1'])
         assert len(tasks) == 2  # original untouched
         assert len(result) == 1
 
     def test_empty_task_ids_list_removes_nothing(self, make_task):
-        tasks = [make_task(id=1), make_task(id=2)]
+        tasks = [make_task(), make_task()]
         result = remove_tasks_by_id(tasks, [])
         assert len(result) == 2
 
 
 # class TestRestoreTasks:
 #     def test_restores_every_task_in_place(self, make_task):
-#         t1 = make_task(id=1, name="Old1")
-#         t2 = make_task(id=2, name="Old2")
+#         t1 = make_task(name="Old1")
+#         t2 = make_task(name="Old2")
 #         t1.name = "New1"
 #         t2.name = "New2"
 
@@ -143,9 +143,9 @@ class TestUpdateTasksPriorityAndDueDate:
         update_tasks_priority_and_due_date([])  # should not raise
 
     def test_processes_multiple_tasks_independently(self, make_task):
-        missed = make_task(id=1, due_date=TODAY - timedelta(days=1), done_date=None, priority=1.0)
-        on_time = make_task(id=2, due_date=TODAY - timedelta(days=1), done_date=TODAY - timedelta(days=1), priority=1.0)
-        untouched = make_task(id=3, due_date=TODAY + timedelta(days=1), done_date=None, priority=1.0)
+        missed = make_task(due_date=TODAY - timedelta(days=1), done_date=None, priority=1.0)
+        on_time = make_task(due_date=TODAY - timedelta(days=1), done_date=TODAY - timedelta(days=1), priority=1.0)
+        untouched = make_task(due_date=TODAY + timedelta(days=1), done_date=None, priority=1.0)
 
         update_tasks_priority_and_due_date([missed, on_time, untouched])
 

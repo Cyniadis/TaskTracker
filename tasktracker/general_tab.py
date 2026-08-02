@@ -146,7 +146,7 @@ def _apply_edited_rows(edited_rows: dict, df: pd.DataFrame) -> None:
     generically (see Task.set_field's docstring).
     """
     for row_pos, changes in edited_rows.items():
-        task = find_task_by_id(st.session_state.tasks, int(df.iloc[row_pos]["id"]))
+        task = find_task_by_id(st.session_state.tasks, df.iloc[row_pos]["id"])
 
         for column_name in changes:
             if column_name in ("frequency_count", "frequency_period"):
@@ -193,7 +193,7 @@ def _show_changes_dialog(row: int) -> None:
     """Dialog listing pending (unpersisted-since-baseline) field changes for
     one task, with a discard option."""
     df = st.session_state.general_df
-    task_id = int(df.iloc[row]["id"])
+    task_id = df.iloc[row]["id"]
     task = find_task_by_id(st.session_state.tasks, task_id)
 
     st.markdown(f"**{task.name}**")

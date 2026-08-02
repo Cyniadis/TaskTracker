@@ -13,15 +13,9 @@ from common import common_utils
 from tasktracker.task import Task
 from tasktracker import task
 
-@pytest.fixture(autouse=True)
-def _no_random_ids(monkeypatch):
-    print("Monkeypatching generate_unique_id to return sequential string ids")
-    ids = map(str, itertools.count())  # "0", "1", "2", ...
-    monkeypatch.setattr(task, "generate_unique_id", lambda: next(ids))
-    monkeypatch.setattr(common_utils, "generate_unique_id", lambda: next(ids))
 
 class TestApplyAddedRow:
-    def test_appends_a_new_task_with_a_fresh_id(self, _no_random_ids, general_grid_logic_app):
+    def test_appends_a_new_task_with_a_fresh_id(self, general_grid_logic_app):
         existing = Task(name="Existing", duration=5)
         general_grid_logic_app.session_state["tasks"] = [existing]
         at = general_grid_logic_app.run()
@@ -76,7 +70,7 @@ class TestApplyAddedRow:
         add_button = next(b for b in at.button if b.label == "apply_added_row")
         at = add_button.click().run()
 
-        assert at.session_state["tasks"][0].id == 0
+        assert at.session_state["tasks"][0].id == '0'
 
 
 class TestApplyEditedRows:
@@ -90,7 +84,7 @@ class TestApplyEditedRows:
         }])
 
     def test_edits_a_plain_field(self, general_grid_logic_app):
-        task = Task(id=5, name="Old name", duration=10)
+        task = Task(name="Old name", duration=10)
         general_grid_logic_app.session_state["tasks"] = [task]
         at = general_grid_logic_app.run()
 
@@ -103,7 +97,7 @@ class TestApplyEditedRows:
         assert task.name == "New name"
 
     def test_recombines_frequency_count_and_period_into_frequency(self, general_grid_logic_app):
-        task = Task(id=5, name="Task", frequency="1xjour")
+        task = Task(name="Task", frequency="1xjour")
         general_grid_logic_app.session_state["tasks"] = [task]
         at = general_grid_logic_app.run()
 
@@ -115,7 +109,7 @@ class TestApplyEditedRows:
         assert task.frequency == "3xmois"
 
     def test_editing_only_frequency_count_keeps_the_existing_period(self, general_grid_logic_app):
-        task = Task(id=5, name="Task", frequency="2xsemaine")
+        task = Task(name="Task", frequency="2xsemaine")
         general_grid_logic_app.session_state["tasks"] = [task]
         at = general_grid_logic_app.run()
 
@@ -127,7 +121,7 @@ class TestApplyEditedRows:
         assert task.frequency == "5xsemaine"
 
     def test_edits_multiple_fields_in_the_same_row(self, general_grid_logic_app):
-        task = Task(id=5, name="Task", duration=10, priority=1.0)
+        task = Task(name="Task", duration=10, priority=1.0)
         general_grid_logic_app.session_state["tasks"] = [task]
         at = general_grid_logic_app.run()
 
@@ -140,8 +134,8 @@ class TestApplyEditedRows:
         assert task.priority == 4.5
 
     def test_edits_the_correct_row_among_several(self, general_grid_logic_app):
-        t1 = Task(id=1, name="First")
-        t2 = Task(id=2, name="Second")
+        t1 = Task(name="First")
+        t2 = Task(name="Second")
         general_grid_logic_app.session_state["tasks"] = [t1, t2]
         at = general_grid_logic_app.run()
 

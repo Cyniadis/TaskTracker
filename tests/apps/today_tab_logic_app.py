@@ -1,5 +1,5 @@
 """Harness to exercise the 'Today' tab's row-action callback logic
-(`_on_row_selected`, the complete/incomplete toggle) through a real AppTest
+(`_on_row_selected`, the complete/uncomplete toggle) through a real AppTest
 session. `st.dataframe`'s ButtonColumn clicks aren't drivable through
 AppTest (only plain widget interactions are), so this harness wires a
 plain button that calls the same private callback the real button-column

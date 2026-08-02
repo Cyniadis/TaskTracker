@@ -158,7 +158,7 @@ def _on_row_selected() -> None:
     if was_uncompleted:
         task.complete(today())
     else:
-        task.incomplete()
+        task.uncomplete()
 
     ui_state.cache_today_tasks()
     ui_state.persist_tasks()

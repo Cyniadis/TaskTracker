@@ -7,7 +7,7 @@ mechanism — it only knows about the shape and behaviour of a `Task`.
 module (exposed as properties backed by private `_due_date`/`_done_date`
 fields). Every way of changing them goes through a named method
 (`set_due_date`, `set_done_date`, `cancel`, `manually_reschedule`,
-`compute_next_due_date`, `schedule_for`, `complete`/`incomplete`)
+`compute_next_due_date`, `schedule_for`, `complete`/`uncomplete`)
 so the due-date-state invariants below can't be bypassed by a stray
 `task.due_date = ...` somewhere in the UI layer.
 
@@ -123,7 +123,7 @@ class Task:
 
     
     # Private — see module docstring. Exposed read-only via properties below.
-    _id: str = field(default_factory=generate_unique_id)
+    _id: str = field(default_factory=lambda: generate_unique_id())
     _state : TaskState = field(default_factory=lambda: TaskState(completed=False, due_date_state=TaskDueDateState.NORMAL))
     _due_date: date | None = None
     _done_date: date | None = None
@@ -132,15 +132,15 @@ class Task:
         self._due_date = normalize_date(self._due_date)
         self._done_date = normalize_date(self._done_date)
 
-        # Stashed pre-completion state, used by incomplete() to undo the most
+        # Stashed pre-completion state, used by uncomplete() to undo the most
         # recent complete() call exactly (not a dataclass field: deliberately
         # excluded from to_dict()/persistence — it's session-only).
-        self._pre_complete_priority: float | None = None
-        self._pre_complete_done_date: date | None = None
+        self._pre_complete_priority: float | None = self.priority
+        self._pre_complete_done_date: date | None = self._done_date
 
     # -- read-onlydate access ------------------------------------------------
     @property
-    def id(self) -> int:
+    def id(self) -> str:
         return self._id
     
     @property
@@ -186,9 +186,9 @@ class Task:
 
     def to_dict(self) -> dict:
         payload = asdict(self)
+        payload["id"] = payload.pop("_id")
         payload["due_date"] = payload.pop("_due_date")
         payload["done_date"] = payload.pop("_done_date")
-        payload["id"] = payload.pop("_id")
         payload["state"] =  payload.pop("_state")
         for field_name in ("due_date", "done_date"):
             value = payload[field_name]
@@ -252,13 +252,13 @@ class Task:
     # -- lifecycle -----------------------------------------------------------
     def complete(self, completion_date: date) -> None:
         """Mark the task done on `completion_date`, remembering the prior
-        priority/done_date so `incomplete()` can undo this exact change."""
+        priority/done_date so `uncomplete()` can undo this exact change."""
         self._pre_complete_priority = self.priority
         self._pre_complete_done_date = self._done_date
         self._done_date = completion_date
         self.priority = self.initial_priority
 
-    def incomplete(self) -> None:
+    def uncomplete(self) -> None:
         """Undo the most recent complete() call, restoring priority and
         done_date to what they were right before it."""
         self._done_date = self._pre_complete_done_date

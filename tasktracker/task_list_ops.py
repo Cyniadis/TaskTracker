@@ -12,7 +12,7 @@ from common.consts import today
 
 from datetime import datetime
 
-def find_task_by_id(tasks: list[Task], task_id: int) -> Task:
+def find_task_by_id(tasks: list[Task], task_id: str) -> Task:
     """Return the task with `id == task_id`, or raise KeyError if not found."""
     for task in tasks:
         if task.id == task_id:
@@ -20,7 +20,7 @@ def find_task_by_id(tasks: list[Task], task_id: int) -> Task:
     raise KeyError(f"No task with id={task_id}")
 
 
-def remove_tasks_by_id(tasks: list[Task], task_ids: list[int]) -> list[Task]:
+def remove_tasks_by_id(tasks: list[Task], task_ids: list[str]) -> list[Task]:
     """Return a new list with every task whose id is in `task_ids` filtered out."""
     ids_to_remove = set(task_ids)
     return [t for t in tasks if t.id not in ids_to_remove]
@@ -50,6 +50,6 @@ def update_tasks_priority_and_due_date(tasks: list[Task]) -> None:
         else:
             task.increment_priority()
 
-def schedule_task_list(tasks: list[Task], date: datetime.date):
+def set_due_date_task_list(tasks: list[Task], date: datetime.date):
     for task in tasks:
-        task.schedule_for(date)
+        task.set_due_date(date)

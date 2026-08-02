@@ -38,11 +38,12 @@ class TestCrossTabPersistence:
     """Interact with one tab, rerun via a button in a *different* tab,
     then check the first tab's state is still intact."""
 
-    def test_completed_task_survives_a_rerun_triggered_from_the_timer_tab(self, full_app):
-        task = Task(id=1, name="Task A", duration=10, due_date=FROZEN_TODAY, done_date=FROZEN_TODAY)
+    def test_completed_task_survives_a_rerun_triggered_from_the_timer_tab(self, make_task, full_app):
+        task = make_task(name="Task A", duration=10, due_date=FROZEN_TODAY, done_date=FROZEN_TODAY)
         full_app.session_state["tasks"] = [task]
         full_app.session_state["today_tasks"] = [task]
         full_app.session_state["today_generated"] = True
+        full_app.session_state["task_baseline"] = {}
         at = full_app.run()
 
         assert at.dataframe[0].value["completed"].iloc[0] == "🗹"
@@ -54,10 +55,11 @@ class TestCrossTabPersistence:
         assert task.done_date == FROZEN_TODAY
 
     def test_checkbox_state_survives_a_rerun_triggered_from_the_general_tab(self, full_app):
-        task = Task(id=1, name="Task A")
+        task = Task(name="Task A")
         full_app.session_state["tasks"] = [task]
         full_app.session_state["today_tasks"] = [task]
         full_app.session_state["today_generated"] = True
+        full_app.session_state["task_baseline"] = {}
         at = full_app.run()
 
         show_completed = _label(at, "checkbox", "Show completed tasks")
@@ -70,26 +72,28 @@ class TestCrossTabPersistence:
         assert _label(at, "checkbox", "Show completed tasks").value is True
 
     def test_daily_limit_survives_a_rerun_triggered_from_the_general_tab(self, full_app):
-        task = Task(id=1, name="Task A")
+        task = Task(name="Task A")
         full_app.session_state["tasks"] = [task]
         full_app.session_state["today_tasks"] = [task]
         full_app.session_state["today_generated"] = True
+        full_app.session_state["task_baseline"] = {}
         at = full_app.run()
 
         at = at.number_input[0].set_value(90).run()
         assert at.session_state["daily_limit"] == 90
 
-        reset_priorities = _label(at, "button", "Reset priorities")
+        reset_priorities = _label(at, "button", "▲ Ascending")
         at = reset_priorities.click().run()
 
         assert at.number_input[0].value == 90
         assert at.session_state["daily_limit"] == 90
 
     def test_edited_task_name_survives_a_rerun_triggered_from_the_timer_tab(self, full_app):
-        task = Task(id=1, name="Original name", duration=10)
+        task = Task(name="Original name", duration=10)
         full_app.session_state["tasks"] = [task]
         full_app.session_state["today_tasks"] = [task]
         full_app.session_state["today_generated"] = True
+        full_app.session_state["task_baseline"] = {}
         at = full_app.run()
 
         # Simulate an edit already applied by the (untestable-via-AppTest)
@@ -105,10 +109,11 @@ class TestCrossTabPersistence:
         assert at.session_state["tasks"][0].name == "Edited name"
 
     def test_sort_direction_survives_a_rerun_triggered_from_the_today_tab(self, full_app):
-        task = Task(id=1, name="Task A")
+        task = Task(name="Task A")
         full_app.session_state["tasks"] = [task]
         full_app.session_state["today_tasks"] = [task]
         full_app.session_state["today_generated"] = True
+        full_app.session_state["task_baseline"] = {}
         at = full_app.run()
 
         toggle_sort = _label(at, "button", "scending")
@@ -124,6 +129,7 @@ class TestCrossTabPersistence:
     def test_running_timer_elapsed_time_survives_a_rerun_triggered_from_the_today_tab(self, full_app):
         full_app.session_state["timer_elapsed_accum"] = 305.0  # 5:05
         full_app.session_state["today_generated"] = True
+        full_app.session_state["task_baseline"] = {}
         at = full_app.run()
 
         assert "00:05:05" in at.markdown[-1].value
@@ -134,10 +140,11 @@ class TestCrossTabPersistence:
         assert "00:05:05" in at.markdown[-1].value
 
     def test_full_task_list_is_stable_across_an_unrelated_rerun(self, full_app):
-        tasks = [Task(id=i, name=f"Task {i}") for i in range(5)]
+        tasks = [Task(name=f"Task {i}") for i in range(5)]
         full_app.session_state["tasks"] = tasks
         full_app.session_state["today_tasks"] = tasks
         full_app.session_state["today_generated"] = True
+        full_app.session_state["task_baseline"] = {}
         at = full_app.run()
 
         reset_button = _label(at, "button", "⏹ Reset")
@@ -151,8 +158,8 @@ class TestSameTabMultiRerunStability:
     """Simpler sanity check: rerunning a single tab repeatedly with no new
     interaction shouldn't drift or reset anything on its own."""
 
-    def test_today_tab_is_stable_across_repeated_reruns(self, today_app):
-        task = Task(id=1, name="Task A", duration=10, due_date=FROZEN_TODAY, done_date=FROZEN_TODAY)
+    def test_today_tab_is_stable_across_repeated_reruns(self, make_task, today_app):
+        task = make_task(name="Task A", duration=10, due_date=FROZEN_TODAY, done_date=FROZEN_TODAY)
         today_app.session_state["today_tasks"] = [task]
         today_app.session_state["today_generated"] = True
         at = today_app.run()
@@ -165,7 +172,7 @@ class TestSameTabMultiRerunStability:
         assert len(at.exception) == 0
 
     def test_general_tab_is_stable_across_repeated_reruns(self, general_app):
-        tasks = [Task(id=1, name="Task A", priority=3.0, initial_priority=3.0)]
+        tasks = [Task(name="Task A", priority=3.0, initial_priority=3.0)]
         general_app.session_state["tasks"] = tasks
         at = general_app.run()
 

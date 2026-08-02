@@ -11,6 +11,8 @@ from datetime import date
 import pytest
 
 from tasktracker import tt_json_utils
+from tasktracker.change_tracking_task import load_task_baseline
+from tasktracker.general_tab import task_changes
 from tasktracker.task import Task
 from common import common_json_utils
 
@@ -27,6 +29,13 @@ def cache_file(tmp_path, monkeypatch):
     monkeypatch.setattr(common_json_utils, "CACHE_FILE", path)
     return path
 
+@pytest.fixture
+def task_baseline_file(tmp_path, monkeypatch):
+    """Redirect the task_baseline.json helpers (which have no `path=` parameter,
+    unlike load/save_tasks) at a throwaway file for this test."""
+    path = tmp_path / "task_baseline.json"
+    monkeypatch.setattr(common_json_utils, "TASK_BASELINE_FILE", path)
+    return path
 
 # ---------------------------------------------------------------------------
 # tasklist.json round trip
@@ -44,8 +53,8 @@ class TestTaskListRoundTrip:
         assert reloaded[0].done_date == date(2026, 7, 21)
         assert reloaded[0].priority == 2.0
 
-    def test_an_incomplete_task_stays_incomplete_after_save_and_load(self, tasks_file):
-        task = Task(name="Task A", duration=10, due_date=date(2026, 7, 22), done_date=None)
+    def test_an_incomplete_task_stays_incomplete_after_save_and_load(self, make_task, tasks_file):
+        task = make_task(name="Task A", duration=10, due_date=date(2026, 7, 22), done_date=None)
 
         tt_json_utils.save_tasks([task], path=tasks_file)
         reloaded = tt_json_utils.load_tasks(path=tasks_file)
@@ -53,17 +62,17 @@ class TestTaskListRoundTrip:
         assert reloaded[0].done_date is None
         assert reloaded[0].due_date == date(2026, 7, 22)
 
-    def test_multiple_tasks_with_mixed_completion_states_all_survive(self, tasks_file):
-        done = Task(name="Done", done_date=date(2026, 7, 20))
-        pending = Task(name="Pending", done_date=None)
-        overdue = Task(name="Overdue", due_date=date(2026, 7, 1), done_date=None)
+    def test_multiple_tasks_with_mixed_completion_states_all_survive(self, make_task, tasks_file):
+        done = make_task(name="Done", done_date=date(2026, 7, 20))
+        pending = make_task(name="Pending", done_date=None)
+        overdue = make_task(name="Overdue", due_date=date(2026, 7, 1), done_date=None)
 
         tt_json_utils.save_tasks([done, pending, overdue], path=tasks_file)
         reloaded = {t.id: t for t in tt_json_utils.load_tasks(path=tasks_file)}
-
-        assert reloaded[1].done_date == date(2026, 7, 20)
-        assert reloaded[2].done_date is None
-        assert reloaded[3].due_date == date(2026, 7, 1)
+        print(reloaded)
+        assert reloaded['0'].done_date == date(2026, 7, 20)
+        assert reloaded['1'].done_date is None
+        assert reloaded['2'].due_date == date(2026, 7, 1)
 
     def test_priority_and_frequency_survive_the_round_trip(self, tasks_file):
         task = Task(name="Task A", frequency="3xsemaine", priority=4.5, initial_priority=1.5)
@@ -75,8 +84,8 @@ class TestTaskListRoundTrip:
         assert reloaded.priority == 4.5
         assert reloaded.initial_priority == 1.5
 
-    def test_a_task_with_no_dates_at_all_survives(self, tasks_file):
-        task = Task(name="Never scheduled", due_date=None, done_date=None)
+    def test_a_task_with_no_dates_at_all_survives(self, make_task, tasks_file):
+        task = make_task(name="Never scheduled", due_date=None, done_date=None)
 
         tt_json_utils.save_tasks([task], path=tasks_file)
         reloaded = tt_json_utils.load_tasks(path=tasks_file)[0]
@@ -84,7 +93,7 @@ class TestTaskListRoundTrip:
         assert reloaded.due_date is None
         assert reloaded.done_date is None
 
-    def test_reloaded_tasks_have_a_fresh_orig_snapshot_matching_the_saved_state(self, tasks_file):
+    def test_reloaded_tasks_have_a_fresh_orig_snapshot_matching_the_saved_state(self, tasks_file, task_baseline_file):
         # Reloading from disk is meant to represent the new "last persisted"
         # baseline — get_changes() should report no pending changes right
         # after a fresh load, even for a task that had in-memory edits
@@ -95,8 +104,9 @@ class TestTaskListRoundTrip:
 
         tt_json_utils.save_tasks([task], path=tasks_file)
         reloaded = tt_json_utils.load_tasks(path=tasks_file)[0]
+        baseline = load_task_baseline([task])
 
-        assert reloaded.get_changes() == []
+        assert task_changes(reloaded, baseline) == []
 
     def test_saving_overwrites_the_previous_contents_entirely(self, tasks_file):
         tt_json_utils.save_tasks([Task(name="First"), Task(name="Second")], path=tasks_file)
@@ -166,7 +176,7 @@ class TestCacheRoundTrip:
 
         cache_date, cached_ids = tt_json_utils.load_cached_task_ids()
 
-        assert cached_ids == [1, 2]
+        assert cached_ids == ['0', '1']
         assert cache_date is not None
 
     def test_delete_cached_value_removes_only_that_key(self, cache_file):

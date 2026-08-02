@@ -64,44 +64,44 @@ class TestEligibility:
 
 class TestSelectByPriority:
     def test_selects_all_tasks_that_fit(self, make_task):
-        tasks = [make_task(id=1, duration=10, priority=1), make_task(id=2, duration=10, priority=2)]
+        tasks = [make_task(duration=10, priority=1), make_task(duration=10, priority=2)]
         selected = _select_by_priority(tasks, time_budget=30)
-        assert {t.id for t in selected} == {1, 2}
+        assert {t.id for t in selected} == {'0', '1'}
 
     def test_prefers_higher_priority_when_budget_is_tight(self, make_task):
         tasks = [
-            make_task(id=1, duration=10, priority=1.0),
-            make_task(id=2, duration=10, priority=5.0),
+            make_task(duration=10, priority=1.0),
+            make_task(duration=10, priority=5.0),
         ]
         selected = _select_by_priority(tasks, time_budget=10)
-        assert [t.id for t in selected] == [2]
+        assert [t.id for t in selected] == ['1']
 
     def test_maximizes_total_duration_within_budget(self, make_task):
         # Two low-priority tasks (10+10=20) fit better than one high-priority task (15)
         # within a 20-minute budget, but the knapsack favors total duration used.
         tasks = [
-            make_task(id=1, duration=10, priority=1.0),
-            make_task(id=2, duration=10, priority=1.0),
-            make_task(id=3, duration=15, priority=10.0),
+            make_task(duration=10, priority=1.0),
+            make_task(duration=10, priority=1.0),
+            make_task(duration=15, priority=10.0),
         ]
         selected = _select_by_priority(tasks, time_budget=20)
         total_duration = sum(t.duration for t in selected)
         assert total_duration == 20
-        assert {t.id for t in selected} == {1, 2}
+        assert {t.id for t in selected} == {'0', '1'}
 
     def test_empty_task_list_returns_empty(self):
         assert _select_by_priority([], time_budget=60) == []
 
     def test_zero_budget_selects_nothing(self, make_task):
-        tasks = [make_task(id=1, duration=5)]
+        tasks = [make_task(duration=5)]
         assert _select_by_priority(tasks, time_budget=0) == []
 
     def test_task_larger_than_budget_is_excluded(self, make_task):
-        tasks = [make_task(id=1, duration=100, priority=10)]
+        tasks = [make_task(duration=100, priority=10)]
         assert _select_by_priority(tasks, time_budget=10) == []
 
     def test_result_never_exceeds_budget(self, make_task):
-        tasks = [make_task(id=i, duration=7, priority=i) for i in range(1, 10)]
+        tasks = [make_task(duration=7, priority=i) for i in range(1, 10)]
         selected = _select_by_priority(tasks, time_budget=22)
         assert sum(t.duration for t in selected) <= 22
 
@@ -111,35 +111,35 @@ class TestSelectByPriority:
 
 class TestComputeDailyTasks:
     def test_all_eligible_tasks_fit_within_budget(self, make_task):
-        tasks = [make_task(id=1, duration=10, due_date=TODAY), make_task(id=2, duration=10, due_date=TODAY)]
+        tasks = [make_task(duration=10, due_date=TODAY), make_task(duration=10, due_date=TODAY)]
         result = compute_daily_tasks(tasks, TODAY, daily_time_limit=60)
-        assert {t.id for t in result} == {1, 2}
+        assert {t.id for t in result} == {'0', '1'}
 
     def test_knapsack_kicks_in_when_over_budget(self, make_task):
         tasks = [
-            make_task(id=1, duration=30, due_date=TODAY, priority=5.0),
-            make_task(id=2, duration=30, due_date=TODAY, priority=1.0),
+            make_task(duration=30, due_date=TODAY, priority=5.0),
+            make_task(duration=30, due_date=TODAY, priority=1.0),
         ]
         result = compute_daily_tasks(tasks, TODAY, daily_time_limit=30)
-        assert [t.id for t in result] == [1]
+        assert [t.id for t in result] == ['0']
 
     def test_pre_selected_tasks_are_kept_and_budget_filled_around_them(self, make_task):
-        pre_selected = [make_task(id=1, duration=10, due_date=TODAY)]
-        other = make_task(id=2, duration=10, due_date=TODAY)
+        pre_selected = [make_task(duration=10, due_date=TODAY)]
+        other = make_task(duration=10, due_date=TODAY)
         result = compute_daily_tasks([pre_selected[0], other], TODAY, daily_time_limit=20, pre_selected_tasks=pre_selected)
-        assert {t.id for t in result} == {1, 2}
+        assert {t.id for t in result} == {'0', '1'}
 
     def test_pre_selected_tasks_that_are_no_longer_eligible_are_dropped(self, make_task):
         # done today -> no longer eligible even though pre-selected
-        pre_selected_task = make_task(id=1, duration=10, due_date=TODAY, done_date=TODAY)
+        pre_selected_task = make_task(duration=10, due_date=TODAY, done_date=TODAY)
         result = compute_daily_tasks([pre_selected_task], TODAY, daily_time_limit=60, pre_selected_tasks=[pre_selected_task])
         assert result == []
 
     def test_pre_selected_over_budget_returns_only_pre_selected(self, make_task):
-        pre_selected = [make_task(id=1, duration=50, due_date=TODAY)]
-        other = make_task(id=2, duration=10, due_date=TODAY)
+        pre_selected = [make_task(duration=50, due_date=TODAY)]
+        other = make_task(duration=10, due_date=TODAY)
         result = compute_daily_tasks([pre_selected[0], other], TODAY, daily_time_limit=50, pre_selected_tasks=pre_selected)
-        assert [t.id for t in result] == [1]
+        assert [t.id for t in result] == ['0']
 
     def test_no_eligible_tasks_returns_empty_list(self, make_task):
         task = make_task(due_date=TODAY + timedelta(days=5))
@@ -147,6 +147,6 @@ class TestComputeDailyTasks:
         assert result == []
 
     def test_scheduling_sets_due_date_to_current_date_for_selected_tasks(self, make_task):
-        task = make_task(id=1, duration=10, due_date=None)  # MAYBE_ELIGIBLE
+        task = make_task(duration=10, due_date=None)  # MAYBE_ELIGIBLE
         result = compute_daily_tasks([task], TODAY, daily_time_limit=60)
         assert result[0].due_date == TODAY

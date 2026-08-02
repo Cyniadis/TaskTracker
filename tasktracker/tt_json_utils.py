@@ -116,7 +116,7 @@ def validate_and_parse_tasks(raw_data: Any) -> list[Task]:
         raise ValueError("The task list is empty.")
 
     tasks: list[Task] = []
-    seen_ids: set[int] = set()
+    seen_ids: set[str] = set()
 
     for idx, item in enumerate(raw_data):
         label = f"Task #{idx}"
@@ -126,8 +126,8 @@ def validate_and_parse_tasks(raw_data: Any) -> list[Task]:
 
         if "id" not in item:
             raise ValueError(f"{label}: missing required field 'id'.")
-        if not isinstance(item["id"], int):
-            raise ValueError(f"{label}: field 'id' must be an integer.")
+        if not isinstance(item["id"], str):
+            raise ValueError(f"{label}: field 'id' must be a string.")
         if item["id"] in seen_ids:
             raise ValueError(f"{label}: duplicate id {item['id']}.")
 

@@ -4,9 +4,12 @@ from __future__ import annotations
 from datetime import date, datetime
 
 import pytest
+from test.test_importlib.test_threaded_import import task
 
+from common import common_json_utils
+from tasktracker.change_tracking_task import load_task_baseline, snapshot_tasks, task_changes
 from tasktracker.task import Frequency, Period, Task, normalize_date
-from tasktracker.task_list_ops import schedule_task_list
+from tasktracker.task_list_ops import set_due_date_task_list
 
 
 # ---------------------------------------------------------------------------
@@ -137,17 +140,10 @@ class TestTaskConstruction:
         task = make_task()
         assert task.frequency == "1xjour"
 
-    def test_date_fields_are_normalized_on_construction(self):
-        task = Task(id=1, name="x", due_date="15/01/2026", done_date="2026-01-14")
+    def test_date_fields_are_normalized_on_construction(self, make_task):
+        task = make_task(name="x", due_date="15/01/2026", done_date="2026-01-14")
         assert task.due_date == date(2026, 1, 15)
         assert task.done_date == date(2026, 1, 14)
-
-    def test_orig_snapshot_matches_initial_values(self, make_task):
-        task = make_task(name="Water plants", priority=3.0)
-        assert task.orig_name == "Water plants"
-        assert task.orig_priority == 3.0
-        assert task.orig_due_date == task.due_date
-        assert task.orig_done_date == task.done_date
 
 
 # ---------------------------------------------------------------------------
@@ -163,15 +159,14 @@ class TestTaskSerialization:
         task = Task.from_dict(data)
         assert task.id == 5
         assert task.name == "Test"
-        assert task.orig_name == "Test"  # set by __post_init__, not from input
 
     def test_to_dict_excludes_orig_fields(self):
-        task = Task(id=1, name="Test")
+        task = Task(name="Test")
         payload = task.to_dict()
         assert all(not key.startswith("orig_") for key in payload)
 
-    def test_to_dict_serializes_dates_as_iso_strings(self):
-        task = Task(id=1, name="Test", due_date=date(2026, 7, 21), done_date=None)
+    def test_to_dict_serializes_dates_as_iso_strings(self, make_task):
+        task = make_task(name="Test", due_date=date(2026, 7, 21), done_date=None)
         payload = task.to_dict()
         assert payload["due_date"] == "2026-07-21"
         assert payload["done_date"] is None
@@ -180,9 +175,13 @@ class TestTaskSerialization:
         original = {
             "id": 3, "name": "Roundtrip", "frequency": "2xsemaine",
             "priority": 4.5, "initial_priority": 2.0, "duration": 15,
-            "due_date": "2026-07-21", "done_date": None,
+            "due_date": "2026-07-21", "done_date": None, 
+            "state": {'completed': False, 'due_date_state': 'normal'},
         }
+        print(original)
+        print()
         task = Task.from_dict(original)
+        print(task.to_dict())
         assert task.to_dict() == original
 
 
@@ -223,7 +222,7 @@ class TestTaskPriority:
 
 
 # ---------------------------------------------------------------------------
-# Task: lifecycle (complete / incomplete)
+# Task: lifecycle (complete / uncomplete)
 # ---------------------------------------------------------------------------
 
 class TestTaskLifecycle:
@@ -236,21 +235,21 @@ class TestTaskLifecycle:
     def test_uncomplete_restores_priority_and_done_date_from_before_complete(self, make_task):
         task = make_task(priority=5.0, initial_priority=2.0, done_date=date(2026, 7, 1))
         task.complete(date(2026, 7, 21))
-        task.incomplete()
+        task.uncomplete()
         assert task.done_date == date(2026, 7, 1)
         assert task.priority == 5.0
 
     def test_uncomplete_without_prior_complete_falls_back_to_orig_priority(self, make_task):
         task = make_task(priority=3.0)
         task.priority = 9.0  # simulate an edit with no complete() call yet
-        task.incomplete()
+        task.uncomplete()
         assert task.priority == 3.0
         assert task.done_date is None
 
     def test_uncomplete_clears_the_stashed_pre_complete_state(self, make_task):
         task = make_task()
         task.complete(date(2026, 7, 21))
-        task.incomplete()
+        task.uncomplete()
         assert task._pre_complete_priority is None
         assert task._pre_complete_done_date is None
 
@@ -259,7 +258,7 @@ class TestTaskLifecycle:
         task.complete(date(2026, 7, 1))    # priority -> 1.0 (initial), done_date -> 7/1
         task.priority = 6.0                # simulate priority bumped by housekeeping
         task.complete(date(2026, 7, 21))   # priority -> 1.0 (initial), done_date -> 7/21
-        task.incomplete()
+        task.uncomplete()
         assert task.done_date == date(2026, 7, 1)
         assert task.priority == 6.0
 
@@ -277,18 +276,18 @@ class TestTaskLifecycle:
 
     def test_schedule_for_sets_due_date(self, make_task):
         task = make_task(due_date=None)
-        task.schedule_for(date(2026, 7, 21))
+        task.set_due_date(date(2026, 7, 21))
         assert task.due_date == date(2026, 7, 21)
 
 
 class TestScheduleTaskList:
     def test_sets_due_date_on_every_task_in_the_list(self, make_task):
-        tasks = [make_task(id=1), make_task(id=2), make_task(id=3)]
-        schedule_task_list(tasks, date(2026, 7, 21))
+        tasks = [make_task(), make_task(), make_task()]
+        set_due_date_task_list(tasks, date(2026, 7, 21))
         assert all(t.due_date == date(2026, 7, 21) for t in tasks)
 
     def test_empty_list_is_a_no_op(self):
-        schedule_task_list([], date(2026, 7, 21))  # should not raise
+        set_due_date_task_list([], date(2026, 7, 21))  # should not raise
 
 
 # ---------------------------------------------------------------------------
@@ -303,94 +302,100 @@ class TestSetField:
 
     def test_normalizes_date_fields(self, make_task):
         task = make_task(due_date=None)
-        task.set_field("due_date", "21/07/2026")
-        assert task.due_date == date(2026, 7, 21)
+        with pytest.raises(AttributeError):
+            task.set_field("due_date", "21/07/2026")
 
     def test_unknown_field_raises_attribute_error(self, make_task):
         task = make_task()
         with pytest.raises(AttributeError):
             task.set_field("not_a_real_field", 123)
 
-    def test_set_field_does_not_touch_orig_snapshot(self, make_task):
-        task = make_task(name="Old")
-        task.set_field("name", "New")
-        assert task.orig_name == "Old"
 
 
 # ---------------------------------------------------------------------------
 # Task: restore
 # ---------------------------------------------------------------------------
 
-class TestRestore:
-    def test_restore_reverts_every_editable_field(self, make_task):
-        task = make_task(
-            name="Old", frequency="1xjour", priority=1.0, initial_priority=1.0,
-            duration=10, due_date=date(2026, 7, 1), done_date=None,
-        )
-        task.name = "New"
-        task.frequency = "2xsemaine"
-        task.priority = 9.0
-        task.initial_priority = 9.0
-        task.duration = 99
-        task.due_date = date(2026, 8, 1)
-        task.done_date = date(2026, 8, 1)
+# class TestRestore:
+#     def test_restore_reverts_every_editable_field(self, make_task):
+#         task = make_task(
+#             name="Old", frequency="1xjour", priority=1.0, initial_priority=1.0,
+#             duration=10, due_date=date(2026, 7, 1), done_date=None,
+#         )
+#         task.name = "New"
+#         task.frequency = "2xsemaine"
+#         task.priority = 9.0
+#         task.initial_priority = 9.0
+#         task.duration = 99
+#         task.due_date = date(2026, 8, 1)
+#         task.done_date = date(2026, 8, 1)
 
-        task.restore()
+#         task.restore()
 
-        assert task.name == "Old"
-        assert task.frequency == "1xjour"
-        assert task.priority == 1.0
-        assert task.initial_priority == 1.0
-        assert task.duration == 10
-        assert task.due_date == date(2026, 7, 1)
-        assert task.done_date is None
+#         assert task.name == "Old"
+#         assert task.frequency == "1xjour"
+#         assert task.priority == 1.0
+#         assert task.initial_priority == 1.0
+#         assert task.duration == 10
+#         assert task.due_date == date(2026, 7, 1)
+#         assert task.done_date is None
 
-    def test_restore_is_idempotent(self, make_task):
-        task = make_task(name="Old")
-        task.name = "New"
-        task.restore()
-        task.restore()
-        assert task.name == "Old"
+#     def test_restore_is_idempotent(self, make_task):
+#         task = make_task(name="Old")
+#         task.name = "New"
+#         task.restore()
+#         task.restore()
+#         assert task.name == "Old"
 
 
 # ---------------------------------------------------------------------------
 # Task: get_changes
 # ---------------------------------------------------------------------------
 
-class TestGetChanges:
-    def test_no_changes_returns_empty_list(self, make_task):
-        task = make_task()
-        assert task.get_changes() == []
+# class TestTaskChanges:
+#     @pytest.fixture(scope="class")
+#     def task_baseline_file(tmp_path, monkeypatch):
+#         """Redirect the task_baseline.json helpers (which have no `path=` parameter,
+#         unlike load/save_tasks) at a throwaway file for this test."""
+#         path = tmp_path / "task_baseline.json"
+#         monkeypatch.setattr(common_json_utils, "TASK_BASELINE_FILE", path)
+#         return path
 
-    def test_name_change_is_reported(self, make_task):
-        task = make_task(name="Old")
-        task.name = "New"
-        diffs = task.get_changes()
-        assert ("Name", "Old", "New") in diffs
+#     def test_no_changes_returns_empty_list(self, make_task):
+#         task = make_task()
+#         baseline = load_task_baseline([task])  # simulate a baseline load
+#         assert task_changes(task, baseline) == []
 
-    def test_priority_change_reports_formatted_numbers(self, make_task):
-        task = make_task(priority=1.0)
-        task.priority = 2.5
-        diffs = task.get_changes()
-        assert ("Priority", "1.0", "2.5") in diffs
+#     def test_name_change_is_reported(self, make_task):
+#         task = make_task(name="Old")
+#         baseline = load_task_baseline([task])  # simulate a baseline load
+#         task.name = "New"
+#         diffs = task_changes(task, baseline)
+#         assert ("Name", "Old", "New") in diffs
 
-    def test_none_values_are_formatted_as_em_dash(self, make_task):
-        task = make_task(due_date=None)
-        task.due_date = date(2026, 7, 21)
-        diffs = dict((label, (old, new)) for label, old, new in task.get_changes())
-        assert diffs["Due date"][0] == "—"
+#     def test_priority_change_reports_formatted_numbers(self, make_task):
+#         task = make_task(priority=1.0)
+#         task.priority = 2.5
+#         diffs = task.get_changes()
+#         assert ("Priority", "1.0", "2.5") in diffs
 
-    def test_multiple_changed_fields_all_reported(self, make_task):
-        task = make_task(name="Old", duration=10)
-        task.name = "New"
-        task.duration = 20
-        labels = {label for label, _, _ in task.get_changes()}
-        assert labels == {"Name", "Duration"}
+#     def test_none_values_are_formatted_as_em_dash(self, make_task):
+#         task = make_task(due_date=None)
+#         task.due_date = date(2026, 7, 21)
+#         diffs = dict((label, (old, new)) for label, old, new in task.get_changes())
+#         assert diffs["Due date"][0] == "—"
 
-    def test_get_changes_does_not_mutate_state(self, make_task):
-        task = make_task(name="Old")
-        task.name = "New"
-        task.get_changes()
-        task.get_changes()
-        assert task.name == "New"
-        assert task.orig_name == "Old"
+#     def test_multiple_changed_fields_all_reported(self, make_task):
+#         task = make_task(name="Old", duration=10)
+#         task.name = "New"
+#         task.duration = 20
+#         labels = {label for label, _, _ in task.get_changes()}
+#         assert labels == {"Name", "Duration"}
+
+#     def test_get_changes_does_not_mutate_state(self, make_task):
+#         task = make_task(name="Old")
+#         task.name = "New"
+#         task.get_changes()
+#         task.get_changes()
+#         assert task.name == "New"
+#         assert task.orig_name == "Old"

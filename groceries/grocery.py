@@ -41,7 +41,7 @@ LABEL_TO_STATE: dict[str, GroceryState] = {label: state for state, label in STAT
 class GroceryItem:
     """A single item on the grocery list."""
 
-    id: str = field(default_factory=generate_unique_id)
+    _id: str = field(default_factory=lambda: generate_unique_id()) 
     name: str = ""
     state: str = GroceryState.TO_BUY.value
     last_bought_date: date | None = None
@@ -52,17 +52,28 @@ class GroceryItem:
     # -- (de)serialization ----------------------------------------------------
     @classmethod
     def from_dict(cls, data: dict) -> "GroceryItem":
-        known_fields = {f.name for f in fields(cls)}
-        return cls(**{key: value for key, value in data.items() if key in known_fields})
+        known_fields = {f.name for f in fields(cls) if not f.name.startswith("_")}
+        kwargs = {
+            key: value for key, value in data.items()
+            if key in known_fields 
+        }
+
+        kwargs["_id"] = data.get("id")
+        return cls(**kwargs)
 
     def to_dict(self) -> dict:
         payload = asdict(self)
+        payload["id"] = payload.pop("_id")
         payload["last_bought_date"] = (
             payload["last_bought_date"].isoformat() if payload["last_bought_date"] else None
         )
         return payload
 
     # -- state helpers ----------------------------------------------------------
+    @property
+    def id(self) -> str:
+        return self._id
+    
     @property
     def state_label(self) -> str:
         return STATE_TO_LABEL[GroceryState(self.state)]

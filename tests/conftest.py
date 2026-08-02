@@ -36,11 +36,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from anyio import itertools
 import pytest
 from streamlit.testing.v1 import AppTest
+import itertools
 
 from common import common_utils
-from tasktracker import general_tab, today_tab, ui_state
+from tasktracker import general_tab, today_tab, ui_state, task
 
 APPS_DIR = Path(__file__).parent / "apps"
 
@@ -57,6 +59,9 @@ def _no_disk_io(monkeypatch):
 
     monkeypatch.setattr(ui_state, "save_tasks", lambda *a, **k: None)
     monkeypatch.setattr(ui_state, "cache_tasks", lambda *a, **k: None)
+    monkeypatch.setattr(ui_state, "load_task_baseline", lambda *a, **k: None)
+    monkeypatch.setattr(ui_state, "snapshot_tasks", lambda: None)
+
     monkeypatch.setattr(general_tab, "save_tasks", lambda *a, **k: None)
 
     monkeypatch.setattr(today_tab, "load_show_completed", lambda: False)
@@ -67,6 +72,12 @@ def _no_disk_io(monkeypatch):
     
     monkeypatch.setattr(timer_tab, "cache_timer_state", lambda *a, **k: None)
     monkeypatch.setattr(timer_tab, "load_timer_state", lambda: (None, 0.0, False))
+
+@pytest.fixture(autouse=True)
+def _no_random_ids(monkeypatch):
+    """Monkeypatching generate_unique_id to return sequential string ids"""
+    ids = map(str, itertools.count())  # "0", "1", "2", ...
+    monkeypatch.setattr(task, "generate_unique_id", lambda: next(ids))
 
 
 def _app(name: str) -> AppTest:

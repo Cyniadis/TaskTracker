@@ -13,7 +13,7 @@ from datetime import date
 from enum import Enum, auto
 
 from .task import Task
-from .task_list_ops import schedule_task_list
+from .task_list_ops import set_due_date_task_list
 
 
 class Eligibility(Enum):
@@ -93,7 +93,7 @@ def compute_daily_tasks(
     pre_selected_tasks = [t for t in pre_selected_tasks if _eligibility(t, current_date) is not Eligibility.NOT_ELIGIBLE]
 
     if pre_selected_tasks:
-        schedule_task_list(pre_selected_tasks, current_date)
+        set_due_date_task_list(pre_selected_tasks, current_date)
 
         remaining_time = daily_time_limit - sum(t.duration for t in pre_selected_tasks)
         if remaining_time <= 0:
@@ -103,19 +103,19 @@ def compute_daily_tasks(
         candidates = [t for t in eligible if t.id not in pre_selected_ids]
 
         if sum(t.duration for t in candidates) <= remaining_time:
-            schedule_task_list(candidates, current_date)
+            set_due_date_task_list(candidates, current_date)
             result = pre_selected_tasks + candidates
             return result
 
         extra = _select_by_priority(candidates, remaining_time)
-        schedule_task_list(extra, current_date)
+        set_due_date_task_list(extra, current_date)
         return pre_selected_tasks + extra
 
     if sum(t.duration for t in eligible) <= daily_time_limit:
-        schedule_task_list(eligible, current_date)
+        set_due_date_task_list(eligible, current_date)
         result = eligible
         return result
 
     selected = _select_by_priority(eligible, daily_time_limit)
-    schedule_task_list(selected, current_date)
+    set_due_date_task_list(selected, current_date)
     return selected
