@@ -254,11 +254,6 @@ def render() -> None:
         st.session_state.ascending = True
 
     toolbar = st.container(horizontal=True, width="content", vertical_alignment="bottom")
-    if toolbar.button("⭯ Discard all changes"):
-        ui_state.discard_all_changes()
-        ui_state.reload_today_grid()
-        ui_state.reload_general_grid()
-        st.rerun()
 
     toolbar.download_button(
         "⭳ Export tasks", data=_export_json_bytes(), file_name="tasklist.json", mime="application/json",

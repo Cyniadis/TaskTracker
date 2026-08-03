@@ -7,7 +7,7 @@ Streamlit session state and widgets).
 """
 from __future__ import annotations
 
-from .task import Task, TaskDueDateState
+from .task import Task, TaskDueDateState, TaskState
 from common.consts import today
 
 from datetime import datetime
@@ -43,7 +43,7 @@ def initialize_tasks(tasks: list[Task]) -> None:
     """
     current_date = today()
     for task in tasks:
-        task.state.due_date_state = TaskDueDateState.NORMAL
+        task.reset_state()
         if not task.due_date or task.due_date >= current_date:
             continue
         if task.is_completed_on(task.due_date):

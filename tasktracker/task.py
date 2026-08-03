@@ -314,3 +314,7 @@ class Task:
     
     def is_manually_rescheduled_on_today(self) -> bool:
         return self.is_manually_rescheduled() and self._due_date == today()
+    
+    def reset_state(self) -> None:
+        """Reset the task's state to its default (not completed, not cancelled, not rescheduled)."""
+        self._state = TaskState(completed=False, due_date_state=TaskDueDateState.NORMAL)

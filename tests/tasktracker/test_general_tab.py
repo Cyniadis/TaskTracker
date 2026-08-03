@@ -25,10 +25,9 @@ class TestEmptyState:
         at = general_app.run()
         assert any("No tasks yet" in i.value for i in at.info)
 
-    def test_still_shows_discard_and_import_buttons(self, general_app):
+    def test_still_shows_import_buttons(self, general_app):
         at = general_app.run()
         labels = [b.label for b in at.button]
-        assert "⭯ Discard all changes" in labels
         assert "⭱ Import tasks" in labels
 
     def test_renders_without_error(self, general_app):

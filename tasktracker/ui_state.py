@@ -171,15 +171,6 @@ def regenerate_today_tasks() -> None:
     persist_tasks()
 
 
-def discard_all_changes() -> None:
-    """Revert every task to its last change-tracking snapshot (see
-    tasktracker/change_tracking.py). Tasks added after the last snapshot are
-    left as-is — there's nothing to discard them back to."""
-    for task in st.session_state.tasks:
-        discard_task_changes(task, st.session_state.task_baseline)
-    persist_tasks()
-
-
 def reload_today_grid() -> None:
     """Force the 'Today' data grid to remount by giving it a fresh widget key."""
     st.session_state.today_grid_key = f"TodayGrid{datetime.now().timestamp()}"

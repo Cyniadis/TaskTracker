@@ -1,7 +1,7 @@
 """Change-tracking for tasks: a thin, Task-specific layer over
 common.change_tracking's generic baseline/diff machinery.
 
-Powers the General tab's 'Changes' dialog and 'Discard all changes' button.
+Powers the General tab's 'Changes' dialog.
 """
 from __future__ import annotations
 
