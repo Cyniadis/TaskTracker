@@ -176,7 +176,7 @@ def _color_by_due_date(row: pd.Series) -> list[str]:
         color = get_theme_color("doneTextColor")
     elif task.is_cancelled():
         color = get_theme_color("cancelledTextColor")
-    elif task.is_manually_rescheduled():
+    elif task.is_manually_rescheduled() and task.due_date != current_date:
         color = get_theme_color("hiddenTextColor")
     return [f"color: {color}"] * len(row)
 
