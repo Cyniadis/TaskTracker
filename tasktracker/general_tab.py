@@ -7,6 +7,8 @@ import pandas as pd
 import streamlit as st
 from datetime import date, timedelta
 
+from tasktracker.today_tab import get_theme_color
+
 
 from . import ui_state
 from .tt_json_utils import import_tasks_from_json_bytes, save_tasks, task_list_to_json
@@ -246,6 +248,28 @@ def _toggle_sort() -> None:
     st.session_state.ascending = not st.session_state.ascending
 
 
+def _colorize_rows(row: pd.Series) -> list[str]:
+    """Row-styling: highlight tasks done today, dim tasks not due today, mark
+    cancelled tasks — reading the explicit `cancelled` flag instead of the
+    old date.max sentinel."""
+
+    color = get_theme_color("textColor")
+    colIdx = row.index.get_loc("state")
+    colors = [f"color: {color}"] * len(row)
+    
+    task = find_task_by_id(st.session_state.tasks, row["id"])
+    if task.is_completed():
+        color = get_theme_color("doneTextColor")
+    elif task.is_cancelled():
+        color = get_theme_color("cancelledTextColor")
+    elif task.is_manually_rescheduled() and task.due_date != today():
+        color = get_theme_color("hiddenTextColor")
+    elif task.is_eligible():
+        color = get_theme_color("eligibleTextColor")
+    colors[colIdx] = f"color: {color}"
+    return colors
+
+
 def render() -> None:
     """Render the 'General' tab: toolbar (discard/export/import/sort/reset) + the full task grid."""
     st.markdown("### Edit tasks", anchors=False)
@@ -276,9 +300,11 @@ def render() -> None:
     sorted_df = df.sort_values(by=sort_column, ascending=st.session_state.ascending).reset_index(drop=True)
     st.session_state.general_df = sorted_df
 
+    styled_df = sorted_df.style.apply(_colorize_rows, axis=1)
+
     key = st.session_state.general_grid_key
     st.data_editor(
-        sorted_df,
+        styled_df,
         column_config=_column_config(),
         hide_index=True,
         width="content",

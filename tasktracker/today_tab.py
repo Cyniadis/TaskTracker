@@ -28,7 +28,7 @@ def _tasks_to_today_dataframe(tasks: list[Task]) -> pd.DataFrame | None:
     Frequency stays as a single display string here (read-only column, no
     per-half editing needed) and an extra `completed` / `reschedule` column
     pair drives the row action buttons. `cancelled` is carried along (hidden
-    via column_config) purely so `_color_by_due_date` can style cancelled
+    via column_config) purely so `_colorize_rows` can style cancelled
     rows without re-deriving that from a date sentinel. Returns None if
     `tasks` is empty.
     """
@@ -164,7 +164,7 @@ def _on_row_selected() -> None:
     ui_state.persist_tasks()
 
 
-def _color_by_due_date(row: pd.Series) -> list[str]:
+def _colorize_rows(row: pd.Series) -> list[str]:
     """Row-styling: highlight tasks done today, dim tasks not due today, mark
     cancelled tasks — reading the explicit `cancelled` flag instead of the
     old date.max sentinel."""
@@ -201,7 +201,7 @@ def render() -> None:
         st.info("No tasks were selected for today. Add or edit tasks in the General tab.")
         return
 
-    styled_df = df.style.apply(_color_by_due_date, axis=1)
+    styled_df = df.style.apply(_colorize_rows, axis=1)
 
     key = st.session_state.today_grid_key
     st.dataframe(
