@@ -9,8 +9,9 @@ import locale
 import streamlit as st
 
 from groceries import grocery_tab
-from tasktracker.ui import ui_state
-from tasktracker.ui import general_tab, timer_tab, today_tab
+from tasktracker import general_tab, today_tab
+from tasktracker import ui_state
+from timer import timer_tab
 
 try:
     # Used for localized date formatting (e.g. "lundi 20 juillet 2026").
@@ -32,7 +33,7 @@ def main() -> None:
     grocery_tab.init_session_state()
 
     today_tab_ui, general_tab_ui, groceries_tab_ui, timer_tab_ui = st.tabs(
-        ["📝 Today", "⚙️ General", "🛒 Groceries", "⏱️ Timer"]
+        ["📝 Today", "⚙️ Tasks", "🛒 Groceries", "⏱️ Timer"]
     )
 
     with today_tab_ui:

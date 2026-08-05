@@ -12,7 +12,6 @@ from tasktracker.task import Task
 def make_task():
     """Factory fixture: build a Task with sane defaults, overridable per-test."""
     def _make(
-        id: int = 1,
         name: str = "Test task",
         frequency: str = "1xjour",
         priority: float = 1.0,
@@ -21,16 +20,16 @@ def make_task():
         due_date=None,
         done_date=None,
     ) -> Task:
-        return Task(
-            id=id,
+        task = Task(
             name=name,
             frequency=frequency,
             priority=priority,
             initial_priority=initial_priority,
-            duration=duration,
-            due_date=due_date,
-            done_date=done_date,
+            duration=duration
         )
+        task.set_due_date(due_date)
+        task.set_done_date(done_date)
+        return task
     return _make
 
 

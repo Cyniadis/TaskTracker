@@ -85,15 +85,6 @@ def load_show_rescheduled() -> bool:
 def cache_show_rescheduled(show_rescheduled: bool) -> None:
     set_cached_value("show_rescheduled", show_rescheduled)
 
-
-def load_allow_future_tasks() -> bool:
-    return get_cached_value("allow_future_tasks", False)
-
-
-def cache_allow_future_tasks(allow_future_tasks: bool) -> None:
-    set_cached_value("allow_future_tasks", allow_future_tasks)
-
-
 def load_timer_state() -> tuple[datetime, float, bool] :
     cached_time = get_cached_value("timer_start_time", None)
     start_time = datetime.strptime(cached_time, "%Y-%m-%d %H:%M:%S") if cached_time is not None else None
@@ -125,7 +116,7 @@ def validate_and_parse_tasks(raw_data: Any) -> list[Task]:
         raise ValueError("The task list is empty.")
 
     tasks: list[Task] = []
-    seen_ids: set[int] = set()
+    seen_ids: set[str] = set()
 
     for idx, item in enumerate(raw_data):
         label = f"Task #{idx}"
@@ -135,8 +126,8 @@ def validate_and_parse_tasks(raw_data: Any) -> list[Task]:
 
         if "id" not in item:
             raise ValueError(f"{label}: missing required field 'id'.")
-        if not isinstance(item["id"], int):
-            raise ValueError(f"{label}: field 'id' must be an integer.")
+        if not isinstance(item["id"], str):
+            raise ValueError(f"{label}: field 'id' must be a string.")
         if item["id"] in seen_ids:
             raise ValueError(f"{label}: duplicate id {item['id']}.")
 

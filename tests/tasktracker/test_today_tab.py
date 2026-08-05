@@ -13,7 +13,7 @@ from datetime import date, timedelta
 import pytest
 
 from tasktracker.task import Task
-from tasktracker.ui import today_tab as tt
+from tasktracker import today_tab as tt
 
 FROZEN_TODAY = date(2026, 7, 21)
 
@@ -39,10 +39,10 @@ class TestHeader:
         assert at.session_state["daily_limit"] == 90
         assert len(at.exception) == 0
 
-    def test_shows_the_three_toggle_checkboxes(self, today_app):
+    def test_shows_the_two_toggle_checkboxes(self, today_app):
         at = today_app.run()
         labels = {c.label for c in at.checkbox}
-        assert labels == {"Show completed tasks", "Show rescheduled tasks", "Allow future tasks"}
+        assert labels == {"Show completed tasks", "Show rescheduled tasks"}
 
     def test_shows_active_duration_and_task_count(self, today_app):
         today_app.session_state["active_duration"] = 25
@@ -65,20 +65,21 @@ class TestEmptyState:
 
 
 class TestTaskTable:
-    def test_shows_one_row_per_today_task(self, today_app):
-        t1 = Task(id=1, name="Task A", duration=10, priority=2.0, initial_priority=2.0, due_date=FROZEN_TODAY)
-        t2 = Task(id=2, name="Task B", duration=5, priority=1.0, initial_priority=1.0, due_date=FROZEN_TODAY)
+    def test_shows_one_row_per_today_task(self, make_task, today_app):
+        t1 = make_task(name="Task A", duration=10, priority=2.0, initial_priority=2.0, due_date=FROZEN_TODAY)
+        t2 = make_task(name="Task B", duration=5, priority=1.0, initial_priority=1.0, due_date=FROZEN_TODAY)
         today_app.session_state["today_tasks"] = [t1, t2]
         today_app.session_state["today_generated"] = True
+        
         at = today_app.run()
 
         df = at.dataframe[0].value
         assert len(df) == 2
         assert set(df["name"]) == {"Task A", "Task B"}
 
-    def test_completed_column_reflects_done_state(self, today_app):
-        done = Task(id=1, name="Done", duration=5, due_date=FROZEN_TODAY, done_date=FROZEN_TODAY)
-        pending = Task(id=2, name="Pending", duration=5, due_date=FROZEN_TODAY, done_date=None)
+    def test_completed_column_reflects_done_state(self, make_task, today_app):
+        done = make_task(name="Done", duration=5, due_date=FROZEN_TODAY, done_date=FROZEN_TODAY)
+        pending = make_task(name="Pending", duration=5, due_date=FROZEN_TODAY, done_date=None)
         today_app.session_state["today_tasks"] = [done, pending]
         today_app.session_state["today_generated"] = True
         at = today_app.run()
@@ -88,8 +89,8 @@ class TestTaskTable:
         assert completed_by_name["Done"] == "🗹"
         assert completed_by_name["Pending"] == "☐"
 
-    def test_renders_without_error_when_populated(self, today_app):
-        t1 = Task(id=1, name="Task A", duration=10, due_date=FROZEN_TODAY)
+    def test_renders_without_error_when_populated(self, make_task, today_app):
+        t1 = make_task(name="Task A", duration=10, due_date=FROZEN_TODAY)
         today_app.session_state["today_tasks"] = [t1]
         today_app.session_state["today_generated"] = True
         at = today_app.run()
@@ -103,13 +104,14 @@ class TestRegenerateButton:
         today_app.session_state["today_generated"] = True
         at = today_app.run()
 
+
         regenerate = next(b for b in at.button if "Regenerate" in b.label)
         at = regenerate.click().run()
 
         assert len(at.exception) == 0
 
-    def test_pulls_a_due_today_task_from_the_full_list(self, today_app):
-        due_today = Task(id=1, name="Due today", duration=10, due_date=FROZEN_TODAY)
+    def test_pulls_a_due_today_task_from_the_full_list(self, make_task, today_app):
+        due_today = make_task(name="Due today", duration=10, due_date=FROZEN_TODAY)
         today_app.session_state["tasks"] = [due_today]
         today_app.session_state["today_tasks"] = []
         today_app.session_state["today_generated"] = True
@@ -118,4 +120,4 @@ class TestRegenerateButton:
         regenerate = next(b for b in at.button if "Regenerate" in b.label)
         at = regenerate.click().run()
 
-        assert any(t.id == 1 for t in at.session_state["today_tasks"])
+        assert any(t.id == '0' for t in at.session_state["today_tasks"])

@@ -7,13 +7,12 @@ Streamlit session state and widgets).
 """
 from __future__ import annotations
 
-from .task import Task
+from .task import Task, TaskDueDateState, TaskState
 from common.consts import today
 
 from datetime import datetime
-from datetime import date
 
-def find_task_by_id(tasks: list[Task], task_id: int) -> Task:
+def find_task_by_id(tasks: list[Task], task_id: str) -> Task:
     """Return the task with `id == task_id`, or raise KeyError if not found."""
     for task in tasks:
         if task.id == task_id:
@@ -21,23 +20,13 @@ def find_task_by_id(tasks: list[Task], task_id: int) -> Task:
     raise KeyError(f"No task with id={task_id}")
 
 
-def next_task_id(tasks: list[Task]) -> int:
-    """Return the next unused task id (max existing id + 1, or 0 if no tasks)."""
-    return max((t.id for t in tasks), default=-1) + 1
-
-
-def remove_tasks_by_id(tasks: list[Task], task_ids: list[int]) -> list[Task]:
+def remove_tasks_by_id(tasks: list[Task], task_ids: list[str]) -> list[Task]:
     """Return a new list with every task whose id is in `task_ids` filtered out."""
     ids_to_remove = set(task_ids)
     return [t for t in tasks if t.id not in ids_to_remove]
 
 
-def restore_tasks(tasks: list[Task]) -> None:
-    """Revert every task in `tasks` to its last-persisted (orig_*) state, in place."""
-    for task in tasks:
-        task.restore()
-
-def update_tasks_priority_and_due_date(tasks: list[Task]) -> None:
+def initialize_tasks(tasks: list[Task]) -> None:
     """Housekeeping pass, meant to be called once before `compute_daily_tasks`.
 
     For every task whose due date has already passed:
@@ -48,20 +37,20 @@ def update_tasks_priority_and_due_date(tasks: list[Task]) -> None:
       occurrence.
 
     Tasks with no due date, or a due date that's today or in the future,
-    are left untouched — they haven't missed their window yet.
+    are left untouched — they haven't missed their window yet. Cancelled
+    tasks always have `due_date is None` (see Task.cancel()), so they're
+    naturally skipped here too — no special-casing needed.
     """
     current_date = today()
     for task in tasks:
-        if task.due_date == date.max: 
-            task.due_date = None
+        task.reset_state()
         if not task.due_date or task.due_date >= current_date:
             continue
         if task.is_completed_on(task.due_date):
-            task.due_date = task.compute_next_due_date(task.due_date)
-            task.orig_due_date = task.due_date
+            task.set_next_due_date()
         else:
             task.increment_priority()
 
-def schedule_task_list(tasks: list[Task], date: datetime.date):
+def set_due_date_task_list(tasks: list[Task], date: datetime.date):
     for task in tasks:
-        task.schedule_for(date)
+        task.set_due_date(date)

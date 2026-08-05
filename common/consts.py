@@ -13,6 +13,13 @@ TASKS_FILE = PROJECT_ROOT / "tasklist.json"
 CACHE_FILE = PROJECT_ROOT / "cache.json"
 GROCERIES_FILE = PROJECT_ROOT / "groceries.json"
 
+# Change-tracking baseline for the "Changes" dialog  — 
+# a snapshot of tasklist.json's content as of the last full reload
+# (process start, reset_app(), import). Its own file rather than a key in
+# cache.json: cache.json holds small scalar settings, this holds a whole
+# task list. See tasktracker/change_tracking.py.
+TASK_BASELINE_FILE = PROJECT_ROOT / "task_baseline.json"
+
 DEFAULT_DAILY_LIMIT_MINUTES = 60
 PRIORITY_INCREMENT = 0.5
 

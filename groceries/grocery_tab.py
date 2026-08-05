@@ -13,13 +13,11 @@ import pandas as pd
 import streamlit as st
 
 from common.consts import today
-from tasktracker.ui.ui_state import persist_tasks
 from .grocery import LABEL_TO_STATE, STATE_TO_LABEL, GroceryItem, GroceryState
 from .grocery_json_utils import (
     grocery_list_to_json,
     import_groceries_from_json_bytes,
     load_groceries,
-    next_grocery_id,
     save_groceries,
 )
 from common.common_utils import get_theme_color
@@ -103,7 +101,6 @@ def _column_config() -> dict:
 
 def _apply_added_row(new_row: dict) -> None:
     item = GroceryItem(
-        id=next_grocery_id(st.session_state.groceries),
         name=new_row["name"].strip(),
         state=GroceryState.TO_BUY.value,
     )
@@ -112,7 +109,7 @@ def _apply_added_row(new_row: dict) -> None:
 
 def _apply_edited_rows(edited_rows: dict, df: pd.DataFrame) -> None:
     for row_pos, changes in edited_rows.items():
-        item = _find_by_id(int(df.iloc[row_pos]["id"]))
+        item = _find_by_id(df.iloc[row_pos]["id"])
 
         if "name" in changes:
             item.set_field("name", changes["name"])
@@ -135,7 +132,7 @@ def _on_data_change() -> None:
         _apply_edited_rows(editor_state["edited_rows"], df)
 
     if editor_state["deleted_rows"]:
-        deleted_ids = {int(df.iloc[row_pos]["id"]) for row_pos in editor_state["deleted_rows"]}
+        deleted_ids = {df.iloc[row_pos]["id"] for row_pos in editor_state["deleted_rows"]}
         st.session_state.groceries = [
             item for item in st.session_state.groceries if item.id not in deleted_ids
         ]

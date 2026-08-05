@@ -4,7 +4,7 @@ would normally set up before the real app renders this tab.
 """
 import streamlit as st
 
-from tasktracker.ui import timer_tab
+from timer import timer_tab
 
 st.session_state.setdefault("timer_running", False)
 st.session_state.setdefault("timer_start_time", None)

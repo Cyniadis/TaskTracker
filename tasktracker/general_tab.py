@@ -5,11 +5,16 @@ import json
 
 import pandas as pd
 import streamlit as st
+from datetime import date, timedelta
+
+from tasktracker.today_tab import get_theme_color
+
 
 from . import ui_state
-from ..tt_json_utils import import_tasks_from_json_bytes, save_tasks, task_list_to_json
-from ..task import Task, Period
-from ..task_list_ops import find_task_by_id
+from .tt_json_utils import import_tasks_from_json_bytes, save_tasks, task_list_to_json
+from tasktracker.change_tracking_task import task_changes, discard_task_changes
+from .task import Task, Period
+from .task_list_ops import find_task_by_id
 
 from common.consts import today
 
@@ -18,27 +23,50 @@ def _on_update_dates_click():
     _update_dates(click["row"])
     
 
-@st.dialog("Completed on")
+@st.dialog("Completed on", width="medium")
 def _update_dates(row: int) -> None:
     """Dialog to change, cancel, or advance a task's due date."""
     
     st.markdown(f"**{st.session_state.general_df.iloc[row]['name']}**")
     task = find_task_by_id(st.session_state.tasks, st.session_state.general_df.at[row, "id"])
-    init_date = task.due_date if task.due_date is not None else today()
+    init_due_date = task.due_date if task.due_date is not None else today()
+    init_done_date = task.done_date if task.done_date is not None else today()
 
+    # UI to update the done date and compute next due date
     with st.container(horizontal=True, vertical_alignment="bottom"):
-        new_date = st.date_input(
-            "Choose a new done date to recompute next due date",
-            value=pd.to_datetime(init_date).date(),
+        new_done_date = st.date_input(
+            "Update done date and set next due date",
+            value=pd.to_datetime(init_done_date).date(),
             width="stretch",
         )
-        if st.button("Save"):
-            ui_state.update_dates(task, new_date)
+        if st.button("Save", key="save_done_date_button"):
+            ui_state.update_done_date(task, new_done_date)
+            st.rerun()
+    with st.container(horizontal=True, vertical_alignment="bottom"):
+        new_due_date = st.date_input(
+            "Update due date",
+            value=pd.to_datetime(init_due_date).date(),
+            width="stretch",
+        )
+        if st.button("Save", key="save_due_date_button"):
+            ui_state.schedule_task_for(task, new_due_date)
             st.rerun()
             
-    if st.button("Schedule for today"):
-        ui_state.schedule_task_for_today(task)
-        st.rerun()
+    with st.container(horizontal=True, vertical_alignment="bottom", width="stretch" ):
+        if st.button("Cancel task"):
+            ui_state.cancel_task(task)
+            st.rerun()
+        if st.button("To next due date"):
+            ui_state.schedule_task_for(task, task.get_next_due_date(task.due_date))
+            st.rerun()
+        if st.button("To this weekend"):
+            days_until_saturday = (5 - today().weekday()) % 7
+            ui_state.schedule_task_for(task, today() + timedelta(days=days_until_saturday))
+            st.rerun()
+        if st.button("To today"):
+            ui_state.schedule_task_for(task, today())
+            st.rerun()
+    
 
 def _tasks_to_general_dataframe(tasks: list[Task]) -> pd.DataFrame | None:
     """Build the dataframe shown in the 'General' (edit-all-tasks) tab.
@@ -65,8 +93,9 @@ def _tasks_to_general_dataframe(tasks: list[Task]) -> pd.DataFrame | None:
             "duration": task.duration,
             "due_date": task.due_date,
             "done_date": task.done_date,
+            "state": str(task.state),
             "update_dates": ":material/edit_note: Update dates",
-            "changes": ":material/edit_note: Changes" if task.get_changes() else None,
+            "changes": ":material/edit_note: Changes" if task_changes(task, st.session_state.task_baseline) else None,
         })
     return pd.DataFrame.from_records(records)
 
@@ -85,24 +114,22 @@ def _column_config() -> dict:
         "priority": st.column_config.NumberColumn("Priority", step=0.5, format="%.1f"),
         "initial_priority": st.column_config.NumberColumn("Initial Priority", step=0.5, format="%.1f", required=True),
         "duration": st.column_config.NumberColumn("Duration (min)", min_value=1, step=5, required=True),
-        "due_date": st.column_config.DateColumn("Due date", format="DD/MM/YYYY"),
-        "done_date": st.column_config.DateColumn("Done date", format="DD/MM/YYYY"),
+        "due_date": st.column_config.DateColumn("Due date", format="DD/MM/YYYY", disabled=True), 
+        "done_date": st.column_config.DateColumn("Done date", format="DD/MM/YYYY", disabled=True),
+        "state": st.column_config.TextColumn("State", disabled=True),
         "update_dates": st.column_config.ButtonColumn("", on_click=_on_update_dates_click, key="update_dates_button", alignment="center"),
-        "changes": st.column_config.ButtonColumn("", on_click=_on_show_changes_click, key="show_changes_button", alignment="center"),
+        "changes": st.column_config.ButtonColumn("", on_click=_on_show_changes_click, key="show_changes_button", alignment="center", width='medium'),
     }
 
 
 def _apply_added_row(new_row: dict) -> None:
     """Turn a single new-row dict from the data editor into a persisted Task."""
     task = Task(
-        id=ui_state.next_task_id(),
         name=new_row["name"].strip(),
         frequency=f"{int(new_row['frequency_count'])}x{new_row['frequency_period']}",
         priority=new_row["initial_priority"],
         initial_priority=new_row["initial_priority"],
         duration=int(new_row["duration"]),
-        due_date=None,
-        done_date=None,
     )
     ui_state.add_task(task)
 
@@ -111,16 +138,23 @@ def _apply_edited_rows(edited_rows: dict, df: pd.DataFrame) -> None:
     """Apply each column change from the data editor onto the matching Task.
 
     `frequency_count`/`frequency_period` are recombined into the single
-    `frequency` field the Task model actually stores.
+    `frequency` field the Task model actually stores. `due_date`/`done_date`
+    are routed through their dedicated setter methods rather than
+    `set_field()`, since Task no longer allows those two fields to be set
+    generically (see Task.set_field's docstring).
     """
     for row_pos, changes in edited_rows.items():
-        task = find_task_by_id(st.session_state.tasks, int(df.iloc[row_pos]["id"]))
+        task = find_task_by_id(st.session_state.tasks, df.iloc[row_pos]["id"])
 
         for column_name in changes:
             if column_name in ("frequency_count", "frequency_period"):
                 count = changes.get("frequency_count", df.iloc[row_pos]["frequency_count"])
                 period = changes.get("frequency_period", df.iloc[row_pos]["frequency_period"])
                 task.set_field("frequency", f"{int(count)}x{period}")
+            elif column_name == "due_date":
+                task.set_due_date(changes["due_date"])
+            elif column_name == "done_date":
+                task.set_done_date(changes["done_date"])
             else:
                 task.set_field(column_name, changes[column_name])
 
@@ -140,7 +174,7 @@ def _on_data_change() -> None:
         _apply_edited_rows(editor_state["edited_rows"], df)
 
     if editor_state["deleted_rows"]:
-        deleted_ids = [int(df.iloc[row_pos]["id"]) for row_pos in editor_state["deleted_rows"]]
+        deleted_ids = [df.iloc[row_pos]["id"] for row_pos in editor_state["deleted_rows"]]
         ui_state.remove_tasks(deleted_ids)
 
     ui_state.persist_tasks()
@@ -154,14 +188,15 @@ def _export_json_bytes() -> bytes:
 
 @st.dialog("Changes")
 def _show_changes_dialog(row: int) -> None:
-    """Dialog listing pending (unpersisted) field changes for one task, with a discard option."""
+    """Dialog listing pending (unpersisted-since-baseline) field changes for
+    one task, with a discard option."""
     df = st.session_state.general_df
-    task_id = int(df.iloc[row]["id"])
+    task_id = df.iloc[row]["id"]
     task = find_task_by_id(st.session_state.tasks, task_id)
 
     st.markdown(f"**{task.name}**")
 
-    diffs = task.get_changes()
+    diffs = task_changes(task, st.session_state.task_baseline)
     if not diffs:
         st.info("No changes on this task.")
         return
@@ -170,7 +205,8 @@ def _show_changes_dialog(row: int) -> None:
         st.markdown(f"**{label}:** ~~{old}~~ → {new}")
 
     if st.button("Discard changes"):
-        task.restore()
+        discard_task_changes(task, st.session_state.task_baseline)
+        ui_state.persist_tasks()
         st.rerun()
 
 
@@ -212,11 +248,26 @@ def _toggle_sort() -> None:
     st.session_state.ascending = not st.session_state.ascending
 
 
-def _reset_priorities() -> None:
-    """Reset every task's priority back to its initial_priority."""
-    for task in st.session_state.tasks:
-        task.priority = task.initial_priority
-    ui_state.persist_tasks()
+def _colorize_rows(row: pd.Series) -> list[str]:
+    """Row-styling: highlight tasks done today, dim tasks not due today, mark
+    cancelled tasks — reading the explicit `cancelled` flag instead of the
+    old date.max sentinel."""
+
+    color = get_theme_color("textColor")
+    colIdx = row.index.get_loc("state")
+    colors = [f"color: {color}"] * len(row)
+    
+    task = find_task_by_id(st.session_state.tasks, row["id"])
+    if task.is_completed():
+        color = get_theme_color("doneTextColor")
+    elif task.is_cancelled():
+        color = get_theme_color("cancelledTextColor")
+    elif task.is_manually_rescheduled() and task.due_date != today():
+        color = get_theme_color("hiddenTextColor")
+    elif task.is_eligible():
+        color = get_theme_color("eligibleTextColor")
+    colors[colIdx] = f"color: {color}"
+    return colors
 
 
 def render() -> None:
@@ -227,11 +278,6 @@ def render() -> None:
         st.session_state.ascending = True
 
     toolbar = st.container(horizontal=True, width="content", vertical_alignment="bottom")
-    if toolbar.button("⭯ Discard all changes"):
-        ui_state.restore_tasks(st.session_state.tasks)
-        ui_state.reload_today_grid()
-        ui_state.reload_general_grid()
-        st.rerun()
 
     toolbar.download_button(
         "⭳ Export tasks", data=_export_json_bytes(), file_name="tasklist.json", mime="application/json",
@@ -250,14 +296,15 @@ def render() -> None:
         label="▲ Ascending" if st.session_state.ascending else "▼ Descending",
         on_click=_toggle_sort, width="content", type="tertiary",
     )
-    toolbar.button(label="Reset priorities", on_click=_reset_priorities)
 
     sorted_df = df.sort_values(by=sort_column, ascending=st.session_state.ascending).reset_index(drop=True)
     st.session_state.general_df = sorted_df
 
+    styled_df = sorted_df.style.apply(_colorize_rows, axis=1)
+
     key = st.session_state.general_grid_key
     st.data_editor(
-        sorted_df,
+        styled_df,
         column_config=_column_config(),
         hide_index=True,
         width="content",

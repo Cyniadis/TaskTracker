@@ -7,13 +7,16 @@ from __future__ import annotations
 
 import pandas as pd
 import pytest
+import itertools
 
+from common import common_utils
 from tasktracker.task import Task
+from tasktracker import task
 
 
 class TestApplyAddedRow:
     def test_appends_a_new_task_with_a_fresh_id(self, general_grid_logic_app):
-        existing = Task(id=0, name="Existing", duration=5)
+        existing = Task(name="Existing", duration=5)
         general_grid_logic_app.session_state["tasks"] = [existing]
         at = general_grid_logic_app.run()
 
@@ -31,7 +34,7 @@ class TestApplyAddedRow:
         tasks = at.session_state["tasks"]
         assert len(tasks) == 2
         new_task = tasks[-1]
-        assert new_task.id == 1  # next after id=0
+        assert new_task.id == "1"  # next after id=0
         assert new_task.name == "New Task"
         assert new_task.frequency == "2xsemaine"
         assert new_task.priority == 3.0  # priority starts equal to initial_priority
@@ -67,7 +70,7 @@ class TestApplyAddedRow:
         add_button = next(b for b in at.button if b.label == "apply_added_row")
         at = add_button.click().run()
 
-        assert at.session_state["tasks"][0].id == 0
+        assert at.session_state["tasks"][0].id == '0'
 
 
 class TestApplyEditedRows:
@@ -81,7 +84,7 @@ class TestApplyEditedRows:
         }])
 
     def test_edits_a_plain_field(self, general_grid_logic_app):
-        task = Task(id=5, name="Old name", duration=10)
+        task = Task(name="Old name", duration=10)
         general_grid_logic_app.session_state["tasks"] = [task]
         at = general_grid_logic_app.run()
 
@@ -94,7 +97,7 @@ class TestApplyEditedRows:
         assert task.name == "New name"
 
     def test_recombines_frequency_count_and_period_into_frequency(self, general_grid_logic_app):
-        task = Task(id=5, name="Task", frequency="1xjour")
+        task = Task(name="Task", frequency="1xjour")
         general_grid_logic_app.session_state["tasks"] = [task]
         at = general_grid_logic_app.run()
 
@@ -106,7 +109,7 @@ class TestApplyEditedRows:
         assert task.frequency == "3xmois"
 
     def test_editing_only_frequency_count_keeps_the_existing_period(self, general_grid_logic_app):
-        task = Task(id=5, name="Task", frequency="2xsemaine")
+        task = Task(name="Task", frequency="2xsemaine")
         general_grid_logic_app.session_state["tasks"] = [task]
         at = general_grid_logic_app.run()
 
@@ -118,7 +121,7 @@ class TestApplyEditedRows:
         assert task.frequency == "5xsemaine"
 
     def test_edits_multiple_fields_in_the_same_row(self, general_grid_logic_app):
-        task = Task(id=5, name="Task", duration=10, priority=1.0)
+        task = Task(name="Task", duration=10, priority=1.0)
         general_grid_logic_app.session_state["tasks"] = [task]
         at = general_grid_logic_app.run()
 
@@ -131,8 +134,8 @@ class TestApplyEditedRows:
         assert task.priority == 4.5
 
     def test_edits_the_correct_row_among_several(self, general_grid_logic_app):
-        t1 = Task(id=1, name="First")
-        t2 = Task(id=2, name="Second")
+        t1 = Task(name="First")
+        t2 = Task(name="Second")
         general_grid_logic_app.session_state["tasks"] = [t1, t2]
         at = general_grid_logic_app.run()
 
@@ -144,3 +147,47 @@ class TestApplyEditedRows:
 
         assert t1.name == "First"
         assert t2.name == "Second, edited"
+
+
+class TestOnDataChangeDeletedRows:
+    """Regression coverage for _on_data_change's deleted_rows path: task ids
+    are uuid strings now (not the old auto-incrementing ints), and a stray
+    `int(df.iloc[row_pos]["id"])` cast used to raise ValueError here."""
+
+    def _grid_df_for(self, *tasks: Task) -> pd.DataFrame:
+        return pd.DataFrame.from_records([{"id": t.id, "name": t.name} for t in tasks])
+
+    def test_deleting_a_row_removes_the_matching_task(self, general_grid_logic_app):
+        t1 = Task(name="Keep")
+        t2 = Task(name="Delete me")
+        general_grid_logic_app.session_state["tasks"] = [t1, t2]
+        at = general_grid_logic_app.run()
+
+        at.session_state["edit_df"] = self._grid_df_for(t1, t2)
+        at.session_state["editor_state"] = {
+            "added_rows": [], "edited_rows": {}, "deleted_rows": [1],
+        }
+        button = next(b for b in at.button if b.label == "on_data_change")
+        at = button.click().run()
+
+        assert len(at.exception) == 0
+        remaining = at.session_state["tasks"]
+        assert [t.name for t in remaining] == ["Keep"]
+
+    def test_deleting_multiple_rows(self, general_grid_logic_app):
+        t1 = Task(name="A")
+        t2 = Task(name="B")
+        t3 = Task(name="C")
+        general_grid_logic_app.session_state["tasks"] = [t1, t2, t3]
+        at = general_grid_logic_app.run()
+
+        at.session_state["edit_df"] = self._grid_df_for(t1, t2, t3)
+        at.session_state["editor_state"] = {
+            "added_rows": [], "edited_rows": {}, "deleted_rows": [0, 2],
+        }
+        button = next(b for b in at.button if b.label == "on_data_change")
+        at = button.click().run()
+
+        assert len(at.exception) == 0
+        remaining_names = {t.name for t in at.session_state["tasks"]}
+        assert remaining_names == {"B"}

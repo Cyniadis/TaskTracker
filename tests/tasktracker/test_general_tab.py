@@ -6,7 +6,18 @@ covered here either, for the same reason.
 """
 from __future__ import annotations
 
+import pytest
+
+from common import common_json_utils
 from tasktracker.task import Task
+
+@pytest.fixture
+def cache_file(tmp_path, monkeypatch):
+    """Redirect the task_baseline.json helpers (which have no `path=` parameter,
+    unlike load/save_tasks) at a throwaway file for this test."""
+    path = tmp_path / "task_baseline.json"
+    monkeypatch.setattr(common_json_utils, "TASK_BASELINE_FILE", path)
+    return path
 
 
 class TestEmptyState:
@@ -14,10 +25,9 @@ class TestEmptyState:
         at = general_app.run()
         assert any("No tasks yet" in i.value for i in at.info)
 
-    def test_still_shows_discard_and_import_buttons(self, general_app):
+    def test_still_shows_import_buttons(self, general_app):
         at = general_app.run()
         labels = [b.label for b in at.button]
-        assert "⭯ Discard all changes" in labels
         assert "⭱ Import tasks" in labels
 
     def test_renders_without_error(self, general_app):
@@ -27,8 +37,8 @@ class TestEmptyState:
 
 class TestPopulatedToolbar:
     def _seed(self, general_app):
-        t1 = Task(id=1, name="Task A", duration=10, priority=2.0, initial_priority=2.0)
-        t2 = Task(id=2, name="Task B", duration=5, priority=1.0, initial_priority=1.0)
+        t1 = Task(name="Task A", duration=10, priority=2.0, initial_priority=2.0)
+        t2 = Task(name="Task B", duration=5, priority=1.0, initial_priority=1.0)
         general_app.session_state["tasks"] = [t1, t2]
         return t1, t2
 
@@ -64,18 +74,6 @@ class TestPopulatedToolbar:
 
         assert at.session_state["ascending"] is False
         assert any(b.label == "▼ Descending" for b in at.button)
-
-    def test_reset_priorities_restores_initial_priority(self, general_app):
-        t1, t2 = self._seed(general_app)
-        t1.priority = 99.0
-        t2.priority = 42.0
-        at = general_app.run()
-
-        reset = next(b for b in at.button if b.label == "Reset priorities")
-        at = reset.click().run()
-
-        assert t1.priority == t1.initial_priority
-        assert t2.priority == t2.initial_priority
 
     def test_renders_without_error(self, general_app):
         self._seed(general_app)

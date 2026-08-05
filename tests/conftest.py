@@ -36,8 +36,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from anyio import itertools
 import pytest
 from streamlit.testing.v1 import AppTest
+import itertools
+
+from common import common_utils
+from tasktracker import general_tab, today_tab, ui_state, task
 
 APPS_DIR = Path(__file__).parent / "apps"
 
@@ -50,22 +55,43 @@ def _no_disk_io(monkeypatch):
     module namespace each one was imported into (they're plain `from x
     import y` bindings, so patching json_utils itself wouldn't reach them).
     """
-    from tasktracker.ui import general_tab, today_tab, ui_state, timer_tab
+    from timer import timer_tab
+    from groceries import grocery_tab
 
     monkeypatch.setattr(ui_state, "save_tasks", lambda *a, **k: None)
     monkeypatch.setattr(ui_state, "cache_tasks", lambda *a, **k: None)
+    monkeypatch.setattr(ui_state, "load_task_baseline", lambda *a, **k: None)
+    monkeypatch.setattr(ui_state, "snapshot_tasks", lambda: None)
+
     monkeypatch.setattr(general_tab, "save_tasks", lambda *a, **k: None)
 
     monkeypatch.setattr(today_tab, "load_show_completed", lambda: False)
     monkeypatch.setattr(today_tab, "load_show_rescheduled", lambda: False)
-    monkeypatch.setattr(today_tab, "load_allow_future_tasks", lambda: False)
     monkeypatch.setattr(today_tab, "cache_daily_limit", lambda *a, **k: None)
     monkeypatch.setattr(today_tab, "cache_show_completed", lambda *a, **k: None)
     monkeypatch.setattr(today_tab, "cache_show_rescheduled", lambda *a, **k: None)
-    monkeypatch.setattr(today_tab, "cache_allow_future_tasks", lambda *a, **k: None)
     
     monkeypatch.setattr(timer_tab, "cache_timer_state", lambda *a, **k: None)
     monkeypatch.setattr(timer_tab, "load_timer_state", lambda: (None, 0.0, False))
+
+    monkeypatch.setattr(grocery_tab, "save_groceries", lambda *a, **k: None)
+
+@pytest.fixture(autouse=True)
+def _no_random_ids(monkeypatch):
+    """Monkeypatching generate_unique_id to return sequential string ids.
+
+    Task and GroceryItem each imported generate_unique_id by name into
+    their own module namespace, so each needs its own patch target — and
+    its own counter, so ids in one list don't skip numbers because of
+    activity in the other.
+    """
+    from groceries import grocery
+
+    task_ids = map(str, itertools.count())  # "0", "1", "2", ...
+    monkeypatch.setattr(task, "generate_unique_id", lambda: next(task_ids))
+
+    grocery_ids = map(str, itertools.count())  # "0", "1", "2", ...
+    monkeypatch.setattr(grocery, "generate_unique_id", lambda: next(grocery_ids))
 
 
 def _app(name: str) -> AppTest:
@@ -95,6 +121,11 @@ def general_app():
 @pytest.fixture
 def general_grid_logic_app():
     return _app("general_grid_logic_app.py")
+
+
+@pytest.fixture
+def grocery_grid_logic_app():
+    return _app("grocery_grid_logic_app.py")
 
 
 @pytest.fixture
