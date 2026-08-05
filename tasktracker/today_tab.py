@@ -11,17 +11,15 @@ from datetime import timedelta
 from . import ui_state
 from common.common_utils import get_theme_color
 from common.consts import today
-from ..tt_json_utils import (
-    cache_allow_future_tasks,
+from .tt_json_utils import (
     cache_daily_limit,
     cache_show_completed,
     cache_show_rescheduled,
-    load_allow_future_tasks,
     load_show_completed,
     load_show_rescheduled,
 )
-from ..task import Task
-from ..task_list_ops import find_task_by_id
+from .task import Task
+from .task_list_ops import find_task_by_id
 
 
 def _tasks_to_today_dataframe(tasks: list[Task]) -> pd.DataFrame | None:
@@ -29,7 +27,10 @@ def _tasks_to_today_dataframe(tasks: list[Task]) -> pd.DataFrame | None:
 
     Frequency stays as a single display string here (read-only column, no
     per-half editing needed) and an extra `completed` / `reschedule` column
-    pair drives the row action buttons. Returns None if `tasks` is empty.
+    pair drives the row action buttons. `cancelled` is carried along (hidden
+    via column_config) purely so `_colorize_rows` can style cancelled
+    rows without re-deriving that from a date sentinel. Returns None if
+    `tasks` is empty.
     """
     if not tasks:
         return None
@@ -59,6 +60,7 @@ def _edit_due_date(row: int) -> None:
     row_date = st.session_state.today_df.iloc[row]["due_date"]
     current = row_date if row_date is not None else today()
     task = find_task_by_id(st.session_state.tasks, st.session_state.today_df.at[row, "id"])
+    current_date = today()
 
     with st.container(horizontal=True, vertical_alignment="bottom"):
         new_date = st.date_input(
@@ -67,22 +69,19 @@ def _edit_due_date(row: int) -> None:
             width=200,
         )
         if st.button("Save"):
-            task.due_date = new_date
-            ui_state.persist_tasks()
+            ui_state.schedule_task_for(task, new_date)
             st.rerun()
 
     with st.container(horizontal=True, vertical_alignment="bottom"):
-        if st.button("To undefined due date"):
-            task.due_date = date.max
-            ui_state.persist_tasks()
+        if st.button("Cancel task"):
+            ui_state.cancel_task(task)
             st.rerun()
         if st.button("To next due date"):
-            task.due_date = task.compute_next_due_date(task.due_date)
-            ui_state.persist_tasks()
+            ui_state.schedule_task_for(task, task.get_next_due_date(task.due_date))
             st.rerun()
         if st.button("To this weekend"):
             days_until_saturday = (5 - today().weekday()) % 7
-            task.due_date = today() + timedelta(days=days_until_saturday)
+            ui_state.schedule_task_for(task, today() + timedelta(days=days_until_saturday))
             st.rerun()
 
 
@@ -120,12 +119,7 @@ def _render_today_header() -> None:
             on_change=lambda: cache_show_rescheduled(st.session_state.show_rescheduled_checkbox),
             key="show_rescheduled_checkbox",
         )
-        st.checkbox(
-            "Allow future tasks", load_allow_future_tasks(),
-            on_change=lambda: cache_allow_future_tasks(st.session_state.allow_future_tasks_checkbox),
-            key="allow_future_tasks_checkbox",
-        )
-
+       
     st.write(
         f"**Active duration:** {st.session_state.active_duration} min - "
         f"**Number of tasks:** {st.session_state.nb_today_task}"
@@ -139,6 +133,7 @@ def _column_config() -> dict:
         "frequency_count": None,
         "frequency_period": None,
         "initial_priority": None,
+        "cancelled": None,
         "completed": st.column_config.ButtonColumn(
             "", width=30, key="complete_button", on_click=_on_row_selected, type="tertiary",
         ),
@@ -169,15 +164,19 @@ def _on_row_selected() -> None:
     ui_state.persist_tasks()
 
 
-def _color_by_due_date(row: pd.Series) -> list[str]:
-    """Row-styling: highlight tasks done today, dim tasks not due today."""
+def _colorize_rows(row: pd.Series) -> list[str]:
+    """Row-styling: highlight tasks done today, dim tasks not due today, mark
+    cancelled tasks — reading the explicit `cancelled` flag instead of the
+    old date.max sentinel."""
     current_date = today()
     color = get_theme_color("textColor")
-    if current_date == row["done_date"]:
+    task = find_task_by_id(st.session_state.today_tasks, row["id"])
+    
+    if task.is_completed():
         color = get_theme_color("doneTextColor")
-    elif row["due_date"]  == date.max:
+    elif task.is_cancelled():
         color = get_theme_color("cancelledTextColor")
-    elif row["due_date"] != current_date:
+    elif task.is_manually_rescheduled() and task.due_date != current_date:
         color = get_theme_color("hiddenTextColor")
     return [f"color: {color}"] * len(row)
 
@@ -202,7 +201,7 @@ def render() -> None:
         st.info("No tasks were selected for today. Add or edit tasks in the General tab.")
         return
 
-    styled_df = df.style.apply(_color_by_due_date, axis=1)
+    styled_df = df.style.apply(_colorize_rows, axis=1)
 
     key = st.session_state.today_grid_key
     st.dataframe(

@@ -8,13 +8,14 @@ one place.
 from __future__ import annotations
 
 from datetime import datetime
+from datetime import date
+from json import load
 
 import streamlit as st
 
 from common.consts import today
-from ..tt_json_utils import (
+from .tt_json_utils import (
     cache_tasks,
-    load_allow_future_tasks,
     load_cached_daily_limit,
     load_cached_task_ids,
     load_show_completed,
@@ -22,12 +23,11 @@ from ..tt_json_utils import (
     load_tasks,
     save_tasks
 )
-from ..selector import compute_daily_tasks
+from tasktracker.change_tracking_task import snapshot_tasks, load_task_baseline, discard_task_changes
+from .selector import compute_daily_tasks
 from common.common_utils import normalize_date
-from ..task import Task
-from ..task_list_ops import next_task_id as _next_task_id
-from ..task_list_ops import remove_tasks_by_id, update_tasks_priority_and_due_date
-from ..task_list_ops import restore_tasks as _restore_tasks
+from .task import Task, TaskDueDateState
+from .task_list_ops import remove_tasks_by_id, initialize_tasks
 
 @st.cache_resource(show_spinner=False)
 def _init_general_task_list() -> list[Task]:
@@ -38,8 +38,13 @@ def _init_general_task_list() -> list[Task]:
     only a fresh process (or an explicit `reset_app()`) does.
     """
     tasks = load_tasks()
-    update_tasks_priority_and_due_date(tasks)
+    initialize_tasks(tasks)
     save_tasks(tasks)
+    # Refresh the change-tracking baseline to match this fresh load — this is
+    # the "since the last full reload" reference point the old orig_* fields
+    # used to capture, now living in its own durable file instead of on the
+    # Task objects themselves. See tasktracker/change_tracking.py.
+    snapshot_tasks(tasks)
     return tasks
 
 
@@ -69,9 +74,9 @@ def _sync_today_tasks(
 
 
 def filter_today_tasks(tasks: list[Task], today_tasks: list[Task], show_completed: bool = False, show_rescheduled: bool = False):
-    completed_tasks = [t for t in tasks if t.is_completed_on(today())] 
-    rescheduled_tasks = [t for t in tasks if any(diff[0] == "Due date" for diff in t.get_changes())]
-    
+    completed_tasks = [t for t in tasks if t.is_completed()]
+    rescheduled_tasks = [ t for t in tasks if t.is_manually_rescheduled() ]
+
     filtered_today_tasks = [ t for t in today_tasks if t not in completed_tasks and t not in rescheduled_tasks ]
     
     st.session_state.active_duration = sum([t.duration for t in filtered_today_tasks])
@@ -96,7 +101,6 @@ def init_session_state() -> None:
     daily_limit = load_cached_daily_limit()
     show_completed = load_show_completed()
     show_rescheduled = load_show_rescheduled()
-    allow_future_tasks = load_allow_future_tasks()
 
     st.session_state.active_duration = 0
     st.session_state.nb_today_task = 0
@@ -106,10 +110,10 @@ def init_session_state() -> None:
     st.session_state.tasks = tasks
     st.session_state.today_tasks = today_tasks
     st.session_state.today_generated = today_generated
+    st.session_state.task_baseline = load_task_baseline(tasks)
     
     st.session_state.daily_limit = daily_limit
     st.session_state.show_completed = show_completed
-    st.session_state.allow_future_tasks = allow_future_tasks
 
     # Pure session-local UI state — setdefault so mid-session values (timer
     # running, grid keys) survive reruns, but a genuinely fresh session
@@ -143,16 +147,21 @@ def regenerate_today_tasks() -> None:
     which is what lets every other session/tab pick up the change on
     their next rerun via `_sync_today_tasks` without recomputing anything
     themselves.
+
+    Tasks manually scheduled for today are always passed in as
+    `pre_selected_tasks`, so they survive regeneration regardless of the
+    daily time budget (see Task.manually_reschedule).
     """
     tasks = st.session_state.tasks
     daily_limit = st.session_state.daily_limit
     show_completed = load_show_completed()
     show_rescheduled = load_show_rescheduled()
-    allow_future_tasks = load_allow_future_tasks()
     current_date = today()
 
+    manually_scheduled = [t for t in tasks if t.is_manually_rescheduled_on_today()]
     today_tasks = compute_daily_tasks(
-        tasks, current_date, daily_limit, allow_future_tasks=allow_future_tasks,
+        tasks, current_date, daily_limit,
+        pre_selected_tasks=manually_scheduled
     )
 
     st.session_state.today_tasks = today_tasks
@@ -160,11 +169,6 @@ def regenerate_today_tasks() -> None:
 
     cache_today_tasks()
     persist_tasks()
-
-
-def restore_tasks(tasks: list[Task]) -> None:
-    """Revert every task in `tasks` to its last-persisted (orig_*) state."""
-    _restore_tasks(tasks)
 
 
 def reload_today_grid() -> None:
@@ -183,21 +187,16 @@ def reset_app() -> None:
     st.session_state.clear()
 
 
-def next_task_id() -> int:
-    """Return the next unused task id (max existing id + 1, or 0 if no tasks)."""
-    return _next_task_id(st.session_state.tasks)
-
-
 def add_task(task: Task) -> None:
     """Append a new task, persist it, and refresh the 'General' grid."""
     st.session_state.tasks.append(task)
     persist_tasks()
-    reload_general_grid()
+    # reload_general_grid()
 
 
-def schedule_task_for_today(task: Task) -> None:
+def schedule_task_for(task: Task, date: datetime.date) -> None:
     """Manually add a task to today's list, ignoring the daily time budget."""
-    task.schedule_for(today())
+    task.manually_reschedule(date)
     if task not in st.session_state.today_tasks:
         st.session_state.today_tasks.append(task)
     cache_today_tasks()
@@ -205,16 +204,15 @@ def schedule_task_for_today(task: Task) -> None:
     reload_today_grid()
     
 
-def update_dates(task: Task, date: datetime.date) -> None:
+def update_done_date(task: Task, date: datetime.date) -> None:
     """Manually add a task to today's list, ignoring the daily time budget."""
-    task.done_date = date
-    task.due_date = task.compute_next_due_date(date)
+    task.set_done_date(date)
+    task.set_next_due_date(date)
     cache_today_tasks()
     persist_tasks()
 
 
-
-def remove_tasks(task_ids: list[int]) -> None:
+def remove_tasks(task_ids: list[str]) -> None:
     """Remove tasks by id from both the full list and today's list, then persist."""
     if len(task_ids) == 0:
         return
@@ -224,3 +222,11 @@ def remove_tasks(task_ids: list[int]) -> None:
     cache_today_tasks()
     persist_tasks()
     reload_today_grid()
+
+
+def cancel_task(task: Task) -> None:
+    """Cancel a task (remove its due date, so it won't be selected for today)."""
+    task.cancel()
+    cache_today_tasks()
+    persist_tasks()
+    

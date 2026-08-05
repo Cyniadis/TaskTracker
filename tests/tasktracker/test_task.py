@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+import subprocess
+import sys
 
 import pytest
 
-from tasktracker.task import Frequency, Period, Task, normalize_date
-from tasktracker.task_list_ops import schedule_task_list
+from tasktracker.task import Frequency, Period, Task, TaskDueDateState, normalize_date
+from tasktracker.task_list_ops import set_due_date_task_list
 
 
 # ---------------------------------------------------------------------------
@@ -137,17 +139,10 @@ class TestTaskConstruction:
         task = make_task()
         assert task.frequency == "1xjour"
 
-    def test_date_fields_are_normalized_on_construction(self):
-        task = Task(id=1, name="x", due_date="15/01/2026", done_date="2026-01-14")
+    def test_date_fields_are_normalized_on_construction(self, make_task):
+        task = make_task(name="x", due_date="15/01/2026", done_date="2026-01-14")
         assert task.due_date == date(2026, 1, 15)
         assert task.done_date == date(2026, 1, 14)
-
-    def test_orig_snapshot_matches_initial_values(self, make_task):
-        task = make_task(name="Water plants", priority=3.0)
-        assert task.orig_name == "Water plants"
-        assert task.orig_priority == 3.0
-        assert task.orig_due_date == task.due_date
-        assert task.orig_done_date == task.done_date
 
 
 # ---------------------------------------------------------------------------
@@ -163,15 +158,14 @@ class TestTaskSerialization:
         task = Task.from_dict(data)
         assert task.id == 5
         assert task.name == "Test"
-        assert task.orig_name == "Test"  # set by __post_init__, not from input
 
     def test_to_dict_excludes_orig_fields(self):
-        task = Task(id=1, name="Test")
+        task = Task(name="Test")
         payload = task.to_dict()
         assert all(not key.startswith("orig_") for key in payload)
 
-    def test_to_dict_serializes_dates_as_iso_strings(self):
-        task = Task(id=1, name="Test", due_date=date(2026, 7, 21), done_date=None)
+    def test_to_dict_serializes_dates_as_iso_strings(self, make_task):
+        task = make_task(name="Test", due_date=date(2026, 7, 21), done_date=None)
         payload = task.to_dict()
         assert payload["due_date"] == "2026-07-21"
         assert payload["done_date"] is None
@@ -180,9 +174,13 @@ class TestTaskSerialization:
         original = {
             "id": 3, "name": "Roundtrip", "frequency": "2xsemaine",
             "priority": 4.5, "initial_priority": 2.0, "duration": 15,
-            "due_date": "2026-07-21", "done_date": None,
+            "due_date": "2026-07-21", "done_date": None, 
+            "state": {'completed': False, 'due_date_state': 'normal'},
         }
+        print(original)
+        print()
         task = Task.from_dict(original)
+        print(task.to_dict())
         assert task.to_dict() == original
 
 
@@ -195,14 +193,14 @@ class TestTaskFrequencyHelpers:
         task = make_task(frequency="3xmois")
         assert task.frequency_obj == Frequency(count=3, period=Period.MONTH)
 
-    def test_compute_next_due_date_adds_frequency_days(self, make_task):
+    def test_get_next_due_date_adds_frequency_days(self, make_task):
         task = make_task(frequency="1xsemaine")
-        next_due = task.compute_next_due_date(date(2026, 7, 21))
+        next_due = task.get_next_due_date(date(2026, 7, 21))
         assert next_due == date(2026, 7, 28)
 
-    def test_compute_next_due_date_for_daily_task(self, make_task):
+    def test_get_next_due_date_for_daily_task(self, make_task):
         task = make_task(frequency="1xjour")
-        assert task.compute_next_due_date(date(2026, 7, 21)) == date(2026, 7, 22)
+        assert task.get_next_due_date(date(2026, 7, 21)) == date(2026, 7, 22)
 
 
 # ---------------------------------------------------------------------------
@@ -247,6 +245,17 @@ class TestTaskLifecycle:
         assert task.priority == 3.0
         assert task.done_date is None
 
+    def test_complete_sets_is_completed_true(self, make_task):
+        task = make_task()
+        task.complete(date(2026, 7, 21))
+        assert task.is_completed() is True
+
+    def test_uncomplete_sets_is_completed_false(self, make_task):
+        task = make_task()
+        task.complete(date(2026, 7, 21))
+        task.uncomplete()
+        assert task.is_completed() is False
+
     def test_uncomplete_clears_the_stashed_pre_complete_state(self, make_task):
         task = make_task()
         task.complete(date(2026, 7, 21))
@@ -277,18 +286,18 @@ class TestTaskLifecycle:
 
     def test_schedule_for_sets_due_date(self, make_task):
         task = make_task(due_date=None)
-        task.schedule_for(date(2026, 7, 21))
+        task.set_due_date(date(2026, 7, 21))
         assert task.due_date == date(2026, 7, 21)
 
 
 class TestScheduleTaskList:
     def test_sets_due_date_on_every_task_in_the_list(self, make_task):
-        tasks = [make_task(id=1), make_task(id=2), make_task(id=3)]
-        schedule_task_list(tasks, date(2026, 7, 21))
+        tasks = [make_task(), make_task(), make_task()]
+        set_due_date_task_list(tasks, date(2026, 7, 21))
         assert all(t.due_date == date(2026, 7, 21) for t in tasks)
 
     def test_empty_list_is_a_no_op(self):
-        schedule_task_list([], date(2026, 7, 21))  # should not raise
+        set_due_date_task_list([], date(2026, 7, 21))  # should not raise
 
 
 # ---------------------------------------------------------------------------
@@ -303,94 +312,127 @@ class TestSetField:
 
     def test_normalizes_date_fields(self, make_task):
         task = make_task(due_date=None)
-        task.set_field("due_date", "21/07/2026")
-        assert task.due_date == date(2026, 7, 21)
+        with pytest.raises(AttributeError):
+            task.set_field("due_date", "21/07/2026")
 
     def test_unknown_field_raises_attribute_error(self, make_task):
         task = make_task()
         with pytest.raises(AttributeError):
             task.set_field("not_a_real_field", 123)
 
-    def test_set_field_does_not_touch_orig_snapshot(self, make_task):
-        task = make_task(name="Old")
-        task.set_field("name", "New")
-        assert task.orig_name == "Old"
 
 
 # ---------------------------------------------------------------------------
-# Task: restore
+# Task: due-date-state machine (cancel / manually_reschedule / set_due_date)
+#
+# Covers the invariants documented in task.py's module docstring: cancel()
+# and manually_reschedule() are mutually exclusive, and a plain set_due_date()
+# clears any prior cancellation. There was no coverage at all for this before
+# — it's the actual point of the "rework-task-state" branch.
 # ---------------------------------------------------------------------------
 
-class TestRestore:
-    def test_restore_reverts_every_editable_field(self, make_task):
-        task = make_task(
-            name="Old", frequency="1xjour", priority=1.0, initial_priority=1.0,
-            duration=10, due_date=date(2026, 7, 1), done_date=None,
-        )
-        task.name = "New"
-        task.frequency = "2xsemaine"
-        task.priority = 9.0
-        task.initial_priority = 9.0
-        task.duration = 99
-        task.due_date = date(2026, 8, 1)
-        task.done_date = date(2026, 8, 1)
+class TestCancel:
+    def test_clears_due_date(self, make_task):
+        task = make_task(due_date=date(2026, 7, 21))
+        task.cancel()
+        assert task.due_date is None
 
-        task.restore()
-
-        assert task.name == "Old"
-        assert task.frequency == "1xjour"
-        assert task.priority == 1.0
-        assert task.initial_priority == 1.0
-        assert task.duration == 10
-        assert task.due_date == date(2026, 7, 1)
-        assert task.done_date is None
-
-    def test_restore_is_idempotent(self, make_task):
-        task = make_task(name="Old")
-        task.name = "New"
-        task.restore()
-        task.restore()
-        assert task.name == "Old"
-
-
-# ---------------------------------------------------------------------------
-# Task: get_changes
-# ---------------------------------------------------------------------------
-
-class TestGetChanges:
-    def test_no_changes_returns_empty_list(self, make_task):
+    def test_sets_cancelled_state(self, make_task):
         task = make_task()
-        assert task.get_changes() == []
+        task.cancel()
+        assert task.is_cancelled() is True
+        assert task.state.due_date_state == TaskDueDateState.CANCELLED
 
-    def test_name_change_is_reported(self, make_task):
-        task = make_task(name="Old")
-        task.name = "New"
-        diffs = task.get_changes()
-        assert ("Name", "Old", "New") in diffs
+    def test_is_not_manually_rescheduled(self, make_task):
+        task = make_task()
+        task.cancel()
+        assert task.is_manually_rescheduled() is False
 
-    def test_priority_change_reports_formatted_numbers(self, make_task):
-        task = make_task(priority=1.0)
-        task.priority = 2.5
-        diffs = task.get_changes()
-        assert ("Priority", "1.0", "2.5") in diffs
 
-    def test_none_values_are_formatted_as_em_dash(self, make_task):
+class TestManuallyReschedule:
+    def test_sets_due_date_to_the_given_date(self, make_task):
         task = make_task(due_date=None)
-        task.due_date = date(2026, 7, 21)
-        diffs = dict((label, (old, new)) for label, old, new in task.get_changes())
-        assert diffs["Due date"][0] == "—"
+        task.manually_reschedule(date(2026, 7, 21))
+        assert task.due_date == date(2026, 7, 21)
 
-    def test_multiple_changed_fields_all_reported(self, make_task):
-        task = make_task(name="Old", duration=10)
-        task.name = "New"
-        task.duration = 20
-        labels = {label for label, _, _ in task.get_changes()}
-        assert labels == {"Name", "Duration"}
+    def test_sets_manually_rescheduled_state(self, make_task):
+        task = make_task()
+        task.manually_reschedule(date(2026, 7, 21))
+        assert task.is_manually_rescheduled() is True
+        assert task.state.due_date_state == TaskDueDateState.MANUALLY_RESCHEDULED
 
-    def test_get_changes_does_not_mutate_state(self, make_task):
-        task = make_task(name="Old")
-        task.name = "New"
-        task.get_changes()
-        task.get_changes()
-        assert task.name == "New"
-        assert task.orig_name == "Old"
+    def test_is_not_cancelled(self, make_task):
+        task = make_task()
+        task.manually_reschedule(date(2026, 7, 21))
+        assert task.is_cancelled() is False
+
+    def test_is_manually_rescheduled_on_today_true_when_due_date_is_today(self, make_task, monkeypatch):
+        import tasktracker.task as task_module
+        monkeypatch.setattr(task_module, "today", lambda: date(2026, 7, 21))
+        task = make_task()
+        task.manually_reschedule(date(2026, 7, 21))
+        assert task.is_manually_rescheduled_on_today() is True
+
+    def test_is_manually_rescheduled_on_today_false_for_a_different_day(self, make_task, monkeypatch):
+        import tasktracker.task as task_module
+        monkeypatch.setattr(task_module, "today", lambda: date(2026, 7, 22))
+        task = make_task()
+        task.manually_reschedule(date(2026, 7, 21))
+        assert task.is_manually_rescheduled_on_today() is False
+
+
+class TestDueDateStateTransitions:
+    """The three due-date states are mutually exclusive for the same task —
+    every transition method must clear the other two."""
+
+    def test_manually_reschedule_after_cancel_clears_cancelled(self, make_task):
+        task = make_task()
+        task.cancel()
+        task.manually_reschedule(date(2026, 7, 21))
+        assert task.is_cancelled() is False
+        assert task.is_manually_rescheduled() is True
+
+    def test_cancel_after_manually_reschedule_clears_manually_rescheduled(self, make_task):
+        task = make_task()
+        task.manually_reschedule(date(2026, 7, 21))
+        task.cancel()
+        assert task.is_manually_rescheduled() is False
+        assert task.is_cancelled() is True
+
+    def test_plain_set_due_date_clears_cancelled(self, make_task):
+        task = make_task()
+        task.cancel()
+        task.set_due_date(date(2026, 7, 21))
+        assert task.is_cancelled() is False
+        assert task.due_date == date(2026, 7, 21)
+
+    def test_completed_is_independent_of_due_date_state(self, make_task):
+        """A task can be both manually-scheduled for today and completed
+        today at the same time — completed isn't folded into due_date_state."""
+        task = make_task()
+        task.manually_reschedule(date(2026, 7, 21))
+        task.complete(date(2026, 7, 21))
+        assert task.is_manually_rescheduled() is True
+        assert task.is_completed_on(date(2026, 7, 21)) is True
+
+
+# ---------------------------------------------------------------------------
+# Regression: task.py must be importable standalone
+#
+# task.py's own docstring promises "no dependency on Streamlit, pandas, or
+# any storage mechanism". A stray `from tasktracker import ui_state` briefly
+# crept in — unused, and circular (task -> ui_state -> tt_json_utils ->
+# task). It didn't fail inside the normal pytest run only because conftest.py
+# happens to import general_tab (which imports ui_state) before task.py, so
+# ui_state was already sitting in sys.modules by the time task.py's import
+# line ran. Importing tasktracker.task fresh, as the very first import in a
+# clean interpreter, is what actually exercises the bug.
+# ---------------------------------------------------------------------------
+
+class TestModuleIsImportableStandalone:
+    def test_import_tasktracker_task_first_in_a_fresh_interpreter(self):
+        result = subprocess.run(
+            [sys.executable, "-c", "import tasktracker.task"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr

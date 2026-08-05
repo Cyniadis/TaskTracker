@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime
 
 import streamlit as st
-from ..tt_json_utils import load_timer_state, cache_timer_state
+from tasktracker.tt_json_utils import load_timer_state, cache_timer_state
 
 _TICK_SECONDS = 0.25  # how often the fragment auto-refreshes itself while running
 

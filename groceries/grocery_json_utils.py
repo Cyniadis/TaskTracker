@@ -39,11 +39,6 @@ def save_groceries(items: list[GroceryItem], path: Path = GROCERIES_FILE) -> Non
     write_json(path, grocery_list_to_json(items))
 
 
-def next_grocery_id(items: list[GroceryItem]) -> int:
-    """Return the next unused grocery item id (max existing id + 1, or 0 if empty)."""
-    return max((item.id for item in items), default=-1) + 1
-
-
 # -- import validation --------------------------------------------------------
 #
 # Mirrors tasktracker/json_utils.py's validate_and_parse_tasks /
@@ -65,7 +60,7 @@ def validate_and_parse_groceries(raw_data: Any) -> list[GroceryItem]:
 
     valid_states = {state.value for state in GroceryState}
     items: list[GroceryItem] = []
-    seen_ids: set[int] = set()
+    seen_ids: set[str] = set()
 
     for idx, item in enumerate(raw_data):
         label = f"Item #{idx}"
@@ -75,8 +70,8 @@ def validate_and_parse_groceries(raw_data: Any) -> list[GroceryItem]:
 
         if "id" not in item:
             raise ValueError(f"{label}: missing required field 'id'.")
-        if not isinstance(item["id"], int):
-            raise ValueError(f"{label}: field 'id' must be an integer.")
+        if not isinstance(item["id"], str):
+            raise ValueError(f"{label}: field 'id' must be a string.")
         if item["id"] in seen_ids:
             raise ValueError(f"{label}: duplicate id {item['id']}.")
 

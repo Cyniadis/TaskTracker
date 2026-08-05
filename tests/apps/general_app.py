@@ -9,9 +9,10 @@ row-add/row-edit callbacks, tested directly as plain functions instead.
 """
 import streamlit as st
 
-from tasktracker.ui import general_tab
+from tasktracker import general_tab
 
 st.session_state.setdefault("tasks", [])
+st.session_state.setdefault("task_baseline", {})
 st.session_state.setdefault("general_grid_key", "GeneralGrid1")
 
 general_tab.render()

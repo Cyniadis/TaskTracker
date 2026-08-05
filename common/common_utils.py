@@ -1,5 +1,6 @@
 """UI helpers shared by both the 'Today' and 'General' tabs."""
 from __future__ import annotations
+import uuid
 
 import streamlit as st
 
@@ -37,6 +38,7 @@ _THEME_COLORS = {
         "hiddenTextColor": "#31333f36",
         "doneTextColor": "#15823755",
         "cancelledTextColor": "#82151554",
+        "eligibleTextColor": "#ff804576"
     },
     "dark": {
         "primaryColor": "#ff4b4b",
@@ -61,6 +63,7 @@ _THEME_COLORS = {
         "hiddenTextColor": "#fafafa36",
         "doneTextColor": "#09ab3c55",
         "cancelledTextColor": "#ab090954",
+        "eligibleTextColor": "#ff804576"
     },
 }
 
@@ -98,3 +101,8 @@ def normalize_date(value: Any) -> datetime.date | None:
         return normalize_date(value.item())
 
     raise TypeError(f"Unsupported date value: {value!r}")
+
+
+def generate_unique_id() -> str:
+    """Generate a short unique ID for a new task or grocery item."""
+    return str(uuid.uuid4())[:8]

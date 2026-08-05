@@ -2,17 +2,35 @@
 
 This module has no dependency on Streamlit, pandas, or any storage
 mechanism — it only knows about the shape and behaviour of a `Task`.
+
+`due_date` and `done_date` are intentionally read-only from outside this
+module (exposed as properties backed by private `_due_date`/`_done_date`
+fields). Every way of changing them goes through a named method
+(`set_due_date`, `set_done_date`, `cancel`, `manually_reschedule`,
+`compute_next_due_date`, `schedule_for`, `complete`/`uncomplete`)
+so the due-date-state invariants below can't be bypassed by a stray
+`task.due_date = ...` somewhere in the UI layer.
+
+Due-date-state invariants
+--------------------------
+`cancelled` and `manually_rescheduled_on` are mutually
+exclusive *for the same day* — a task can't simultaneously be cancelled,
+force-scheduled for today, and rescheduled out of today. Every transition
+method that sets one of these explicitly clears the other two. This is
+enforced at the transition-method level rather than trusted to callers.
+
+`completed` (from `is_completed_on`/`status()`) is independent of the
+above — a task can be both manually-scheduled for today and completed
+today, for instance.
 """
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict, dataclass, fields, field
 from datetime import date, timedelta
 from enum import Enum
 from typing import Any
-from common.consts import PRIORITY_INCREMENT
-from common.common_utils import normalize_date
-
-_DATE_FIELDS = ("due_date", "done_date")
+from common.consts import PRIORITY_INCREMENT, today
+from common.common_utils import generate_unique_id, normalize_date
 
 class Period(str, Enum):
     """The recurrence unit of a task, e.g. 'twice a WEEK'."""
@@ -59,57 +77,110 @@ class Frequency:
         return f"{self.count}x{self.period.value}"
 
 
+class TaskDueDateState(str, Enum):
+    """Mutually-exclusive due-date-related states a task can be in on a given day."""
+
+    NORMAL = "normal"
+    CANCELLED = "cancelled"
+    MANUALLY_RESCHEDULED = "rescheduled"
+    ELIGIBLE = "eligible"
 
 
+@dataclass
+class TaskState:
+    """A task's status as of a given date.
+
+    `completed` is independent of `due_date_state` — see the module
+    docstring for why these aren't folded into one combined enum.
+    """
+
+    completed: bool = False
+    due_date_state: TaskDueDateState = TaskDueDateState.NORMAL
+    
+    def __str__(self) -> str:
+        return f"{'🗹' if self.completed else '☐'} {self.due_date_state.value}"
+    
+    @classmethod
+    def from_dict(cls, data: dict) -> "TaskState":
+        return cls(
+            completed=data.get("completed", False),
+            due_date_state=TaskDueDateState(data.get("due_date_state", TaskDueDateState.NORMAL.value))
+        )
+        
+
+    
 @dataclass
 class Task:
     """A recurring chore, with everything needed to schedule and track it."""
 
-    id: int
     name: str
     frequency: str = "1xjour"
     priority: float = 0.0
     initial_priority: float = 0.0
     duration: int = 0
-    due_date: date | None = None
-    done_date: date | None = None
 
-    orig_name: str = ""
-    orig_frequency: str = "1xjour"
-    orig_priority: float = 0.0
-    orig_initial_priority: float = 0.0
-    orig_duration: int = 0
-    orig_due_date: date | None = None
-    orig_done_date: date | None = None
-
+    
+    # Private — see module docstring. Exposed read-only via properties below.
+    _id: str = field(default_factory=lambda: generate_unique_id())
+    _state : TaskState = field(default_factory=lambda: TaskState(completed=False, due_date_state=TaskDueDateState.NORMAL))
+    _due_date: date | None = None
+    _done_date: date | None = None
 
     def __post_init__(self) -> None:
-        for field_name in ["due_date", "done_date"]:
-            setattr(self, field_name, normalize_date(getattr(self, field_name)))
-        self.orig_name = self.name
-        self.orig_frequency = self.frequency
-        self.orig_priority = self.priority
-        self.orig_initial_priority = self.initial_priority
-        self.orig_duration = self.duration
-        self.orig_due_date = self.due_date
-        self.orig_done_date = self.done_date
+        self._due_date = normalize_date(self._due_date)
+        self._done_date = normalize_date(self._done_date)
 
         # Stashed pre-completion state, used by uncomplete() to undo the most
-        # recent complete() call exactly (as opposed to orig_* above, which
-        # tracks the state since app/session start for the "discard changes"
-        # feature). None means "no completion has happened yet this session".
-        self._pre_complete_priority: float | None = None
-        self._pre_complete_done_date: date | None = None
+        # recent complete() call exactly (not a dataclass field: deliberately
+        # excluded from to_dict()/persistence — it's session-only).
+        self._pre_complete_priority: float | None = self.priority
+        self._pre_complete_done_date: date | None = self._done_date
+
+    # -- read-onlydate access ------------------------------------------------
+    @property
+    def id(self) -> str:
+        return self._id
+    
+    @property
+    def due_date(self) -> date | None:
+        return self._due_date
+
+    @property
+    def done_date(self) -> date | None:
+        return self._done_date
+
+    @property
+    def state(self) -> TaskState:
+        """Return the task's status as of today, including both completion and due date state."""
+        return self._state
 
     # -- (de)serialization -------------------------------------------------
     @classmethod
     def from_dict(cls, data: dict) -> "Task":
-        known_fields = {f.name for f in fields(cls) if not f.name.startswith("orig_")}
-        return cls(**{key: value for key, value in data.items() if key in known_fields})
+        """Build a Task from a JSON-shaped dict.
+
+        Legacy files may still have `due_date` set to the old date.max
+        sentinel that used to mean "cancelled" — migrated here into the
+        explicit `cancelled` flag instead.
+        """
+        known_fields = {f.name for f in fields(cls) if not f.name.startswith("_")}
+        kwargs = {
+            key: value for key, value in data.items()
+            if key in known_fields 
+        }
+        kwargs["_due_date"] = data.get("due_date")
+        kwargs["_done_date"] = data.get("done_date")
+        kwargs["_id"] = data.get("id")
+        kwargs["_state"] = TaskState.from_dict(data.get("state", {"completed": False, "due_date_state": TaskDueDateState.NORMAL.value}))
+        return cls(**kwargs)
 
     def to_dict(self) -> dict:
-        payload = {k: v for k,v in asdict(self).items()  if not k.startswith("orig_") }
-        for field_name in _DATE_FIELDS:
+        payload = asdict(self)
+        payload["id"] = payload.pop("_id")
+        payload["due_date"] = payload.pop("_due_date")
+        payload["done_date"] = payload.pop("_done_date")
+        payload["state"] =  payload.pop("_state")
+        for field_name in ("due_date", "done_date"):
             value = payload[field_name]
             payload[field_name] = value.isoformat() if value else None
         return payload
@@ -119,93 +190,135 @@ class Task:
     def frequency_obj(self) -> Frequency:
         return Frequency.parse(self.frequency)
 
-    def compute_next_due_date(self, current_date: date) -> date:
+    def get_next_due_date(self, current_date: date) -> date:
         return current_date + timedelta(days=self.frequency_obj.days)
 
     # -- priority helpers ---------------------------------------------------
-    
     def increment_priority(self):
         self.priority += PRIORITY_INCREMENT
+
+    # -- due-date transitions -------------------------------------------------
+    #
+    # Every method below is a deliberate, named transition.
+    
+    def set_due_date(self, new_date: date | None) -> None:
+        """Direct due-date edits (grid, dialog's custom-date save).
+
+        Just a plain date change — clears cancellation (setting a real date
+        is incompatible with being cancelled) but is NOT by itself a
+        "reschedule"; callers doing an actual reschedule action should also
+        call manually_reschedule() right after this.
+        """
+        self._due_date = normalize_date(new_date)
+        if self._state.due_date_state == TaskDueDateState.CANCELLED:
+            self._state.due_date_state = TaskDueDateState.NORMAL
+
+    def set_done_date(self, new_date: date | None) -> None:
+        """Direct done-date edits (grid, 'Completed on' dialog save)."""
+        self._done_date = normalize_date(new_date)
+        if self._done_date == today(): 
+            self._state.completed = True
+
+    def cancel(self) -> None:
+        """Mark this task as having no active due date, deliberately."""
+        self._state.due_date_state = TaskDueDateState.CANCELLED
+        self._due_date = None
+
+    def manually_reschedule(self, current_date: date) -> None:
+        """Force this task onto `current_date`'s list, bypassing the daily
+        time budget. Tasks in this state should always survive a
+        regeneration of today's list (see selector.compute_daily_tasks's
+        `pre_selected_tasks`)."""
+        self._due_date = current_date
+        self._state.due_date_state = TaskDueDateState.MANUALLY_RESCHEDULED
+
+
+    def set_next_due_date(self, from_date: date = None) -> None:
+        """Housekeeping's 'completed on time -> advance to next occurrence'
+        transition. `from_date` is the due date being rolled forward from."""
+        if from_date is None:
+            from_date = self._due_date
+        self.set_due_date(self.get_next_due_date(from_date))
+
+
 
     # -- lifecycle -----------------------------------------------------------
     def complete(self, completion_date: date) -> None:
         """Mark the task done on `completion_date`, remembering the prior
         priority/done_date so `uncomplete()` can undo this exact change."""
         self._pre_complete_priority = self.priority
-        self._pre_complete_done_date = self.done_date
-        self.done_date = completion_date
+        self._pre_complete_done_date = self._done_date
+        self._done_date = completion_date
         self.priority = self.initial_priority
+        self._state.completed = True
 
     def uncomplete(self) -> None:
         """Undo the most recent complete() call, restoring priority and
         done_date to what they were right before it."""
-        self.done_date = self._pre_complete_done_date
-        # Fallback to orig_priority only if uncomplete() is somehow called
-        # without a prior complete() in this session (e.g. done_date was
-        # already set when the task was loaded from disk).
-        self.priority = (
-            self._pre_complete_priority
-            if self._pre_complete_priority is not None
-            else self.orig_priority
-        )
+        self._done_date = self._pre_complete_done_date
+        if self._pre_complete_priority is not None:
+            self.priority = self._pre_complete_priority
         self._pre_complete_priority = None
         self._pre_complete_done_date = None
+        self._state.completed = False
 
     def is_completed_on(self, current_date: date) -> bool:
-        return self.done_date is not None and self.done_date == current_date
+        return self._done_date is not None and self._done_date == current_date
 
-    def schedule_for(self, current_date: date) -> None:
-        """Mark this task as picked for `current_date` by setting its due date.
-
-        Note: this does not advance the task to its *next* occurrence — that
-        happens separately, in `update_tasks_priority_and_due_date`, once the
-        task has actually been completed on its due date.
-        """
-        self.due_date = current_date
-        self.orig_due_date = self.due_date
-
+    # -- editing ---------------------------------------------------------
     def set_field(self, field_name: str, value: Any) -> None:
-        """Generic setter used by grid-edit callbacks (keeps date fields normalized)."""
-        if field_name not in {f.name for f in fields(self)}:
+        """Generic setter used by grid-edit callbacks for plain fields.
+
+        due_date/done_date are intentionally NOT settable this way — use
+        set_due_date()/set_done_date() (or cancel()/manually_reschedule()) 
+        instead, since those enforce the due-date-state
+        invariants documented at the top of this module.
+        """
+        if field_name in ("due_date", "done_date"):
+            raise AttributeError(
+                f"{field_name!r} must be set via set_due_date()/set_done_date(), "
+                "not set_field()."
+            )
+        known_fields = {f.name for f in fields(self) if not f.name.startswith("_")}
+        if field_name not in known_fields:
             raise AttributeError(f"Unknown task field: {field_name!r}")
-        if field_name in _DATE_FIELDS:
-            value = normalize_date(value)
         setattr(self, field_name, value)
 
-    def restore(self): 
-        self.name = self.orig_name
-        self.frequency = self.orig_frequency
-        self.priority = self.orig_priority
-        self.initial_priority = self.orig_initial_priority
-        self.duration = self.orig_duration
-        self.due_date = self.orig_due_date
-        self.done_date = self.orig_done_date
-
-
-    def get_changes(self) -> list[tuple[str, str, str]]:
-        """Return a list of (field_label, old_value, new_value) for every
-        field that differs from the task's original (orig_*) snapshot.
-        Empty list if nothing changed.
+    def apply_snapshot(self, data: dict) -> None:
+        """Revert editable fields to a prior snapshot (from the change-tracking
+        baseline — see tasktracker/change_tracking.py). Doesn't touch id,
+        manually_scheduled_on, or rescheduled_on — those are per-day markers,
+        not "edits" a user would want to discard.
         """
-        def _format_value(value):
-            if value is None:
-                return "—"
-            return str(value)
-        diffs = []
+        self.name = data["name"]
+        self.frequency = data["frequency"]
+        self.priority = data["priority"]
+        self.initial_priority = data["initial_priority"]
+        self.duration = data["duration"]
+        self._due_date = normalize_date(data.get("due_date"))
+        self._done_date = normalize_date(data.get("done_date"))
+        self._state = TaskState.from_dict(data["state"])
 
-        if self.name != self.orig_name:
-            diffs.append(("Name", self.orig_name, self.name))
-        if self.frequency != self.orig_frequency:
-            diffs.append(("Frequency", self.orig_frequency, self.frequency))
-        if self.priority != self.orig_priority:
-            diffs.append(("Priority", _format_value(self.orig_priority), _format_value(self.priority)))
-        if self.initial_priority != self.orig_initial_priority:
-            diffs.append(("Initial priority", _format_value(self.orig_initial_priority), _format_value(self.initial_priority)))
-        if self.duration != self.orig_duration:
-            diffs.append(("Duration", _format_value(self.orig_duration), _format_value(self.duration)))
-        if self.due_date != self.orig_due_date:
-            diffs.append(("Due date", _format_value(self.orig_due_date), _format_value(self.due_date)))
-        if self.done_date != self.orig_done_date:
-            diffs.append(("Done date", _format_value(self.orig_done_date), _format_value(self.done_date)))
 
-        return diffs
+    def is_completed(self) -> bool:
+        """Return True if this task is completed on any date (not just today)."""
+        return self._state.completed
+    
+    def is_cancelled(self) -> bool:
+        """Return True if this task is cancelled on any date (not just today)."""
+        return self._state.due_date_state == TaskDueDateState.CANCELLED
+
+    def is_manually_rescheduled(self) -> bool:
+        """Return True if this task is manually rescheduled on any date (not just today)."""
+        return self._state.due_date_state == TaskDueDateState.MANUALLY_RESCHEDULED
+    
+    def is_manually_rescheduled_on_today(self) -> bool:
+        return self.is_manually_rescheduled() and self._due_date == today()
+    
+    def is_eligible(self) -> bool:
+        """Return True if this task is eligible on any date (not just today)."""
+        return self._state.due_date_state == TaskDueDateState.ELIGIBLE
+    
+    def reset_state(self) -> None:
+        """Reset the task's state to its default (not completed, not cancelled, not rescheduled)."""
+        self._state = TaskState(completed=False, due_date_state=TaskDueDateState.NORMAL)
