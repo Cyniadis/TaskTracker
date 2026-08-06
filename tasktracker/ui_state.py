@@ -64,6 +64,8 @@ def _sync_today_tasks(
     current_date = today()
 
     if normalize_date(cache_date) != current_date:
+        for task in tasks: 
+            task.reset_state()
         return [], False
 
     cached_ids = set(cached_task_ids or [])
@@ -88,7 +90,6 @@ def filter_today_tasks(tasks: list[Task], today_tasks: list[Task], show_complete
         filtered_today_tasks += [ t for t in rescheduled_tasks if t not in filtered_today_tasks ]
     return filtered_today_tasks
     
-
 def init_session_state() -> None:
     """Set up (or refresh) all Streamlit session state the app depends on.
 
