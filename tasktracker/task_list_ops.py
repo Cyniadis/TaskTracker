@@ -43,7 +43,6 @@ def initialize_tasks(tasks: list[Task]) -> None:
     """
     current_date = today()
     for task in tasks:
-        task.reset_state()
         if not task.due_date or task.due_date >= current_date:
             continue
         if task.is_completed_on(task.due_date):
