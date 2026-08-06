@@ -321,4 +321,5 @@ class Task:
     
     def reset_state(self) -> None:
         """Reset the task's state to its default (not completed, not cancelled, not rescheduled)."""
-        self._state = TaskState(completed=False, due_date_state=TaskDueDateState.NORMAL)
+        completed = self.is_completed_on(today())
+        self._state = TaskState(completed=completed, due_date_state=TaskDueDateState.NORMAL)
