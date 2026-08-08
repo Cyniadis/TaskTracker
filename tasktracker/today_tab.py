@@ -18,7 +18,7 @@ from .tt_json_utils import (
     load_show_completed,
     load_show_rescheduled,
 )
-from .task import Task
+from .task import Period, Task
 from .task_list_ops import find_task_by_id
 
 
@@ -60,7 +60,6 @@ def _edit_due_date(row: int) -> None:
     row_date = st.session_state.today_df.iloc[row]["due_date"]
     current = row_date if row_date is not None else today()
     task = find_task_by_id(st.session_state.tasks, st.session_state.today_df.at[row, "id"])
-    current_date = today()
 
     with st.container(horizontal=True, vertical_alignment="bottom"):
         new_date = st.date_input(
@@ -178,7 +177,9 @@ def _colorize_rows(row: pd.Series) -> list[str]:
         color = get_theme_color("cancelledTextColor")
     elif task.is_manually_rescheduled() and task.due_date != current_date:
         color = get_theme_color("hiddenTextColor")
-    return [f"color: {color}"] * len(row)
+        
+    text_weight = "lighter" if task.frequency_obj.period == Period.DAY else "normal"
+    return [f"color: {color}; font-weight: {text_weight}"] * len(row)
 
 
 def render() -> None:

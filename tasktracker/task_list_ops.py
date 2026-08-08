@@ -7,7 +7,7 @@ Streamlit session state and widgets).
 """
 from __future__ import annotations
 
-from .task import Task, TaskDueDateState, TaskState
+from .task import Period, Task, TaskDueDateState, TaskState
 from common.consts import today
 
 from datetime import datetime
@@ -53,3 +53,10 @@ def initialize_tasks(tasks: list[Task]) -> None:
 def set_due_date_task_list(tasks: list[Task], date: datetime.date):
     for task in tasks:
         task.set_due_date(date)
+
+
+def get_daily_task_list(tasks: list[Task]):
+    return [ task for task in tasks if task.frequency_obj.period == Period.DAY ]
+
+def get_manually_rescheduled_task_list(tasks: list[Task]):  
+    return [ task for task in tasks if task.is_manually_rescheduled_on_today() ]

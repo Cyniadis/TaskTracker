@@ -136,6 +136,9 @@ class Task:
         self._pre_complete_priority: float | None = self.priority
         self._pre_complete_done_date: date | None = self._done_date
 
+    def __hash__(self) -> int:
+        return hash(self._id)
+    
     # -- read-onlydate access ------------------------------------------------
     @property
     def id(self) -> str:
