@@ -85,7 +85,7 @@ def filter_today_tasks(tasks: list[Task], today_tasks: list[Task], show_complete
     if show_completed: 
         filtered_today_tasks += completed_tasks
     if show_rescheduled:
-        filtered_today_tasks += rescheduled_tasks
+        filtered_today_tasks += [t for t in rescheduled_tasks if t not in filtered_today_tasks]
     return filtered_today_tasks
     
 
