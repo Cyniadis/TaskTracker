@@ -144,11 +144,11 @@ class TestComputeDailyTasks:
         result = compute_daily_tasks([pre_selected[0], other], TODAY, daily_time_limit=20, pre_selected_tasks=pre_selected)
         assert {t.id for t in result} == {'0', '1'}
 
-    def test_pre_selected_tasks_that_are_no_longer_eligible_are_dropped(self, make_task):
+    def test_pre_selected_tasks_with_daily_tasks_ignoring_daily_limit(self, make_task):
         # done today -> no longer eligible even though pre-selected
-        pre_selected_task = make_task(duration=10, due_date=TODAY, done_date=TODAY)
+        pre_selected_task = make_task(duration=120, due_date=TODAY, done_date=TODAY, frequency="1xjour")
         result = compute_daily_tasks([pre_selected_task], TODAY, daily_time_limit=60, pre_selected_tasks=[pre_selected_task])
-        assert result == []
+        assert result == [pre_selected_task]
 
     def test_pre_selected_over_budget_returns_only_pre_selected(self, make_task):
         pre_selected = [make_task(duration=50, due_date=TODAY)]

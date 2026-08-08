@@ -90,7 +90,7 @@ def compute_daily_tasks(
     pre_selected_tasks = pre_selected_tasks or []
 
     eligible = [t for t in tasks if _eligibility(t, current_date) is not Eligibility.NOT_ELIGIBLE]
-    pre_selected_tasks = [t for t in pre_selected_tasks if _eligibility(t, current_date) is not Eligibility.NOT_ELIGIBLE]
+    # pre_selected_tasks = [t for t in pre_selected_tasks if _eligibility(t, current_date) is not Eligibility.NOT_ELIGIBLE]
 
     for t in eligible:
         t.state.due_date_state = TaskDueDateState.ELIGIBLE

@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from datetime import datetime
 from datetime import date
-from json import load
 
 import streamlit as st
 
@@ -23,11 +22,11 @@ from .tt_json_utils import (
     load_tasks,
     save_tasks
 )
-from tasktracker.change_tracking_task import snapshot_tasks, load_task_baseline, discard_task_changes
+from tasktracker.change_tracking_task import snapshot_tasks, load_task_baseline
 from .selector import compute_daily_tasks
 from common.common_utils import normalize_date
-from .task import Task, TaskDueDateState
-from .task_list_ops import remove_tasks_by_id, initialize_tasks
+from .task_list_ops import get_daily_task_list, get_manually_rescheduled_task_list, initialize_tasks
+from .task import Task
 
 @st.cache_resource(show_spinner=False)
 def _init_general_task_list() -> list[Task]:
@@ -155,14 +154,15 @@ def regenerate_today_tasks() -> None:
     """
     tasks = st.session_state.tasks
     daily_limit = st.session_state.daily_limit
-    show_completed = load_show_completed()
-    show_rescheduled = load_show_rescheduled()
     current_date = today()
 
-    manually_scheduled = [t for t in tasks if t.is_manually_rescheduled_on_today()]
+    daily_tasks = get_daily_task_list(tasks)
+    manually_scheduled = get_manually_rescheduled_task_list(tasks)
+    pre_selected_tasks = list(set(daily_tasks + manually_scheduled))
+    
     today_tasks = compute_daily_tasks(
         tasks, current_date, daily_limit,
-        pre_selected_tasks=manually_scheduled
+        pre_selected_tasks=pre_selected_tasks
     )
 
     st.session_state.today_tasks = today_tasks
