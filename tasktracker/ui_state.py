@@ -13,6 +13,7 @@ from datetime import date
 import streamlit as st
 
 from common.consts import today
+from onetime.onetime_json_utils import load_onetime_tasks, save_onetime_tasks
 from .tt_json_utils import (
     cache_tasks,
     load_cached_daily_limit,
@@ -25,7 +26,12 @@ from .tt_json_utils import (
 from tasktracker.change_tracking_task import snapshot_tasks, load_task_baseline
 from .selector import compute_daily_tasks
 from common.common_utils import normalize_date
-from .task_list_ops import get_daily_task_list, get_manually_rescheduled_task_list, initialize_tasks
+from .task_list_ops import (
+    get_daily_task_list,
+    get_manually_rescheduled_task_list,
+    get_scheduled_task_list,
+    initialize_tasks,
+)
 from .task import Task
 
 @st.cache_resource(show_spinner=False)
@@ -47,28 +53,47 @@ def _init_general_task_list() -> list[Task]:
     return tasks
 
 
-def _sync_today_tasks(
-    tasks: list[Task], show_completed: bool, show_rescheduled: bool,
-) -> tuple[list[Task], bool]:
-    """Derive today's task list purely from what's persisted in cache.json.
+@st.cache_resource(show_spinner=False)
+def _init_onetime_task_list() -> list[Task]:
+    """Load one-time (no-frequency) tasks from disk once per app session.
 
-    Never invokes the selector — just reads cache.json and filters `tasks`
-    against the cached ids. Cheap enough to call on every rerun, from any
-    session, so correctness never depends on `st.session_state` having
-    survived a refresh, a new tab, or a process restart. If cache.json's
-    date doesn't match today (never generated yet, or day rolled over),
-    returns ([], False).
+    No housekeeping pass here, unlike `_init_general_task_list` — one-time
+    tasks have no frequency, so there's nothing to roll over. See
+    onetime/onetime_tab.py and get_scheduled_task_list() for how they reach
+    the Today list.
+    """
+    return load_onetime_tasks()
+
+
+def _sync_today_tasks(
+    tasks: list[Task], onetime_tasks: list[Task], show_completed: bool, show_rescheduled: bool,
+) -> tuple[list[Task], bool]:
+    """Derive today's task list purely from what's persisted on disk.
+
+    Recurring tasks come from cache.json (never invokes the selector — just
+    reads cache.json and filters `tasks` against the cached ids). One-time
+    tasks are handled separately: they're never written to cache.json, so
+    they're always re-derived fresh from `onetime_tasks` via
+    get_scheduled_task_list() — a one-time task stays on Today from the
+    moment it's scheduled until its row is deleted, with no daily-date
+    gating (see task_list_ops.get_scheduled_task_list's docstring).
+
+    If cache.json's date doesn't match today (never generated yet, or day
+    rolled over), the recurring list resets, but a still-scheduled one-time
+    task is unaffected — it's not tied to cache.json's date at all.
     """
     cache_date, cached_task_ids = load_cached_task_ids()
     current_date = today()
+    onetime_scheduled = get_scheduled_task_list(onetime_tasks)
 
     if normalize_date(cache_date) != current_date:
         for task in tasks: 
             task.reset_state()
-        return [], False
+        today_tasks = filter_today_tasks(tasks, onetime_scheduled, show_completed, show_rescheduled)
+        return today_tasks, bool(onetime_scheduled)
 
     cached_ids = set(cached_task_ids or [])
-    today_tasks = [t for t in tasks if t.id in cached_ids]
+    today_tasks = [t for t in tasks if t.id in cached_ids] + onetime_scheduled
     today_tasks = filter_today_tasks(tasks, today_tasks, show_completed, show_rescheduled)
     
     return today_tasks, True
@@ -93,11 +118,13 @@ def init_session_state() -> None:
     """Set up (or refresh) all Streamlit session state the app depends on.
 
     Runs on every rerun — no "already initialized" guard. Today's task
-    list is always re-derived from cache.json via `_sync_today_tasks`,
-    never recomputed here, so this stays cheap regardless of how often
-    it's called and regardless of what session/tab/process is calling it.
+    list is always re-derived from cache.json/onetime_tasks via
+    `_sync_today_tasks`, never recomputed here, so this stays cheap
+    regardless of how often it's called and regardless of what
+    session/tab/process is calling it.
     """
     tasks = _init_general_task_list()
+    onetime_tasks = _init_onetime_task_list()
     daily_limit = load_cached_daily_limit()
     show_completed = load_show_completed()
     show_rescheduled = load_show_rescheduled()
@@ -105,9 +132,10 @@ def init_session_state() -> None:
     st.session_state.active_duration = 0
     st.session_state.nb_today_task = 0
     
-    today_tasks, today_generated = _sync_today_tasks(tasks, show_completed, show_rescheduled)
+    today_tasks, today_generated = _sync_today_tasks(tasks, onetime_tasks, show_completed, show_rescheduled)
 
     st.session_state.tasks = tasks
+    st.session_state.onetime_tasks = onetime_tasks
     st.session_state.today_tasks = today_tasks
     st.session_state.today_generated = today_generated
     st.session_state.task_baseline = load_task_baseline(tasks)
@@ -120,6 +148,7 @@ def init_session_state() -> None:
     # still gets sane defaults.
     st.session_state.setdefault("today_grid_key", "TodayGrid1")
     st.session_state.setdefault("general_grid_key", "GeneralGrid1")
+    st.session_state.setdefault("onetime_grid_key", "OnetimeGrid1")
     st.session_state.setdefault("timer_running", False)
     st.session_state.setdefault("timer_start_time", None)
     st.session_state.setdefault("timer_elapsed_accum", 0.0)
@@ -137,6 +166,11 @@ def persist_tasks() -> None:
     save_tasks(st.session_state.tasks)
 
 
+def persist_onetime_tasks() -> None:
+    """Write the full one-time task list back to onetime_tasks.json."""
+    save_onetime_tasks(st.session_state.onetime_tasks)
+
+
 def regenerate_today_tasks() -> None:
     """Compute today's task selection from scratch, keeping already-completed ones.
 
@@ -150,15 +184,20 @@ def regenerate_today_tasks() -> None:
 
     Tasks manually scheduled for today are always passed in as
     `pre_selected_tasks`, so they survive regeneration regardless of the
-    daily time budget (see Task.manually_reschedule).
+    daily time budget (see Task.manually_reschedule). One-time tasks that
+    have been scheduled (via onetime/onetime_tab.py) are folded in the same
+    way, so their duration also eats into the remaining budget for
+    recurring tasks — see task_list_ops.get_scheduled_task_list.
     """
     tasks = st.session_state.tasks
+    onetime_tasks = st.session_state.onetime_tasks
     daily_limit = st.session_state.daily_limit
     current_date = today()
 
     daily_tasks = get_daily_task_list(tasks)
     manually_scheduled = get_manually_rescheduled_task_list(tasks)
-    pre_selected_tasks = list(set(daily_tasks + manually_scheduled))
+    onetime_scheduled = get_scheduled_task_list(onetime_tasks)
+    pre_selected_tasks = list(set(daily_tasks + manually_scheduled)) + onetime_scheduled
     
     today_tasks = compute_daily_tasks(
         tasks, current_date, daily_limit,
@@ -170,6 +209,7 @@ def regenerate_today_tasks() -> None:
 
     cache_today_tasks()
     persist_tasks()
+    persist_onetime_tasks()
 
 
 def reload_today_grid() -> None:
@@ -180,6 +220,11 @@ def reload_today_grid() -> None:
 def reload_general_grid() -> None:
     """Force the 'General' data grid to remount by giving it a fresh widget key."""
     st.session_state.general_grid_key = f"GeneralGrid{datetime.now().timestamp()}"
+
+
+def reload_onetime_grid() -> None:
+    """Force the 'One-time' data grid to remount by giving it a fresh widget key."""
+    st.session_state.onetime_grid_key = f"OnetimeGrid{datetime.now().timestamp()}"
 
 
 def reset_app() -> None:
@@ -195,6 +240,12 @@ def add_task(task: Task) -> None:
     # reload_general_grid()
 
 
+def add_onetime_task(task: Task) -> None:
+    """Append a new one-time task and persist it."""
+    st.session_state.onetime_tasks.append(task)
+    persist_onetime_tasks()
+
+
 def schedule_task_for(task: Task, date: datetime.date) -> None:
     """Manually add a task to today's list, ignoring the daily time budget."""
     task.manually_reschedule(date)
@@ -202,6 +253,23 @@ def schedule_task_for(task: Task, date: datetime.date) -> None:
         st.session_state.today_tasks.append(task)
     cache_today_tasks()
     persist_tasks()
+    persist_onetime_tasks()
+    reload_today_grid()
+
+
+def schedule_onetime_task_for(task: Task, date: datetime.date) -> None:
+    """Flag a one-time task as scheduled for today.
+
+    This is the ONLY way a one-time task ever reaches the Today list —
+    unlike recurring tasks, it never becomes "eligible" on its own. Once
+    scheduled it stays flagged (see task.manually_reschedule /
+    task_list_ops.get_scheduled_task_list) until its row is deleted via
+    remove_onetime_tasks().
+    """
+    task.manually_reschedule(date)
+    if task not in st.session_state.today_tasks:
+        st.session_state.today_tasks.append(task)
+    persist_onetime_tasks()
     reload_today_grid()
     
 
@@ -211,6 +279,7 @@ def update_done_date(task: Task, date: datetime.date) -> None:
     task.set_next_due_date(date)
     cache_today_tasks()
     persist_tasks()
+    persist_onetime_tasks()
 
 
 def remove_tasks(task_ids: list[str]) -> None:
@@ -225,9 +294,24 @@ def remove_tasks(task_ids: list[str]) -> None:
     reload_today_grid()
 
 
+def remove_onetime_tasks(task_ids: list[str]) -> None:
+    """Remove one-time tasks by id from both the library and today's list.
+
+    This is the only thing that makes a one-time task disappear from
+    Today once it's been scheduled — see schedule_onetime_task_for's
+    docstring.
+    """
+    if len(task_ids) == 0:
+        return
+    st.session_state.onetime_tasks[:] = [t for t in st.session_state.onetime_tasks if t.id not in task_ids]
+    st.session_state.today_tasks[:] = [t for t in st.session_state.today_tasks if t.id not in task_ids]
+    persist_onetime_tasks()
+    reload_today_grid()
+
+
 def cancel_task(task: Task) -> None:
     """Cancel a task (remove its due date, so it won't be selected for today)."""
     task.cancel()
     cache_today_tasks()
     persist_tasks()
-    
+    persist_onetime_tasks()
