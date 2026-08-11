@@ -102,6 +102,7 @@ class TestRegenerateButton:
         today_app.session_state["tasks"] = []
         today_app.session_state["today_tasks"] = []
         today_app.session_state["today_generated"] = True
+        today_app.session_state["onetime_tasks"] = []
         at = today_app.run()
 
 
@@ -115,6 +116,7 @@ class TestRegenerateButton:
         today_app.session_state["tasks"] = [due_today]
         today_app.session_state["today_tasks"] = []
         today_app.session_state["today_generated"] = True
+        today_app.session_state["onetime_tasks"] = []
         at = today_app.run()
 
         regenerate = next(b for b in at.button if "Regenerate" in b.label)
