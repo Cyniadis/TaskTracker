@@ -59,7 +59,7 @@ def _edit_due_date(row: int) -> None:
     """Dialog to change, cancel, or advance a task's due date."""
     row_date = st.session_state.today_df.iloc[row]["due_date"]
     current = row_date if row_date is not None else today()
-    task = find_task_by_id(st.session_state.tasks, st.session_state.today_df.at[row, "id"])
+    task = find_task_by_id(st.session_state.today_tasks, st.session_state.today_df.at[row, "id"])
 
     with st.container(horizontal=True, vertical_alignment="bottom"):
         new_date = st.date_input(
@@ -147,9 +147,14 @@ def _column_config() -> dict:
 
 
 def _on_row_selected() -> None:
-    """Callback for the 'completed' button column: toggles a task's completion state."""
+    """Callback for the 'completed' button column: toggles a task's completion state.
+
+    Looked up in `today_tasks` (not `tasks`) since this grid can contain
+    both recurring tasks and one-time tasks (see ui_state._sync_today_tasks) —
+    `tasks` alone wouldn't find a one-time task's row.
+    """
     clicked_row = st.session_state.complete_button["row"]
-    task = find_task_by_id(st.session_state.tasks, st.session_state.today_df.at[clicked_row, "id"])
+    task = find_task_by_id(st.session_state.today_tasks, st.session_state.today_df.at[clicked_row, "id"])
 
     # The dataframe still shows the *pre-click* label, so "☐" means the
     # task is about to be marked done, and "🗹" means it's about to be un-done.
@@ -161,6 +166,7 @@ def _on_row_selected() -> None:
 
     ui_state.cache_today_tasks()
     ui_state.persist_tasks()
+    ui_state.persist_onetime_tasks()
 
 
 def _colorize_rows(row: pd.Series) -> list[str]:

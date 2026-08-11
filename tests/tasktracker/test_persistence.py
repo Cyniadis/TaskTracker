@@ -114,6 +114,7 @@ class TestCrossTabPersistence:
         full_app.session_state["today_tasks"] = [task]
         full_app.session_state["today_generated"] = True
         full_app.session_state["task_baseline"] = {}
+        full_app.session_state["onetime_tasks"] = []
         at = full_app.run()
 
         toggle_sort = _label(at, "button", "scending")
@@ -130,6 +131,7 @@ class TestCrossTabPersistence:
         full_app.session_state["timer_elapsed_accum"] = 305.0  # 5:05
         full_app.session_state["today_generated"] = True
         full_app.session_state["task_baseline"] = {}
+        full_app.session_state["onetime_tasks"] = []
         at = full_app.run()
 
         assert "00:05:05" in at.markdown[-1].value

@@ -205,9 +205,9 @@ def render() -> None:
 
     toolbar = st.container(horizontal=True, width="content", vertical_alignment="center")
     toolbar.download_button(
-        "⭳ Export list", data=_export_json_bytes(), file_name="groceries.json", mime="application/json",
+        "⭳ Export list", data=_export_json_bytes(), file_name="groceries.json", mime="application/json", key="grocery_export_button"
     )
-    if toolbar.button("⭱ Import list"):
+    if toolbar.button("⭱ Import list", key="grocery_import_button"):
         _import_groceries_dialog()
 
         

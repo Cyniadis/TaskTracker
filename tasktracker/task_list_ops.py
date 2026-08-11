@@ -60,3 +60,12 @@ def get_daily_task_list(tasks: list[Task]):
 
 def get_manually_rescheduled_task_list(tasks: list[Task]):  
     return [ task for task in tasks if task.is_manually_rescheduled_on_today() ]
+
+
+def get_scheduled_task_list(tasks: list[Task]) -> list[Task]:
+    """Tasks flagged manually-rescheduled, regardless of which day they were
+    scheduled for. Used for one-time tasks: unlike recurring tasks, they have
+    no daily housekeeping pass to reset this flag, so once scheduled they
+    stay on the Today list until the task itself is deleted (see
+    onetime/onetime_tab.py and tasktracker/ui_state.py)."""
+    return [task for task in tasks if task.is_manually_rescheduled()]
