@@ -86,6 +86,6 @@ def render() -> None:
             _live_clock()
 
         with st.container(horizontal=True, horizontal_alignment="center", width="content"):
-            play_label = "⏸ Pause" if st.session_state.timer_running else "▶️ Play"
+            play_label = "⏸ Pause" if st.session_state.timer_running else "▶ Play"
             st.button(play_label, on_click=_toggle_play_pause, use_container_width=True)
             st.button("⏹ Reset", on_click=_reset, use_container_width=True)

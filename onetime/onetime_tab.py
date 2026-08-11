@@ -137,7 +137,7 @@ def _import_onetime_dialog() -> None:
     st.success(f"File looks valid — {len(new_tasks)} tasks found.")
     st.caption("Click confirm below to replace your current one-time tasks and reload.")
 
-    if st.button("✅ Replace all one-time tasks and reload", type="primary"):
+    if st.button(icon="✅", label="Replace all one-time tasks and reload", type="primary"):
         save_onetime_tasks(new_tasks)
         ui_state.reset_app()
         st.rerun()
@@ -161,9 +161,9 @@ def render() -> None:
 
     toolbar = st.container(horizontal=True, width="content", vertical_alignment="bottom")
     toolbar.download_button(
-        "⭳ Export", data=_export_json_bytes(), file_name="onetime_tasks.json", mime="application/json",
+        icon="⏬", label="Export", data=_export_json_bytes(), file_name="onetime_tasks.json", mime="application/json",
     )
-    if toolbar.button("⭱ Import"):
+    if toolbar.button(icon="⏫", label="Import"):
         _import_onetime_dialog()
 
     df = _tasks_to_onetime_dataframe(st.session_state.onetime_tasks)

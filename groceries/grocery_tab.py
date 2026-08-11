@@ -167,7 +167,7 @@ def _import_groceries_dialog() -> None:
     st.success(f"File looks valid — {len(new_items)} items found.")
     st.caption("Click confirm below to replace your current grocery list.")
 
-    if st.button("✅ Replace all items and reload", type="primary"):
+    if st.button(icon="✅", label="Replace all items and reload", type="primary"):
         save_groceries(new_items)
         # Only the groceries resource cache needs clearing here — tasks,
         # cache.json settings, etc. are untouched, so there's no need for
@@ -205,9 +205,9 @@ def render() -> None:
 
     toolbar = st.container(horizontal=True, width="content", vertical_alignment="center")
     toolbar.download_button(
-        "⭳ Export list", data=_export_json_bytes(), file_name="groceries.json", mime="application/json", key="grocery_export_button"
+        icon="⏬", label="Export list", data=_export_json_bytes(), file_name="groceries.json", mime="application/json", key="grocery_export_button"
     )
-    if toolbar.button("⭱ Import list", key="grocery_import_button"):
+    if toolbar.button(icon="⏫",label="Import list", key="grocery_import_button"):
         _import_groceries_dialog()
 
         

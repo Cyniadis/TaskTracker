@@ -107,7 +107,7 @@ def _render_today_header() -> None:
             width=100,
         )
 
-        st.button("🔄 Regenerate", on_click=ui_state.regenerate_today_tasks)
+        st.button(icon="🔄", label="Regenerate", on_click=ui_state.regenerate_today_tasks)
         st.checkbox(
             "Show completed tasks", load_show_completed(),
             on_change=lambda: cache_show_completed(st.session_state.show_completed_checkbox),
@@ -196,7 +196,7 @@ def render() -> None:
     if not st.session_state.get("today_generated", False):
         st.info("Today's task list hasn't been generated yet.")
         st.button(
-            "▶️ Generate today's list",
+            icon="▶️", label="Generate today's list",
             on_click=ui_state.regenerate_today_tasks,
             type="primary",
         )

@@ -237,7 +237,7 @@ def _import_tasks_dialog() -> None:
     st.success(f"File looks valid — {len(new_tasks)} tasks found.")
     st.caption("Click confirm below to replace your current tasks and reload the app.")
 
-    if st.button("✅ Replace all tasks and reload", type="primary"):
+    if st.button(icon="✅", label="Replace all tasks and reload", type="primary"):
         save_tasks(new_tasks)
         ui_state.reset_app()
         st.rerun()
@@ -280,10 +280,10 @@ def render() -> None:
     toolbar = st.container(horizontal=True, width="content", vertical_alignment="bottom")
 
     toolbar.download_button(
-        "⭳ Export tasks", data=_export_json_bytes(), file_name="tasklist.json", mime="application/json",
+        icon="⏬", label="Export tasks", data=_export_json_bytes(), file_name="tasklist.json", mime="application/json",
     )
 
-    if toolbar.button("⭱ Import tasks"):
+    if toolbar.button(icon="⏫", label="Import tasks"):
         _import_tasks_dialog()
 
     df = _tasks_to_general_dataframe(st.session_state.tasks)
