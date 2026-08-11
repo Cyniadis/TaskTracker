@@ -28,6 +28,7 @@ class TestOnRowSelected:
         today_tab_logic_app.session_state["tasks"] = [task]
         today_tab_logic_app.session_state["today_tasks"] = [task]
         today_tab_logic_app.session_state["today_generated"] = True
+        today_tab_logic_app.session_state["onetime_tasks"] = []
         
         at = _click_toggle(today_tab_logic_app, TODAY_ROW)
 
@@ -41,7 +42,8 @@ class TestOnRowSelected:
         today_tab_logic_app.session_state["tasks"] = [task]
         today_tab_logic_app.session_state["today_tasks"] = [task]
         today_tab_logic_app.session_state["today_generated"] = True
-        
+        today_tab_logic_app.session_state["onetime_tasks"] = []
+
         at = _click_toggle(today_tab_logic_app, DONE_ROW)
 
         assert len(at.exception) == 0
