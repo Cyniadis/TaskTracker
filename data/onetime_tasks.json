@@ -1,16 +1,240 @@
 [
   {
-    "name": "🍴 Nettoyer le plan de travailefzrezrfezf",
-    "frequency": "1xjour",
-    "priority": 8,
-    "initial_priority": 8,
-    "duration": 5,
-    "id": "f07a8757",
-    "due_date": "2026-08-09",
-    "done_date": "2026-08-09",
+    "name": "🛌🗑 Dégager le vélo elliptique",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 10,
+    "id": "d0ca806a",
+    "due_date": null,
+    "done_date": null,
     "state": {
-      "completed": true,
-      "due_date_state": "rescheduled"
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🛌♻ Trier sous-vêtements",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 30,
+    "id": "5a2bc473",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🛌♻ Trier étagères",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 20,
+    "id": "6e7afcfb",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🛌♻ Trier dressing",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 30,
+    "id": "150e3871",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🛌♻ Trier  commode 1",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 30,
+    "id": "289d8aed",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🛌♻ Trier  commode 2",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 15,
+    "id": "0f14adcf",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🛌♻ Trier  sacs",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 15,
+    "id": "981244e0",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🛌🗑 Dégager l'entendoir",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 10,
+    "id": "7e237b08",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🛌💸 Racheter valets de chambre",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 15,
+    "id": "e684b1a8",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🛌💸 Acheter un cache sommier",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 15,
+    "id": "8c86abb5",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🛌💸 Racheter linges de lit",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 15,
+    "id": "1693f86c",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🛌 Bouger les meubles",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 20,
+    "id": "95fa2558",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🛌💸 Acheter support TV",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 15,
+    "id": "63cc3b4e",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🛌 Nettoyer le sol",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 15,
+    "id": "e199713f",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🛌 Trouver séparateur tiroirs",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 15,
+    "id": "93bf3fb5",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🛌💸 Changer la tête de lit",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 15,
+    "id": "b3e0d711",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
+    }
+  },
+  {
+    "name": "🚘Appeler auto-école",
+    "frequency": "ponctuel",
+    "priority": 0,
+    "initial_priority": 0,
+    "duration": 15,
+    "id": "29fab73f",
+    "due_date": null,
+    "done_date": null,
+    "state": {
+      "completed": false,
+      "due_date_state": "normal"
     }
   }
 ]
